@@ -43,3 +43,10 @@ out/
 ### 로컬 개발 환경용 compose ###
 .compose.local.yml
 
+### nginx/certs/
+nginx/certs/
+nginx/.htpasswd
+
+### 인증키
+*.pem
+*.key
