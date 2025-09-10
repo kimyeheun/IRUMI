@@ -7,10 +7,7 @@ pipeline {
     SAFE_ENV = '/opt/pocketc/.env'
   }
 
-  triggers {
-    // Webhook 쓰면 생략, 간단히 테스트하려면 주석 해제 후 저장:
-    // pollSCM('H/2 * * * *')   // 2분마다 변경 확인
-  }
+  properties([ pipelineTriggers([ pollSCM('H/2 * * * *') ]) ])
 
   stages {
     stage('Checkout') {
