@@ -90,3 +90,4 @@ volumes:
   mysql-data:
   redis-data:
   jenkins_home:
+    external: true
