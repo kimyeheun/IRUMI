@@ -1,0 +1,65 @@
+pipeline {
+  agent any
+  options { timestamps(); ansiColor('xterm') }
+
+  environment {
+    // EC2에 안전 보관한 .env (compose에서 env_file: .env를 쓰므로 워크스페이스로 복사)
+    SAFE_ENV = '/opt/pocketc/.env'
+  }
+
+  triggers {
+    // Webhook 쓰면 생략, 간단히 테스트하려면 주석 해제 후 저장:
+    // pollSCM('H/2 * * * *')   // 2분마다 변경 확인
+  }
+
+  stages {
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Prepare .env') {
+      steps {
+        sh '''
+          # SAFE_ENV가 있으면 워크스페이스로 복사 (없어도 에러 내지 않음)
+          if [ -f "${SAFE_ENV}" ]; then
+            cp -f "${SAFE_ENV}" ./.env
+            echo "[INFO] .env copied from ${SAFE_ENV}"
+          else
+            echo "[WARN] ${SAFE_ENV} not found; using existing .env if present."
+          fi
+        '''
+      }
+    }
+
+    stage('Build (Gradle)') {
+      steps {
+        sh '''
+          chmod +x ./gradlew || true
+          ./gradlew clean build -x test
+        '''
+      }
+    }
+
+    stage('Deploy (Docker Compose)') {
+      when { branch 'backend' }   // backend 브랜치에만 배포
+      steps {
+        sh '''
+          docker compose version
+          docker compose down
+          docker compose up -d --build
+          docker ps
+        '''
+      }
+    }
+  }
+
+  post {
+    success { echo '✅ Deploy OK' }
+    failure {
+      echo '❌ Deploy Failed'
+      sh 'docker compose logs --no-color --tail=200 || true'
+      sh 'docker logs --tail=200 backend || true'
+      sh 'docker logs --tail=100 nginx || true'
+    }
+  }
+}
