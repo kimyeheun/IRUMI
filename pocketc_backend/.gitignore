@@ -36,5 +36,10 @@ out/
 ### VS Code ###
 .vscode/
 
+### ENV ###
 .env
 *.env
+
+### 로컬 개발 환경용 compose ###
+.compose.local.yml
+
