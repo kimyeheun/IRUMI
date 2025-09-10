@@ -7,7 +7,9 @@ pipeline {
     SAFE_ENV = '/opt/pocketc/.env'
   }
 
-  properties([ pipelineTriggers([ pollSCM('H/2 * * * *') ]) ])
+  triggers {
+    pollSCM('H/2 * * * *')   // 2분마다 변경 확인
+  }
 
   stages {
     stage('Checkout') {
