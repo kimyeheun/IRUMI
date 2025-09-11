@@ -31,18 +31,18 @@ pipeline {
       steps {
         dir(env.WORKDIR) {
           sh '''
-            set -Eeuo pipefail
+            set -eu
             chmod +x ./gradlew || true
 
-            # 1) .env -> 환경변수로 export
+            # .env -> 환경변수 export
             if [ -f ./.env ]; then
               set -a
               . ./.env
               set +a
             fi
 
-            # 2) 테스트에서 필요한 DS 변수 보강(없으면 생성)
-            : "${SPRING_DATASOURCE_URL:=jdbc:mysql://mysql:3306/${MYSQL_DB}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true}"
+            # 필요한 Datasource 변수 보강(없으면 생성)
+            : "${SPRING_DATASOURCE_URL:=jdbc:mysql://$DB_HOST:${DB_PORT:-3306}/$MYSQL_DB?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true}"
             : "${SPRING_DATASOURCE_USERNAME:=${MYSQL_USER}}"
             : "${SPRING_DATASOURCE_PASSWORD:=${MYSQL_PASSWORD}}"
             export SPRING_DATASOURCE_URL SPRING_DATASOURCE_USERNAME SPRING_DATASOURCE_PASSWORD
@@ -54,6 +54,7 @@ pipeline {
         }
       }
     }
+
 
     stage('Build (Gradle)') {
       steps {
