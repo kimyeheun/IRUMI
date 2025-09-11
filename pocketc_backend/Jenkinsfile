@@ -1,16 +1,15 @@
 pipeline {
   agent any
-  options { timestamps(); ansiColor('xterm') }
+  options { timestamps(); ansiColor('xterm'); buildDiscarder(logRotator(numToKeepStr: '20')) }
 
   environment {
     SAFE_ENV = '/opt/pocketc/.env'
-    WORKDIR  = 'pocketc_backend'   // 실제 코드/compose 위치
+    WORKDIR  = 'pocketc_backend'
+    GRADLE_USER_HOME = '/var/jenkins_home/.gradle'
   }
 
   stages {
-    stage('Checkout') {
-      steps { checkout scm }
-    }
+    stage('Checkout') { steps { checkout scm } }
 
     stage('Prepare .env') {
       steps {
@@ -28,19 +27,29 @@ pipeline {
       }
     }
 
-    stage('Build (Gradle)') {
+    stage('Unit & Integration Tests') {
       steps {
         dir(env.WORKDIR) {
           sh '''
             chmod +x ./gradlew || true
-            ./gradlew clean build -x test
+            ./gradlew --no-daemon test
           '''
+          junit 'build/test-results/test/*.xml'
+          archiveArtifacts allowEmptyArchive: true, artifacts: 'build/reports/tests/test/**/*'
+        }
+      }
+    }
+
+    stage('Build (Gradle)') {
+      steps {
+        dir(env.WORKDIR) {
+          sh './gradlew --no-daemon bootJar'
         }
       }
     }
 
     stage('Deploy (Docker Compose)') {
-      when { branch 'backend' }   // 배포 브랜치명
+      when { branch 'backend' }
       steps {
         dir(env.WORKDIR) {
           sh '''
@@ -49,6 +58,14 @@ pipeline {
             docker ps
           '''
         }
+      }
+    }
+
+    stage('Smoke test') {
+      when { branch 'backend' }
+      steps {
+        sh 'curl -fsS http://nginx/actuator/health | grep \'"status":"UP"\''
+        echo '[OK] smoke test passed'
       }
     }
   }
