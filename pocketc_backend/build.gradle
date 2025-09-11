@@ -28,12 +28,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-
-	// mysql mygration
-	implementation("org.flywaydb:flyway-core")
-	implementation("org.flywaydb:flyway-mysql")
-
-	// docker actuator
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
 	compileOnly 'org.projectlombok:lombok'
@@ -41,13 +37,13 @@ dependencies {
 	runtimeOnly 'com.mysql:mysql-connector-j:8.4.0'
 	annotationProcessor 'org.projectlombok:lombok'
 
+	// ✅ Testcontainers 버전 정렬
 	testImplementation platform("org.testcontainers:testcontainers-bom:1.20.3")
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.junit.jupiter:junit-jupiter'
-	testImplementation 'org.testcontainers:mysql'
-	testImplementation 'org.testcontainers:redis:2.2.4'
+	testImplementation "org.testcontainers:junit-jupiter"
+	testImplementation "org.testcontainers:mysql"
 
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// ✅ Redis는 여기! (group 다름)
+	testImplementation "com.redis:testcontainers-redis:2.2.4"
 }
 
 test {
