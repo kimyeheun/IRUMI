@@ -25,30 +25,41 @@ repositories {
 }
 
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.flywaydb:flyway-core'
 	implementation 'org.flywaydb:flyway-mysql'
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	runtimeOnly 'com.mysql:mysql-connector-j:8.4.0'
 
 	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.mysql:mysql-connector-j:8.4.0'
 	annotationProcessor 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-	// ✅ Testcontainers 버전 정렬
-	testImplementation platform("org.testcontainers:testcontainers-bom:1.20.3")
-	testImplementation "org.testcontainers:junit-jupiter"
-	testImplementation "org.testcontainers:mysql"
+	// --- Tests ---
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation platform('org.testcontainers:testcontainers-bom:1.20.3')
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:mysql'
+	testImplementation 'com.redis:testcontainers-redis:2.2.4'
 
-	// ✅ Redis는 여기! (group 다름)
-	testImplementation "com.redis:testcontainers-redis:2.2.4"
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {
 	useJUnitPlatform()
+	// 실패 시 Jenkins 콘솔에 상세 원인 출력
+	testLogging {
+		events "FAILED"
+		exceptionFormat "full"
+		showExceptions true
+		showCauses true
+		showStackTraces true
+	}
 }
+
 
 bootJar {
 	archiveFileName = 'app.jar'
