@@ -41,10 +41,6 @@ out/
 *.env
 *.env.local
 
-### 로컬 개발 환경용 compose ###
-compose.local.yml
-compose.yaml
-
 ### nginx/certs/
 nginx/certs/
 nginx/.htpasswd
