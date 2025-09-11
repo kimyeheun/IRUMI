@@ -1,0 +1,110 @@
+pipeline {
+  agent any
+  options { timestamps(); ansiColor('xterm'); buildDiscarder(logRotator(numToKeepStr: '20')) }
+
+  environment {
+    SAFE_ENV = '/opt/pocketc/.env'
+    WORKDIR  = 'pocketc_backend'
+    GRADLE_USER_HOME = '/var/jenkins_home/.gradle'
+  }
+
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+
+    stage('Prepare .env') {
+      steps {
+        dir(env.WORKDIR) {
+          sh '''
+            if [ -f "${SAFE_ENV}" ]; then
+              cp -f "${SAFE_ENV}" ./.env
+              echo "[INFO] .env copied from ${SAFE_ENV}"
+            else
+              echo "[WARN] ${SAFE_ENV} not found; using existing .env if present."
+            fi
+            ls -la | head
+          '''
+        }
+      }
+    }
+
+    stage('Unit & Integration Tests') {
+      steps {
+        dir(env.WORKDIR) {
+          sh '''
+            set -eu
+            chmod +x ./gradlew || true
+
+            # .env -> 환경변수 export
+            if [ -f ./.env ]; then
+              set -a
+              . ./.env
+              set +a
+            fi
+
+            # 필요한 Datasource 변수 보강(없으면 생성)
+            : "${SPRING_DATASOURCE_URL:=jdbc:mysql://$DB_HOST:${DB_PORT:-3306}/$MYSQL_DB?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true}"
+            : "${SPRING_DATASOURCE_USERNAME:=${MYSQL_USER}}"
+            : "${SPRING_DATASOURCE_PASSWORD:=${MYSQL_PASSWORD}}"
+            export SPRING_DATASOURCE_URL SPRING_DATASOURCE_USERNAME SPRING_DATASOURCE_PASSWORD
+
+            ./gradlew --no-daemon test --stacktrace --info | tee gradle-test.log
+          '''
+          junit allowEmptyResults: true, testResults: 'build/test-results/test/*.xml'
+          archiveArtifacts allowEmptyArchive: true, artifacts: 'gradle-test.log,build/reports/tests/test/**/*'
+        }
+      }
+    }
+
+
+    stage('Build (Gradle)') {
+      steps {
+        dir(env.WORKDIR) {
+          sh './gradlew --no-daemon bootJar'
+        }
+      }
+    }
+
+    stage('Deploy (Docker Compose)') {
+      when { branch 'backend' }
+      steps {
+        dir(env.WORKDIR) {
+          sh '''
+            docker compose down || true
+            docker compose up -d --build
+            docker ps
+          '''
+        }
+      }
+    }
+
+    stage('Smoke test') {
+      when { branch 'backend' }
+      steps {
+        sh '''
+          set -e
+          # 1차: 같은 도커 네트워크라면 서비스명으로 체크
+          if curl -fsS http://nginx/nginx-health >/dev/null 2>&1; then
+            curl -fsS http://nginx/actuator/health | grep '"status":"UP"'
+            echo '[OK] smoke test via service name'
+          else
+            # 2차: 퍼블릭 IP로 체크 (필요시 IP/도메인으로 교체)
+            curl -fsS http://54.180.163.108/actuator/health | grep '"status":"UP"'
+            echo '[OK] smoke test via public IP'
+          fi
+        '''
+      }
+    }
+  }
+
+  post {
+    success { echo '✅ Deploy OK' }
+    failure {
+      echo '❌ Deploy Failed'
+      dir(env.WORKDIR) {
+        sh 'docker compose logs --no-color --tail=200 || true'
+      }
+      sh 'docker logs --tail=200 backend || true'
+      sh 'docker logs --tail=100 nginx || true'
+    }
+  }
+}

@@ -53,5 +53,3 @@ nginx/.htpasswd
 *.pem
 *.key
 
-Dockerfile
-Jenkinsfile
