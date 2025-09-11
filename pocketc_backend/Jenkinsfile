@@ -13,6 +13,8 @@ pipeline {
 
     stage('Prepare .env') {
       steps {
+        withCredentials([file(credentialID: 'ENV', variable: 'SAFE_ENV')]) {
+
         dir(env.WORKDIR) {
           sh '''
             if [ -f "${SAFE_ENV}" ]; then
@@ -25,6 +27,8 @@ pipeline {
           '''
         }
       }
+      }
+
     }
 
     stage('Unit & Integration Tests') {
@@ -54,7 +58,6 @@ pipeline {
         }
       }
     }
-
 
     stage('Build (Gradle)') {
       steps {
