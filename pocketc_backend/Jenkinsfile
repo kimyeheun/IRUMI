@@ -3,7 +3,7 @@ pipeline {
   options { timestamps(); ansiColor('xterm'); buildDiscarder(logRotator(numToKeepStr: '20')) }
 
   environment {
-    SAFE_ENV = '/opt/pocketc/.env'
+    SAFE_ENV = '/opt/pocketc/.env'     // 서버에 미리 둔 폴백 경로
     WORKDIR  = 'pocketc_backend'
     GRADLE_USER_HOME = '/var/jenkins_home/.gradle'
   }
@@ -13,23 +13,25 @@ pipeline {
 
     stage('Prepare .env') {
       steps {
-        withCredentials([file(credentialID: 'ENV', variable: 'SAFE_ENV')]) {
-
         dir(env.WORKDIR) {
-          sh '''
-            if [ -f "${SAFE_ENV}" ]; then
-              cp -f "${SAFE_ENV}" ./.env
-              echo "[INFO] .env copied from ${SAFE_ENV}"
-            else
-              echo "[WARN] ${SAFE_ENV} not found; using existing .env if present."
-            fi
-            ls -la | head
-          '''
+          // Secret file(ENV)에서 바로 .env로 복사
+          withCredentials([file(credentialsId: 'ENV', variable: 'ENV_FILE')]) {
+            sh '''
+              set -eu
+              if [ -s "$ENV_FILE" ]; then
+                cp -f "$ENV_FILE" ./.env
+                echo "[INFO] .env copied from secret file (ENV)"
+              else
+                echo "[ERROR] Secret file ENV is empty or not found!"
+                exit 1
+              fi
+              ls -la | head
+            '''
+          }
         }
       }
-      }
-
     }
+
 
     stage('Unit & Integration Tests') {
       steps {
@@ -38,14 +40,14 @@ pipeline {
             set -eu
             chmod +x ./gradlew || true
 
-            # .env -> 환경변수 export
+            # .env 로드
             if [ -f ./.env ]; then
               set -a
               . ./.env
               set +a
             fi
 
-            # 필요한 Datasource 변수 보강(없으면 생성)
+            # 필요한 Datasource 변수 보강(없으면 기본값 주입)
             : "${SPRING_DATASOURCE_URL:=jdbc:mysql://$DB_HOST:${DB_PORT:-3306}/$MYSQL_DB?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true}"
             : "${SPRING_DATASOURCE_USERNAME:=${MYSQL_USER}}"
             : "${SPRING_DATASOURCE_PASSWORD:=${MYSQL_PASSWORD}}"
@@ -72,6 +74,7 @@ pipeline {
       steps {
         dir(env.WORKDIR) {
           sh '''
+            set -e
             docker compose down || true
             docker compose up -d --build
             docker ps
@@ -85,12 +88,10 @@ pipeline {
       steps {
         sh '''
           set -e
-          # 1차: 같은 도커 네트워크라면 서비스명으로 체크
           if curl -fsS http://nginx/nginx-health >/dev/null 2>&1; then
             curl -fsS http://nginx/actuator/health | grep '"status":"UP"'
             echo '[OK] smoke test via service name'
           else
-            # 2차: 퍼블릭 IP로 체크 (필요시 IP/도메인으로 교체)
             curl -fsS http://54.180.163.108/actuator/health | grep '"status":"UP"'
             echo '[OK] smoke test via public IP'
           fi
