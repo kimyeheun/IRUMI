@@ -36,5 +36,16 @@ out/
 ### VS Code ###
 .vscode/
 
+### ENV ###
 .env
 *.env
+*.env.local
+
+### nginx/certs/
+nginx/certs/
+nginx/.htpasswd
+
+### 인증키
+*.pem
+*.key
+

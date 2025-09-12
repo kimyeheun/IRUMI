@@ -1,0 +1,84 @@
+pipeline {
+  agent any
+  options { timestamps(); ansiColor('xterm'); buildDiscarder(logRotator(numToKeepStr: '20')) }
+
+  environment {
+    SAFE_ENV = '/opt/pocketc/.env'
+    WORKDIR  = 'pocketc_backend'
+    GRADLE_USER_HOME = '/var/jenkins_home/.gradle'
+  }
+
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+
+    stage('Prepare .env') {
+      steps {
+        dir(env.WORKDIR) {
+          sh '''
+            if [ -f "${SAFE_ENV}" ]; then
+              cp -f "${SAFE_ENV}" ./.env
+              echo "[INFO] .env copied from ${SAFE_ENV}"
+            else
+              echo "[WARN] ${SAFE_ENV} not found; using existing .env if present."
+            fi
+            ls -la | head
+          '''
+        }
+      }
+    }
+
+    stage('Unit & Integration Tests') {
+      steps {
+        dir(env.WORKDIR) {
+          sh '''
+            chmod +x ./gradlew || true
+            ./gradlew --no-daemon test
+          '''
+          junit 'build/test-results/test/*.xml'
+          archiveArtifacts allowEmptyArchive: true, artifacts: 'build/reports/tests/test/**/*'
+        }
+      }
+    }
+
+    stage('Build (Gradle)') {
+      steps {
+        dir(env.WORKDIR) {
+          sh './gradlew --no-daemon bootJar'
+        }
+      }
+    }
+
+    stage('Deploy (Docker Compose)') {
+      when { branch 'backend' }
+      steps {
+        dir(env.WORKDIR) {
+          sh '''
+            docker compose down || true
+            docker compose up -d --build
+            docker ps
+          '''
+        }
+      }
+    }
+
+    stage('Smoke test') {
+      when { branch 'backend' }
+      steps {
+        sh 'curl -fsS http://nginx/actuator/health | grep \'"status":"UP"\''
+        echo '[OK] smoke test passed'
+      }
+    }
+  }
+
+  post {
+    success { echo '✅ Deploy OK' }
+    failure {
+      echo '❌ Deploy Failed'
+      dir(env.WORKDIR) {
+        sh 'docker compose logs --no-color --tail=200 || true'
+      }
+      sh 'docker logs --tail=200 backend || true'
+      sh 'docker logs --tail=100 nginx || true'
+    }
+  }
+}
