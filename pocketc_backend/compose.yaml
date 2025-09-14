@@ -18,6 +18,8 @@ services:
       timeout: 3s
       retries: 20
     restart: unless-stopped
+    expose:
+      - "3306"
 
   redis:
     image: redis:7-alpine
@@ -32,6 +34,8 @@ services:
       timeout: 3s
       retries: 20
     restart: unless-stopped
+    expose:
+      - "6379"
 
   backend:
     build:
