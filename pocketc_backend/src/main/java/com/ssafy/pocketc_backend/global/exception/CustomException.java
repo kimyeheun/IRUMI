@@ -4,7 +4,7 @@ import com.ssafy.pocketc_backend.global.exception.type.ErrorType;
 import lombok.Getter;
 
 @Getter
-public class CustomException extends RuntimeException{
+public class CustomException extends RuntimeException {
     private final ErrorType errorType;
 
     public CustomException(ErrorType errorType) {
@@ -16,4 +16,3 @@ public class CustomException extends RuntimeException{
         return errorType.getHttpStatusCode();
     }
 }
-
