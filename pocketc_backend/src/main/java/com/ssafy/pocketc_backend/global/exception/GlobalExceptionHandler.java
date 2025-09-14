@@ -1,7 +1,5 @@
 package com.ssafy.pocketc_backend.global.exception;
 
-
-
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
 import com.ssafy.pocketc_backend.global.exception.type.GlobalErrorType;
 import jakarta.servlet.http.HttpServletRequest;

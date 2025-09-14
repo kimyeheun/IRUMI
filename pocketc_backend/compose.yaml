@@ -18,6 +18,8 @@ services:
       timeout: 3s
       retries: 20
     restart: unless-stopped
+    expose:
+      - "3306"
 
   redis:
     image: redis:7-alpine
@@ -27,11 +29,13 @@ services:
     volumes:
       - redis-data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ${REDIS_PASSWORD:+-a ${REDIS_PASSWORD}} ping | grep PONG"]
+      test: [ "CMD-SHELL", "redis-cli ${REDIS_PASSWORD:+-a ${REDIS_PASSWORD}} ping | grep PONG" ]
       interval: 5s
       timeout: 3s
       retries: 20
     restart: unless-stopped
+    expose:
+      - "6379"
 
   backend:
     build:
