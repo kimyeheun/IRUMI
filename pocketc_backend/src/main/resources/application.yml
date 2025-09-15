@@ -1,64 +1,29 @@
+---
+# 서버 배포용 application.yml
 server:
   port: ${SERVER_PORT:8080}
 
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST:mysql}:${DB_PORT:3306}/${MYSQL_DB}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${DB_HOST:mysql}:${DB_PORT:3306}/${MYSQL_DB}?serverTimezone=Asia/Seoul
     username: ${MYSQL_USER}
     password: ${MYSQL_PASSWORD}
-    hikari:
-      maximum-pool-size: ${DB_POOL_SIZE:10}
-      minimum-idle: ${DB_MIN_IDLE:5}
-      idle-timeout: 600000
-      max-lifetime: 1800000
-      connection-timeout: 30000
-      pool-name: ${DB_POOL_NAME:HikariCP}
-
-  jpa:
-    hibernate:
-      ddl-auto: ${JPA_DDL:none}
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: false
-    open-in-view: false
 
   data:
     redis:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-      ssl:
-        enabled: ${REDIS_SSL:false}
 
-logging:
-  level:
-    root: INFO
-    org.hibernate.SQL: ${LOG_SQL:false}
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} : %msg%n"
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,info"
-  endpoint:
-    health:
-      show-details: "never"
 
 ---
+# 로컬 개발용 application.yaml
 spring:
   config:
     activate:
       on-profile: local
   datasource:
-    url: jdbc:mysql://localhost:3306/${MYSQL_DB:app}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/${MYSQL_DB:app}?serverTimezone=Asia/Seoul
   data:
     redis:
       host: localhost
-  flyway:
-    enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
