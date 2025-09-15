@@ -1,81 +1,55 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.5'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'org.springframework.boot' version '3.5.5'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
-
-group = 'com.ssafy'
-version = '0.0.1-SNAPSHOT'
-description = 'Demo project for Spring Boot'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
+
+bootJar { archiveFileName = 'app.jar' }
+jar { enabled = false }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
-repositories {
-	mavenCentral()
-}
-
-repositories {
-	mavenCentral()
-}
+repositories { mavenCentral() }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+//    implementation 'org.flywaydb:flyway-core'
+//    implementation 'org.flywaydb:flyway-mysql'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
 
-	// DB 마이그레이션용
-	implementation 'org.flywaydb:flyway-core'
-	implementation 'org.flywaydb:flyway-mysql'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 
-	// lombok
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	testCompileOnly 'org.projectlombok:lombok'
-	testAnnotationProcessor 'org.projectlombok:lombok'
+    implementation 'com.mysql:mysql-connector-j:8.4.0'
+    runtimeOnly 'com.h2database:h2'
 
-	runtimeOnly 'com.mysql:mysql-connector-j:8.4.0'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	testImplementation 'com.redis:testcontainers-redis:2.2.4'
-
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation platform('org.testcontainers:testcontainers-bom:1.20.3')
-	testImplementation 'org.testcontainers:junit-jupiter'
-	testImplementation 'org.testcontainers:mysql'
-
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+//    testImplementation platform('org.testcontainers:testcontainers-bom:1.20.3')
+//    testImplementation 'org.testcontainers:mysql'
+//    testImplementation 'com.redis:testcontainers-redis:2.2.4'
 }
 
 test {
-	useJUnitPlatform()
-}
-
-test {
-	useJUnitPlatform()
-	// 실패 시 Jenkins 콘솔에 상세 원인 출력
-	testLogging {
-		events "FAILED"
-		exceptionFormat "full"
-		showExceptions true
-		showCauses true
-		showStackTraces true
-	}
-}
-
-
-bootJar {
-	archiveFileName = 'app.jar'
-}
-
-jar {
-	enabled = false
+    useJUnitPlatform()
+    // 실패 시 Jenkins 콘솔에 상세 원인 출력
+    testLogging {
+        events "FAILED"
+        exceptionFormat "full"
+        showExceptions true
+        showCauses true
+        showStackTraces true
+    }
 }
