@@ -3,7 +3,6 @@ pipeline {
   options { timestamps(); ansiColor('xterm'); buildDiscarder(logRotator(numToKeepStr: '20')) }
 
   environment {
-    SAFE_ENV = '/opt/pocketc/.env'
     WORKDIR  = 'pocketc_backend'
     GRADLE_USER_HOME = '/var/jenkins_home/.gradle'
   }
@@ -11,31 +10,15 @@ pipeline {
   stages {
     stage('Checkout') { steps { checkout scm } }
 
-    stage('Prepare .env') {
-      steps {
-        dir(env.WORKDIR) {
-          sh '''
-            if [ -f "${SAFE_ENV}" ]; then
-              cp -f "${SAFE_ENV}" ./.env
-              echo "[INFO] .env copied from ${SAFE_ENV}"
-            else
-              echo "[WARN] ${SAFE_ENV} not found; using existing .env if present."
-            fi
-            ls -la | head
-          '''
-        }
-      }
-    }
-
     stage('Unit & Integration Tests') {
       steps {
         dir(env.WORKDIR) {
           sh '''
+            set -eu
             chmod +x ./gradlew || true
             ./gradlew --no-daemon test
           '''
           junit 'build/test-results/test/*.xml'
-          archiveArtifacts allowEmptyArchive: true, artifacts: 'build/reports/tests/test/**/*'
         }
       }
     }
@@ -43,7 +26,7 @@ pipeline {
     stage('Build (Gradle)') {
       steps {
         dir(env.WORKDIR) {
-          sh './gradlew --no-daemon bootJar'
+          sh 'set -eu; ./gradlew --no-daemon bootJar'
         }
       }
     }
@@ -52,11 +35,42 @@ pipeline {
       when { branch 'backend' }
       steps {
         dir(env.WORKDIR) {
-          sh '''
-            docker compose down || true
-            docker compose up -d --build
-            docker ps
-          '''
+          withCredentials([
+            string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'MYSQL_ROOT_PASSWORD'),
+            string(credentialsId: 'MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
+            string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD')
+          ]) {
+            sh '''
+              set -eu
+              DB_HOST=mysql \
+              DB_PORT=3306 \
+              MYSQL_DB=pocketcdb \
+              MYSQL_USER=hamster \
+              MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
+              MYSQL_PASSWORD="$MYSQL_PASSWORD" \
+              REDIS_HOST=redis \
+              REDIS_PORT=6379 \
+              REDIS_PASSWORD="$REDIS_PASSWORD" \
+              SERVER_PORT=8080 \
+              TZ=Asia/Seoul \
+              docker compose build backend
+
+              DB_HOST=mysql \
+              DB_PORT=3306 \
+              MYSQL_DB=pocketcdb \
+              MYSQL_USER=hamster \
+              MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
+              MYSQL_PASSWORD="$MYSQL_PASSWORD" \
+              REDIS_HOST=redis \
+              REDIS_PORT=6379 \
+              REDIS_PASSWORD="$REDIS_PASSWORD" \
+              SERVER_PORT=8080 \
+              TZ=Asia/Seoul \
+              docker compose up -d mysql redis backend nginx
+
+              docker compose ps
+            '''
+          }
         }
       }
     }
