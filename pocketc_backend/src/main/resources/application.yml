@@ -18,18 +18,16 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-  cloud:
-    aws:
-      credentials:
-        access-key: ${AWS_ACCESS_KEY_ID}
-        secret-key: ${AWS_SECRET_ACCESS_KEY}
-      region:
-        static: ap-northeast-2
-        auto: false
+cloud:
+  aws:
+    s3:
+      bucket: ${AWS_BUCKET_NAME}
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
+    region:
+      static: ap-northeast-2
 
-app:
-  s3:
-    bucket: ${AWS_BUCKET_NAME}
 ---
 spring:
   config:
