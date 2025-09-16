@@ -2,12 +2,15 @@
 FROM gradle:8.7.0-jdk21 AS builder
 WORKDIR /app
 
-COPY gradlew gradle/ ./
 COPY settings.gradle* build.gradle* gradle.properties* ./
-RUN chmod +x gradlew && sed -i 's/\r$//' gradlew
-RUN ./gradlew --no-daemon -v || true
+RUN gradle -q wrapper --gradle-version 8.7
+
+COPY gradlew ./gradlew
+COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/
 
 COPY src ./src
+RUN chmod +x gradlew && ./gradlew --no-daemon clean bootJar -x test
+
 RUN ./gradlew --no-daemon clean bootJar -x test
 
 # ===== run stage =====
