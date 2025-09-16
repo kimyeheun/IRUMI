@@ -1,7 +1,5 @@
 package com.ssafy.pocketc_backend.global.config;
 
-
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -12,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConditionalOnProperty(name = "spring.cloud.s3.enabled", havingValue = "true", matchIfMissing = false)
 public class S3Config {
 
     @Value("${spring.cloud.aws.credentials.access-key}")
