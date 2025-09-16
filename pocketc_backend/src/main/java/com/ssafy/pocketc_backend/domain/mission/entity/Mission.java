@@ -9,6 +9,10 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 
+enum Status {
+    SUCCESS, IN_PROGRESS, FAILURE
+}
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -37,8 +41,4 @@ public class Mission {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private Status status;
-}
-
-enum Status {
-    SUCCESS, IN_PROGRESS, FAILURE
 }
