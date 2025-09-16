@@ -10,19 +10,13 @@ spring:
     show-sql: false
     properties:
       hibernate.hbm2ddl.drop_constraints: false
-
-  # Redis 완전 비활성화 (자동 설정 제외)
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
-
-  # S3 비활성화
   cloud:
     aws:
       s3:
         enabled: false
-
-# 테스트용 JWT 시크릿(가짜 값)
 jwt:
-  secret: test-secret-only
+  secret: VSNSuGBkA97M5OFFo7DU7zQYzqYHn8q4m41K3HkLcuk
