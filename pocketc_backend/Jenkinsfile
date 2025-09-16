@@ -41,34 +41,35 @@ pipeline {
             string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD')
           ]) {
             sh '''
+              set -eu
+
               echo "[BEFORE] app:latest  ->" $(docker image inspect app:latest --format '{{.Id}} {{.Created}}' || echo "none")
               echo "[BEFORE] backend uses" $(docker inspect backend --format '{{.Image}}' || echo "none")
 
-              set -eu
-              DB_HOST=mysql \
-              DB_PORT=3306 \
-              MYSQL_DB=pocketcdb \
-              MYSQL_USER=hamster \
-              MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
-              MYSQL_PASSWORD="$MYSQL_PASSWORD" \
-              REDIS_HOST=redis \
-              REDIS_PORT=6379 \
-              REDIS_PASSWORD="$REDIS_PASSWORD" \
-              SERVER_PORT=8080 \
-              TZ=Asia/Seoul \
-              docker compose build --pull backend
 
-              DB_HOST=mysql \
-              DB_PORT=3306 \
-              MYSQL_DB=pocketcdb \
-              MYSQL_USER=hamster \
-              MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
-              MYSQL_PASSWORD="$MYSQL_PASSWORD" \
-              REDIS_HOST=redis \
-              REDIS_PORT=6379 \
-              REDIS_PASSWORD="$REDIS_PASSWORD" \
-              SERVER_PORT=8080 \
-              TZ=Asia/Seoul \
+              # runtime env (compose 변수치환용)
+              export DB_HOST=mysql
+              export DB_PORT=3306
+              export MYSQL_DB=pocketcdb
+              export MYSQL_USER=hamster
+              export MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD"
+              export MYSQL_PASSWORD="$MYSQL_PASSWORD"
+              export REDIS_HOST=redis
+              export REDIS_PORT=6379
+              export REDIS_PASSWORD="$REDIS_PASSWORD"
+              export SERVER_PORT=8080
+              export TZ=Asia/Seoul
+
+
+              # (선택) 항상 새 이미지 레이어 확보용 ARG
+              GIT_SHA=$(git rev-parse --short=12 HEAD)
+              BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+              docker compose build --pull \
+                --build-arg BUILD_REVISION="$GIT_SHA" \
+                --build-arg BUILD_TIME="$BUILD_TIME" \
+                backend
+
               docker compose up -d --no-deps --force-recreate backend
 
               echo "[AFTER ] app:latest  ->" $(docker image inspect app:latest --format '{{.Id}} {{.Created}}')
