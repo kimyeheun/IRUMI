@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,6 +12,7 @@ import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 public class S3UploadService {
 
     private final AmazonS3 amazonS3;
@@ -38,4 +40,6 @@ public class S3UploadService {
     public void deleteImage(String originalFileName) {
         amazonS3.deleteObject(bucket, originalFileName);
     }
+
+    /*TODO 조회 기능 추가*/
 }
