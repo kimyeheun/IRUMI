@@ -33,8 +33,8 @@ public class User extends BaseTimeEntity {
     @Column(length = 60)
     private String password;
 
-    @Column
-    private String profileImageUrl;
+//    @Column
+//    private String profileImageUrl;
 
     @Column
     private Integer budget;
