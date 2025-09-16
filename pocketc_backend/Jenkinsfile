@@ -37,7 +37,10 @@ pipeline {
           withCredentials([
             string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'MYSQL_ROOT_PASSWORD'),
             string(credentialsId: 'MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
-            string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD')
+            string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD'),
+            string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD'),
+            string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD'),
+            string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
           ]) {
             sh '''
               set -eu
@@ -57,6 +60,7 @@ pipeline {
               export REDIS_PORT=6379
               export REDIS_PASSWORD="$REDIS_PASSWORD"
               export SERVER_PORT=8080
+              export JWT_SECRET="$JWT_SECRET"
               export TZ=Asia/Seoul
 
 
