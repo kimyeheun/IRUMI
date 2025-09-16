@@ -1,6 +1,7 @@
 package com.ssafy.pocketc_backend.domain.transaction.controller;
 
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.MonthReqDto;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionListResDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionResDto;
 import com.ssafy.pocketc_backend.domain.transaction.service.TransactionService;
@@ -11,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
-import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionSuccessType.SUCCESS_GET_MONTHLY_TRANSACTIONS;
-import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionSuccessType.SUCCESS_GET_TRANSACTION;
+import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionSuccessType.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,6 +34,14 @@ public class TransactionController {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_MONTHLY_TRANSACTIONS,
                 transactionService.getMonthlyTransactionList(dto, principal)
+        ));
+    }
+
+    @PutMapping("/transactions/{transactionId}")
+    public ResponseEntity<ApiResponse<TransactionResDto>> updateTransaction(@PathVariable("transactionId") Integer transactionId, @RequestBody TransactionReqDto dto, Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_UPDATE_TRANSACTION,
+                transactionService.updateTransaction(transactionId, dto, principal)
         ));
     }
 }
