@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum TransactionErrorType implements ErrorType {
     ERROR_GET_TRANSACTION(HttpStatus.BAD_REQUEST, "거래내역을 찾을 수 없습니다."),
-    TEAM_MEMBER_NOT_INCLUDED_ERROR(HttpStatus.NOT_FOUND, "팀에 포함되어있지 않습니다.");
+    ERROR_GET_MONTHLY_TRANSACTIONS(HttpStatus.BAD_REQUEST, "해당 월 거래내역을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
