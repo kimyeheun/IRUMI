@@ -46,8 +46,6 @@ spring:
     username: sa
     password:
 
-jwt:
-  secret: U0FIR0RMSktBU0dES1NBREdJU0FEWUZIU0FETkJNTktGQkVXTw==
 # AWS S3에서 사용할 것들
 # AWS에서 인식할 표준키들
 #  cloud:

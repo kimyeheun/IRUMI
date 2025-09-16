@@ -5,11 +5,13 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "reports")
@@ -22,7 +24,7 @@ public class Report {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private LocalDateTime reportMonth;
+    private LocalDate reportMonth;
     private Integer totalExpense;
     private Integer fixedExpense;
     private Integer monthlyBudget;
