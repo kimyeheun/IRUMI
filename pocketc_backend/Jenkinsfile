@@ -41,6 +41,9 @@ pipeline {
             string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD')
           ]) {
             sh '''
+              echo "[BEFORE] app:latest  ->" $(docker image inspect app:latest --format '{{.Id}} {{.Created}}' || echo "none")
+              echo "[BEFORE] backend uses" $(docker inspect backend --format '{{.Image}}' || echo "none")
+
               set -eu
               DB_HOST=mysql \
               DB_PORT=3306 \
@@ -53,7 +56,7 @@ pipeline {
               REDIS_PASSWORD="$REDIS_PASSWORD" \
               SERVER_PORT=8080 \
               TZ=Asia/Seoul \
-              docker compose build backend
+              docker compose build --pull backend
 
               DB_HOST=mysql \
               DB_PORT=3306 \
@@ -67,6 +70,9 @@ pipeline {
               SERVER_PORT=8080 \
               TZ=Asia/Seoul \
               docker compose up -d mysql redis backend nginx
+
+              echo "[AFTER ] app:latest  ->" $(docker image inspect app:latest --format '{{.Id}} {{.Created}}')
+              echo "[AFTER ] backend uses" $(docker inspect backend --format '{{.Image}}')
 
               docker compose ps
             '''
