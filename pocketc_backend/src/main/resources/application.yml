@@ -45,3 +45,22 @@ spring:
     url: jdbc:h2:mem:pocketcdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE
     username: sa
     password:
+
+jwt:
+  secret: U0FIR0RMSktBU0dES1NBREdJU0FEWUZIU0FETkJNTktGQkVXTw==
+# AWS S3에서 사용할 것들
+# AWS에서 인식할 표준키들
+#  cloud:
+#    aws:
+#      credentials:
+#        access-key: ${AWS_ACCESS_KEY}
+#        secret-key: ${AWS_SECRET_KEY}
+#      region:
+#        static: ap-northeast-2 (설정에 따라 바뀌지만 일반적으로 이 지역값 사용)
+#      s3:
+#        bucket-name: ${AWS_S3_BUCKET_NAME}
+#
+# S3 URL 접근용 커스텀 네임스페이스
+#app: (개발자가 임의로 지정한 커스텀 프로퍼티, 이미지 업로드 후 url불러올때 사용예정)
+#  s3:
+#    bucket-url: ${AWS_S3_BUCKET_URL}
