@@ -1,13 +1,18 @@
 package com.ssafy.pocketc_backend.domain.user.service;
 
+import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.exception.UserErrorType;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
+import com.ssafy.pocketc_backend.global.auth.JwtProvider;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.*;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     //private final S3UploadService s3UploadService;
+    private final JwtProvider jwtProvider;
 
     public void signup(UserSignupRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -30,5 +36,15 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+    }
+    public UserLoginResponse login(UserLoginRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new CustomException(LOGIN_FAIL));
+
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new CustomException(LOGIN_FAIL);
+        }
+
+        return jwtProvider.issueToken(user.getUserId(), user.getEmail());
     }
 }
