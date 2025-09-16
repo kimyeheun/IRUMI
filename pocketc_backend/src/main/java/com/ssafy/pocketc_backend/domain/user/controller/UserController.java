@@ -1,11 +1,12 @@
 package com.ssafy.pocketc_backend.domain.user.controller;
 
+import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
 import com.ssafy.pocketc_backend.domain.user.service.UserService;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,5 +23,10 @@ public class UserController {
     public ResponseEntity<ApiResponse<?>> signup(@RequestBody UserSignupRequest request) {
         userService.signup(request);
         return ResponseEntity.ok(ApiResponse.success(PROCESS_SUCCESS));
+    }
+    @PostMapping("/login")
+    public ResponseEntity<UserLoginResponse> login(@RequestBody UserLoginRequest request) {
+        UserLoginResponse response = userService.login(request);
+        return ResponseEntity.ok(response);
     }
 }
