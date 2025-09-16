@@ -14,6 +14,11 @@ RUN ./gradlew --no-daemon clean bootJar -x test
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
+ARG BUILD_REVISION
+ARG BUILD_TIME
+LABEL org.opencontainers.image.revision=$BUILD_REVISION \
+      org.opencontainers.image.created=$BUILD_TIME
+
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
