@@ -18,15 +18,15 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-cloud:
-  aws:
-    s3:
-      bucket: ${AWS_BUCKET_NAME}
-    credentials:
-      access-key: ${AWS_ACCESS_KEY_ID}
-      secret-key: ${AWS_SECRET_ACCESS_KEY}
-    region:
-      static: ap-northeast-2
+  cloud:
+    aws:
+      s3:
+        bucket-name: ${AWS_BUCKET_NAME}
+      region:
+        static: ap-northeast-2
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID}
+        secret-key: ${AWS_SECRET_ACCESS_KEY}
 
 ---
 spring:
@@ -47,20 +47,3 @@ spring:
     password:
 jwt:
   secret: ${JWT_SECRET}
-
-# AWS S3에서 사용할 것들
-# AWS에서 인식할 표준키들
-#  cloud:
-#    aws:
-#      credentials:
-#        access-key: ${AWS_ACCESS_KEY}
-#        secret-key: ${AWS_SECRET_KEY}
-#      region:
-#        static: ap-northeast-2 (설정에 따라 바뀌지만 일반적으로 이 지역값 사용)
-#      s3:
-#        bucket-name: ${AWS_S3_BUCKET_NAME}
-#
-# S3 URL 접근용 커스텀 네임스페이스
-#app: (개발자가 임의로 지정한 커스텀 프로퍼티, 이미지 업로드 후 url불러올때 사용예정)
-#  s3:
-#    bucket-url: ${AWS_S3_BUCKET_URL}
