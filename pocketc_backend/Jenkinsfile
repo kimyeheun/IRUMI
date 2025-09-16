@@ -16,7 +16,7 @@ pipeline {
           sh '''
             set -eu
             chmod +x ./gradlew || true
-            ./gradlew --no-daemon test
+            ./gradlew --no-daemon test -Dspring.profiles.active=test
           '''
           junit 'build/test-results/test/*.xml'
         }

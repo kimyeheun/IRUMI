@@ -12,7 +12,6 @@ import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 public class S3UploadService {
 
     private final AmazonS3 amazonS3;

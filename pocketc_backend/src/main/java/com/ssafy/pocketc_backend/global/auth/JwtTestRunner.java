@@ -3,9 +3,11 @@ package com.ssafy.pocketc_backend.global.auth;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 //토큰 발급 테스트용 임시코드,나중에 삭제 예정
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
 public class JwtTestRunner implements CommandLineRunner {
 
