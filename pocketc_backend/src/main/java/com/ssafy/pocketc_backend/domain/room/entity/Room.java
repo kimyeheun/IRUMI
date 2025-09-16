@@ -4,10 +4,17 @@ import com.ssafy.pocketc_backend.domain.event.entity.Event;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+
+enum Status {
+    SUCCESS, IN_PROGRESS, FAILURE
+}
 
 @Builder
 @Entity
@@ -34,8 +41,4 @@ public class Room extends BaseTimeEntity {
     @OneToMany(mappedBy = "room", fetch = FetchType.LAZY)
     @Builder.Default
     private List<User> users = new ArrayList<>();
-}
-
-enum Status {
-    SUCCESS, IN_PROGRESS, FAILURE
 }
