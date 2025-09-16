@@ -2,18 +2,15 @@
 FROM gradle:8.7.0-jdk21 AS builder
 WORKDIR /app
 
-COPY settings.gradle* build.gradle* gradle.properties* ./
-RUN gradle -q wrapper --gradle-version 8.7
-
 COPY gradlew ./gradlew
-COPY gradle/wrapper/gradle-wrapper.properties gradle/wrapper/
+COPY gradle/wrapper/ gradle/wrapper/
+COPY settings.gradle* build.gradle* gradle.properties* ./
+RUN chmod +x gradlew 2>/dev/null || true && sed -i 's/\r$//' gradlew 2>/dev/null || true
+RUN test -f gradle/wrapper/gradle-wrapper.jar || gradle -q wrapper --gradle-version 8.7
 
 COPY src ./src
-RUN chmod +x gradlew && ./gradlew --no-daemon clean bootJar -x test
-
 RUN ./gradlew --no-daemon clean bootJar -x test
 
-# ===== run stage =====
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
