@@ -32,6 +32,6 @@ public class Transaction extends BaseTimeEntity {
     private Integer majorCategory;
     private Integer subCategory;
 
-    private boolean applied;
+    private boolean isApplied;
     private boolean isFixed;
 }
