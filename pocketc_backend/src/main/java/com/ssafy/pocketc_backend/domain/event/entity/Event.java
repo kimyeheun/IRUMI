@@ -1,6 +1,5 @@
 package com.ssafy.pocketc_backend.domain.event.entity;
 
-import com.ssafy.pocketc_backend.domain.room.entity.Room;
 import com.ssafy.pocketc_backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
