@@ -44,4 +44,20 @@ public class TransactionController {
                 transactionService.updateTransaction(transactionId, dto, principal)
         ));
     }
+
+    @GetMapping("/transactions/majorcategory/{majorCategory}")
+    public ResponseEntity<ApiResponse<TransactionListResDto>> getMajorCategoryTransactions(@PathVariable("majorCategory") Integer majorCategory, Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_GET_MAJOR_CATEGORY_TRANSACTIONS,
+                transactionService.getMajorCategory(majorCategory, principal)
+        ));
+    }
+
+    @GetMapping("/transactions/subcategory/{subCategory}")
+    public ResponseEntity<ApiResponse<TransactionListResDto>> getSubCategoryTransactions(@PathVariable("subCategory") Integer subCategory, Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_GET_SUB_CATEGORY_TRANSACTIONS,
+                transactionService.getSubCategory(subCategory, principal)
+        ));
+    }
 }

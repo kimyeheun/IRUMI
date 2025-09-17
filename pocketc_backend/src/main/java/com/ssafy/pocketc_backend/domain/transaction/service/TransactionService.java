@@ -45,15 +45,9 @@ public class TransactionService {
 
         if (dto.month().isAfter(YearMonth.now())) throw new CustomException(ERROR_GET_MONTHLY_TRANSACTIONS);
 
-        List<Transaction> transactionList = transactionRepository.findAllByUser_UserIdAndTransactedAtGreaterThanEqualAndTransactedAtLessThan(userId, from, to);
+        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndTransactedAtGreaterThanEqualAndTransactedAtLessThan(userId, from, to);
 
-        List<TransactionResDto> transactionResDtoList = new ArrayList<>();
-        int totalSpending = 0;
-        for (Transaction transaction : transactionList) {
-            transactionResDtoList.add(TransactionResDto.from(transaction));
-            totalSpending += transaction.getAmount();
-        }
-        return TransactionListResDto.of(dto.month(), transactionResDtoList, totalSpending);
+        return buildTransactionListDto(transactions);
     }
 
     public TransactionResDto updateTransaction(Integer transactionId, TransactionReqDto dto, Principal principal) {
@@ -84,5 +78,27 @@ public class TransactionService {
         transaction.setMerchantName(dto.merchantName());
 
         return TransactionResDto.from(transaction);
+    }
+
+    public TransactionListResDto getMajorCategory(Integer majorCategory, Principal principal) {
+        int userId = 1;
+        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndMajorCategory(userId, majorCategory);
+        return buildTransactionListDto(transactions);
+    }
+
+    public TransactionListResDto getSubCategory(Integer subCategory, Principal principal) {
+        int userId = 1;
+        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndSubCategory(userId, subCategory);
+        return buildTransactionListDto(transactions);
+    }
+
+    private TransactionListResDto buildTransactionListDto(List<Transaction> transactions) {
+        List<TransactionResDto> transactionResDtoList = new ArrayList<>();
+        int totalSpending = 0;
+        for (Transaction transaction : transactions) {
+            transactionResDtoList.add(TransactionResDto.from(transaction));
+            totalSpending += transaction.getAmount();
+        }
+        return TransactionListResDto.of(transactionResDtoList, totalSpending);
     }
 }

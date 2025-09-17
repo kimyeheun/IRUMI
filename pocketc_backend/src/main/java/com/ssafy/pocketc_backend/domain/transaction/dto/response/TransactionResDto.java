@@ -11,6 +11,7 @@ public record TransactionResDto(
         Integer majorCategory,
         Integer subCategory,
         String merchant,
+        Boolean isFixed,
         Boolean isApplied,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -23,6 +24,7 @@ public record TransactionResDto(
                 transaction.getMajorCategory(),
                 transaction.getSubCategory(),
                 transaction.getMerchantName(),
+                transaction.isFixed(),
                 transaction.isApplied(),
                 transaction.getCreatedAt(),
                 transaction.getUpdatedAt());

@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction,Integer> {
     List<Transaction> findAllByUser_UserIdAndTransactedAtGreaterThanEqualAndTransactedAtLessThan(Integer userId, LocalDateTime from, LocalDateTime to);
+    List<Transaction> findAllByUser_UserIdAndMajorCategory(Integer userId, Integer majorCategory);
+    List<Transaction> findAllByUser_UserIdAndSubCategory(Integer userId, Integer subCategory);
 }
