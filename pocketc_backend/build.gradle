@@ -47,7 +47,7 @@ dependencies {
 
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
-    //jwt 토큰 생성용
+
     implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
     runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'

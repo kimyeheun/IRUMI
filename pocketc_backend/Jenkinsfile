@@ -50,8 +50,6 @@ pipeline {
             string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'MYSQL_ROOT_PASSWORD'),
             string(credentialsId: 'MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
             string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD'),
-            string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD'),
-            string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD'),
             string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET'),
             string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
             string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
@@ -62,35 +60,34 @@ pipeline {
               echo "[BEFORE] app:latest  ->" $(docker image inspect app:latest --format '{{.Id}} {{.Created}}' || echo "none")
               echo "[BEFORE] backend uses" $(docker inspect backend --format '{{.Image}}' || echo "none")
 
-
-              # runtime env (compose 변수치환용)
-              export DB_HOST=mysql
-              export DB_PORT=3306
-              export MYSQL_DB=pocketcdb
-              export MYSQL_USER=hamster
-              export MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD"
-              export MYSQL_PASSWORD="$MYSQL_PASSWORD"
-              export REDIS_HOST=redis
-              export REDIS_PORT=6379
-              export REDIS_PASSWORD="$REDIS_PASSWORD"
-              export SERVER_PORT=8080
-              export JWT_SECRET="$JWT_SECRET"
-              export AWS_BUCKET_NAME=irumi-s3
-              export AWS_REGION=ap-northeast-2
-              export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
-              export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
-              export TZ=Asia/Seoul
-
-
               # (선택) 항상 새 이미지 레이어 확보용 ARG
               GIT_SHA=$(git rev-parse --short=12 HEAD)
               BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
+              DB_HOST=mysql DB_PORT=3306 MYSQL_DB=pocketcdb MYSQL_USER=hamster \
+              MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" MYSQL_PASSWORD="$MYSQL_PASSWORD" \
+              REDIS_HOST=redis REDIS_PORT=6379 REDIS_PASSWORD="$REDIS_PASSWORD" \
+              SERVER_PORT=8080 TZ=Asia/Seoul \
+              JWT_SECRET="$JWT_SECRET" \
+              AWS_BUCKET_NAME=irumi-s3 AWS_REGION=ap-northeast-2 \
+              AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+              BUILD_REVISION="$GIT_SHA" BUILD_TIME="$BUILD_TIME" \
               docker compose build --pull \
-                --build-arg BUILD_REVISION="$GIT_SHA" \
-                --build-arg BUILD_TIME="$BUILD_TIME" \
-                backend
+              --build-arg BUILD_REVISION="$GIT_SHA" \
+              --build-arg BUILD_TIME="$BUILD_TIME" \
+              backend
 
+              DB_HOST=mysql DB_PORT=3306 MYSQL_DB=pocketcdb MYSQL_USER=hamster \
+              MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" MYSQL_PASSWORD="$MYSQL_PASSWORD" \
+              REDIS_HOST=redis REDIS_PORT=6379 REDIS_PASSWORD="$REDIS_PASSWORD" \
+              SERVER_PORT=8080 TZ=Asia/Seoul \
+              JWT_SECRET="$JWT_SECRET" \
+              AWS_BUCKET_NAME=irumi-s3 AWS_REGION=ap-northeast-2 \
+              AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+              BUILD_REVISION="$GIT_SHA" BUILD_TIME="$BUILD_TIME" \
+              docker compose build --pull \
+              --build-arg BUILD_REVISION="$GIT_SHA" \
+              --build-arg BUILD_TIME="$BUILD_TIME" \
               docker compose up -d --no-deps --force-recreate backend
 
               echo "[AFTER ] app:latest  ->" $(docker image inspect app:latest --format '{{.Id}} {{.Created}}')
