@@ -19,4 +19,4 @@ spring:
       s3:
         enabled: false
 jwt:
-  secret: VSNSuGBkA97M5OFFo7DU7zQYzqYHn8q4m41K3HkLcuk
+  secret: ${JWT_SECRET}

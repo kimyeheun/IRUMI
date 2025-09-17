@@ -13,25 +13,17 @@ pipeline {
     stage('Unit & Integration Tests') {
       steps {
         dir(env.WORKDIR) {
-          sh '''
-            set -eu
-
-            # 테스트용 Redis 컨테이너 기동
-            docker rm -f ci-redis || true
-            docker run -d --name ci-redis -p 6379:6379 redis:7-alpine
-
-            # 프로필 강제 및 Redis 호스트 지정
-            export SPRING_PROFILES_ACTIVE=test-nocontainers
-            export REDIS_HOST=127.0.0.1
-            export REDIS_PORT=6379
-
-            ./gradlew --no-daemon test
-          '''
-          junit 'build/test-results/test/*.xml'
+          sh 'chmod +x gradlew || true'
+          withCredentials([
+            string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
+          ]) {
+            sh '''
+              set -eu
+              export SPRING_PROFILES_ACTIVE=test
+              ./gradlew --no-daemon clean test
+            '''
+          }
         }
-      }
-      post {
-        always { sh 'docker rm -f ci-redis || true' }
       }
     }
 
@@ -50,9 +42,7 @@ pipeline {
             string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'MYSQL_ROOT_PASSWORD'),
             string(credentialsId: 'MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
             string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD'),
-            string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET'),
-            string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-            string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+            string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
           ]) {
             sh '''
               set -eu
@@ -60,7 +50,6 @@ pipeline {
               echo "[BEFORE] app:latest  ->" $(docker image inspect app:latest --format '{{.Id}} {{.Created}}' || echo "none")
               echo "[BEFORE] backend uses" $(docker inspect backend --format '{{.Image}}' || echo "none")
 
-              # (선택) 항상 새 이미지 레이어 확보용 ARG
               GIT_SHA=$(git rev-parse --short=12 HEAD)
               BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
@@ -69,8 +58,6 @@ pipeline {
               REDIS_HOST=redis REDIS_PORT=6379 REDIS_PASSWORD="$REDIS_PASSWORD" \
               SERVER_PORT=8080 TZ=Asia/Seoul \
               JWT_SECRET="$JWT_SECRET" \
-              AWS_BUCKET_NAME=irumi-s3 AWS_REGION=ap-northeast-2 \
-              AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
               BUILD_REVISION="$GIT_SHA" BUILD_TIME="$BUILD_TIME" \
               docker compose build --pull \
               --build-arg BUILD_REVISION="$GIT_SHA" \
@@ -82,12 +69,7 @@ pipeline {
               REDIS_HOST=redis REDIS_PORT=6379 REDIS_PASSWORD="$REDIS_PASSWORD" \
               SERVER_PORT=8080 TZ=Asia/Seoul \
               JWT_SECRET="$JWT_SECRET" \
-              AWS_BUCKET_NAME=irumi-s3 AWS_REGION=ap-northeast-2 \
-              AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
               BUILD_REVISION="$GIT_SHA" BUILD_TIME="$BUILD_TIME" \
-              docker compose build --pull \
-              --build-arg BUILD_REVISION="$GIT_SHA" \
-              --build-arg BUILD_TIME="$BUILD_TIME" \
               docker compose up -d --no-deps --force-recreate backend
 
               echo "[AFTER ] app:latest  ->" $(docker image inspect app:latest --format '{{.Id}} {{.Created}}')
