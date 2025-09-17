@@ -39,4 +39,10 @@ public class UserController {
         UserLoginResponse response = jwtProvider.reissueToken(request.refreshToken());
         return ResponseEntity.ok(response);
     }
+    @Operation(summary = "로그아웃", description = "액세스 토큰 기반으로 리프레시 토큰 삭제")
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<?>> logout(@RequestHeader("Authorization") String authorizationHeader) {
+        userService.logout(authorizationHeader);
+        return ResponseEntity.ok(ApiResponse.success(LOGOUT_SUCCESS));
+    }
 }

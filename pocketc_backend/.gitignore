@@ -39,7 +39,6 @@ out/
 ### ENV ###
 .env
 *.env
-<<<<<<< Updated upstream
 *.env.local
 
 ### nginx/certs/
@@ -50,6 +49,3 @@ nginx/.htpasswd
 *.pem
 *.key
 
-=======
-.env.local
->>>>>>> Stashed changes
