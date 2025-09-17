@@ -27,11 +27,11 @@ def fetch_metrics(user_id=1, sub_id=2001, days=3):
     eng = engine()
     with eng.connect() as conn:
         rows = conn.execute(text("""
-          SELECT d, day_count, day_sum, night_count, max_per_txn
-          FROM user_sub_daily_metrics
-          WHERE user_id=:u AND sub_id=:s
-          ORDER BY d DESC
-          LIMIT :lim
+        SELECT d, day_count, day_sum, night_count, morning_count, afternoon_count, max_per_txn
+        FROM user_daily_metrics
+        WHERE user_id=:u AND sub_id=:s
+        ORDER BY d DESC
+        LIMIT :lim
         """), {"u": user_id, "s": sub_id, "lim": days}).mappings().all()
         return rows
 
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     task_id = trigger_rebuild(lookback_days=3)
     print(f"[trigger] task_id={task_id}")
 
-    # 간단 폴링(워커가 처리할 시간)
+
     for i in range(10):
         time.sleep(1.0)
         rows_coffee = fetch_metrics(1, 2001, 5)
