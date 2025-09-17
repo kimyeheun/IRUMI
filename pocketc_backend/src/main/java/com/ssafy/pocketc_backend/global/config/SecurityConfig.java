@@ -19,7 +19,13 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/users", "/api/v1/users/login", "/h2-console/**","/swagger-ui/**","/v3/api-docs/**","/swagger-resources/**", "/api/v1/users/**").permitAll()
+                        .requestMatchers("/api/v1/users",
+                                "/api/v1/users/login",
+                                "/h2-console/**","/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/api/v1/users/**")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(
