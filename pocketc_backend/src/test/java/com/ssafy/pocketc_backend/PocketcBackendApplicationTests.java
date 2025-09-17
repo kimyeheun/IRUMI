@@ -16,19 +16,6 @@ import org.testcontainers.utility.DockerImageName;
 @ActiveProfiles("test")
 @ExtendWith(SpringExtension.class)
 public class PocketcBackendApplicationTests {
-
-    // Unit 테스트용 레디스 컨테이너
-    @Container
-    static GenericContainer<?> redis =
-            new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
-                    .withExposedPorts(6379);
-
-    @DynamicPropertySource
-    static void redisProps(DynamicPropertyRegistry r) {
-        r.add("spring.data.redis.host", redis::getHost);
-        r.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
-    }
-
     @Test
     public void contextLoads() {}
 }

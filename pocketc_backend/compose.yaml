@@ -3,7 +3,7 @@ services:
     image: mysql:8.4
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_DB: ${MYSQL_DB}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       TZ: Asia/Seoul

@@ -13,24 +13,17 @@ pipeline {
     stage('Unit & Integration Tests') {
       steps {
         dir(env.WORKDIR) {
-          sh '''
-            set -eu
+          withCredentials([
+            string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
+          ]) {
+            sh '''
+              set -eu
+              export SPRING_PROFILES_ACTIVE=test
 
-            # 테스트용 Redis 컨테이너 기동
-            docker rm -f ci-redis || true
-            docker run -d --name ci-redis -p 6379:6379 redis:7-alpine
-
-            # 프로필 강제 및 Redis 호스트 지정
-            export REDIS_HOST=127.0.0.1
-            export REDIS_PORT=6379
-
-            ./gradlew --no-daemon test
-          '''
-          junit 'build/test-results/test/*.xml'
+              ./gradlew --no-daemon clean test
+            '''
+          }
         }
-      }
-      post {
-        always { sh 'docker rm -f ci-redis || true' }
       }
     }
 

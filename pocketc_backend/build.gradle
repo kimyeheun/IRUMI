@@ -30,8 +30,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
-
     implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
+    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
+    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -41,16 +43,12 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation platform("org.testcontainers:testcontainers-bom:1.20.3")
-    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.3'
     testImplementation 'com.redis:testcontainers-redis'
 //    testImplementation 'org.testcontainers:mysql'
 
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
-
-    implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.5'
-    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.5'
-    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.5'
 }
 test {
     useJUnitPlatform()
