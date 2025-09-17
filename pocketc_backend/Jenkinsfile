@@ -13,13 +13,13 @@ pipeline {
     stage('Unit & Integration Tests') {
       steps {
         dir(env.WORKDIR) {
+          sh 'chmod +x gradlew || true'
           withCredentials([
             string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
           ]) {
             sh '''
               set -eu
               export SPRING_PROFILES_ACTIVE=test
-
               ./gradlew --no-daemon clean test
             '''
           }
