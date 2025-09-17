@@ -1,6 +1,5 @@
-package com.ssafy.pocketc_backend.domain.room.entity;
+package com.ssafy.pocketc_backend.domain.event.entity;
 
-import com.ssafy.pocketc_backend.domain.event.entity.Event;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -41,4 +40,16 @@ public class Room extends BaseTimeEntity {
     @OneToMany(mappedBy = "room", fetch = FetchType.LAZY)
     @Builder.Default
     private List<User> users = new ArrayList<>();
+
+    @Column(nullable = false, unique = true, length = 10)
+    private String roomCode;
+
+    @PrePersist
+    private void generateRoomCode() {
+        if (this.roomCode != null) return;
+        this.roomCode = java.util.UUID.randomUUID().toString()
+                .replace("-", "")
+                .substring(0, 8)
+                .toUpperCase();
+    }
 }
