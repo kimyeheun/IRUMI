@@ -1,9 +1,11 @@
 package com.ssafy.pocketc_backend.domain.user.controller;
 
+import com.ssafy.pocketc_backend.domain.user.dto.request.TokenReissueRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
 import com.ssafy.pocketc_backend.domain.user.service.UserService;
+import com.ssafy.pocketc_backend.global.auth.JwtProvider;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -17,16 +19,30 @@ import static com.ssafy.pocketc_backend.domain.user.exception.UserSuccessType.*;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final JwtProvider jwtProvider;
 
-    @Operation(summary = "회원가입", description = "아이디, 패스워드, 이메일, 프로필이미지")
+    @Operation(summary = "회원가입", description = "이름, 패스워드, 이메일, (프로필이미지: 나중에 추가)")
     @PostMapping
     public ResponseEntity<ApiResponse<?>> signup(@RequestBody UserSignupRequest request) {
         userService.signup(request);
         return ResponseEntity.ok(ApiResponse.success(PROCESS_SUCCESS));
     }
+    @Operation(summary = "로그인", description = "아메일,패스워드")
     @PostMapping("/login")
     public ResponseEntity<UserLoginResponse> login(@RequestBody UserLoginRequest request) {
         UserLoginResponse response = userService.login(request);
         return ResponseEntity.ok(response);
+    }
+    @Operation(summary = "토큰 재발급", description = "리프레시토큰 기반으로 토큰 재발급")
+    @PostMapping("/reissue")
+    public ResponseEntity<UserLoginResponse> reissue(@RequestBody TokenReissueRequest request) {
+        UserLoginResponse response = jwtProvider.reissueToken(request.refreshToken());
+        return ResponseEntity.ok(response);
+    }
+    @Operation(summary = "로그아웃", description = "액세스 토큰 기반으로 리프레시 토큰 삭제")
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<?>> logout(@RequestHeader("Authorization") String authorizationHeader) {
+        userService.logout(authorizationHeader);
+        return ResponseEntity.ok(ApiResponse.success(LOGOUT_SUCCESS));
     }
 }

@@ -37,6 +37,7 @@ public class JwtProvider {
         this.signingKey = Keys.hmacShaKeyFor(decodedKey);
     }
     // Access Token, Refresh Token을 발급하는 메서드
+    // TODO: 이 메서드는 비즈니스 로직 (Redis 저장 포함)이므로 나중에 UserService로 옮길것
     public UserLoginResponse issueToken(Integer userId, String email) {
         String accessToken = generateJwt(userId, email, ACCESS_TOKEN_EXPIRATION_TIME);
         String refreshToken = generateJwt(userId, email, REFRESH_TOKEN_EXPIRATION_TIME);
@@ -79,6 +80,7 @@ public class JwtProvider {
         }
     }
 
+    // TODO: 이 메서드도 Redis 검증 포함 → UserService로 옮기고, JwtProvider에는 "토큰 파싱만" 남겨두는 게 좋음
     public Integer validateRefreshToken(String refreshToken) {
         Claims claims = getJwtBody(refreshToken);
         Integer userId = Integer.parseInt(claims.getSubject());
@@ -104,4 +106,22 @@ public class JwtProvider {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    // TODO: 이 메서드도 비즈니스 로직 (재발급 + Redis 갱신) → UserService로 옮기는 게 맞음
+    public UserLoginResponse reissueToken(String refreshToken) {
+        Integer userId = validateRefreshToken(refreshToken);
+
+        // 이메일은 claim에서 꺼낼 수 있음
+        Claims claims = getJwtBody(refreshToken);
+        String email = claims.get("email", String.class);
+
+        String newAccessToken = generateJwt(userId, email, ACCESS_TOKEN_EXPIRATION_TIME);
+        String newRefreshToken = generateJwt(userId, email, REFRESH_TOKEN_EXPIRATION_TIME);
+
+        // Redis 갱신
+        refreshTokenService.save(userId.toString(), newRefreshToken);
+
+        return new UserLoginResponse(newAccessToken, newRefreshToken);
+    }
+
 }
