@@ -104,4 +104,21 @@ public class JwtProvider {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    public UserLoginResponse reissueToken(String refreshToken) {
+        Integer userId = validateRefreshToken(refreshToken);
+
+        // 이메일은 claim에서 꺼낼 수 있음
+        Claims claims = getJwtBody(refreshToken);
+        String email = claims.get("email", String.class);
+
+        String newAccessToken = generateJwt(userId, email, ACCESS_TOKEN_EXPIRATION_TIME);
+        String newRefreshToken = generateJwt(userId, email, REFRESH_TOKEN_EXPIRATION_TIME);
+
+        // Redis 갱신
+        refreshTokenService.save(userId.toString(), newRefreshToken);
+
+        return new UserLoginResponse(newAccessToken, newRefreshToken);
+    }
+
 }
