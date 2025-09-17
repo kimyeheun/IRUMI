@@ -3,6 +3,7 @@ package com.ssafy.pocketc_backend.domain.user.controller;
 import com.ssafy.pocketc_backend.domain.user.dto.request.TokenReissueRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
+import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
 import com.ssafy.pocketc_backend.domain.user.service.UserService;
 import com.ssafy.pocketc_backend.global.auth.JwtProvider;
@@ -45,4 +46,17 @@ public class UserController {
         userService.logout(authorizationHeader);
         return ResponseEntity.ok(ApiResponse.success(LOGOUT_SUCCESS));
     }
+    @Operation(summary = "회원정보 수정", description ="전달하지 않은 필드는 변경되지 않음 " +
+            "수정 가능한 항목: 이름, 이메일, 비밀번호, 예산, 프로필 이미지(잠시 제외) "
+    )
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<?>> updateUser(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @RequestBody UserUpdateRequest request
+    ) {
+        Integer userId = jwtProvider.getUserIdFromJwt(authorizationHeader.replace("Bearer ", ""));
+        userService.updateUser(userId, request);
+        return ResponseEntity.ok(ApiResponse.success(UPDATE_MEMBER_SUCCESS));
+    }
+
 }
