@@ -1,5 +1,5 @@
 from celery import shared_task
-from pocketc_ai.app.db.base import run_sql
+from pocketc_ai.app.db.session import run_sql
 
 UPSERT_SQL = """
 INSERT INTO user_daily_metrics (user_id, sub_id, d, day_count, day_sum, night_count, max_per_txn)

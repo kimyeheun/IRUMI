@@ -64,7 +64,7 @@ def pick_template_for_category(
     for name, w in base:
         weights[name] += w
 
-    # 데이터 기반 가중치 보정
+    # TODO: 데이터 기반 가중치 보정
     us = user_stats or {}
     mean_daily_count = us.get("mean_daily_count", 0.0)
     night_ratio = us.get("night_ratio", 0.0)
