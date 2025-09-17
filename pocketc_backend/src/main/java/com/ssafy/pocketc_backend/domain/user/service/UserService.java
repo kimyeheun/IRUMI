@@ -2,6 +2,7 @@ package com.ssafy.pocketc_backend.domain.user.service;
 
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
+import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.exception.UserErrorType;
@@ -58,6 +59,16 @@ public class UserService {
             refreshTokenService.delete(userId.toString());
         }
     //회원정보수정
+    @Transactional
+    public void updateUser(Integer userId, UserUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(UserErrorType.NOT_FOUND_MEMBER_ERROR));
+
+        user.updateProfile(request.name(), request.email(), request.budget());
+        if (request.password() != null) {
+            user.updatePassword(passwordEncoder.encode(request.password()));
+        }
+    }
     //토큰 재발급
 
 }
