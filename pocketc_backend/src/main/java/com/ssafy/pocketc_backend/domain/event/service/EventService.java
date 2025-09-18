@@ -16,8 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.Principal;
 import java.util.*;
 
-import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.ERROR_ALREADY_INCLUDED_ROOM;
-import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.ERROR_GET_ROOM;
+import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.*;
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
 
 @Service
@@ -73,19 +72,23 @@ public class EventService {
 //        return getRoomResDto(user.getRoom());
 //    }
 //
-//    public void leaveRoom(Principal principal) {
-//        int userId = 1;
-//
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
-//
-//        if (user.getRoom() == null) throw new CustomException(ERROR_NOT_INCLUDED_ROOM);
-//        Room room = user.getRoom();
-//        user.setRoom(null);
-//
-//        List<User> users = userRepository.findAllByRoom(room);
-//        if (users.isEmpty()) roomRepository.delete(room);
-//    }
+    public EventResDto leaveRoom(Principal principal) {
+        int userId = Integer.parseInt(principal.getName());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        if (user.getRoom() == null) throw new CustomException(ERROR_NOT_INCLUDED_ROOM);
+        Room room = user.getRoom();
+        user.setRoom(null);
+
+        List<User> users = userRepository.findAllByRoom(room);
+        if (users.isEmpty()) roomRepository.delete(room);
+
+        EventDto eventDto = EventDto.from(eventRepository.findFirstByOrderByEventIdDesc());
+        return new EventResDto(eventDto);
+    }
+
     private RoomResDto getRoomResDto(User user) {
 
         EventDto event = EventDto.from(eventRepository.findFirstByOrderByEventIdDesc());
