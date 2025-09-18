@@ -12,7 +12,6 @@ import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionReposi
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,16 +63,16 @@ public class TransactionService {
         LocalDate curMonth = dto.date().toLocalDate().withDayOfMonth(1);
 
         if (transaction.isFixed() && dto.isFixed()) {
-            reportService.updateFixedExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
-            reportService.updateTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
+            reportService.updateMonthlyFixedExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
+            reportService.updateMonthlyTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
         } else if (transaction.isFixed()) {
-            reportService.updateFixedExpense(userId, curMonth, -transaction.getAmount());
-            reportService.updateTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
+            reportService.updateMonthlyFixedExpense(userId, curMonth, -transaction.getAmount());
+            reportService.updateMonthlyTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
         } else if (dto.isFixed()) {
-            reportService.updateFixedExpense(userId, curMonth, dto.amount());
-            reportService.updateTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
+            reportService.updateMonthlyFixedExpense(userId, curMonth, dto.amount());
+            reportService.updateMonthlyTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
         } else {
-            reportService.updateTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
+            reportService.updateMonthlyTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
         }
 
         transaction.setFixed(dto.isFixed());

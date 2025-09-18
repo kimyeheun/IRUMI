@@ -76,33 +76,34 @@ INSERT INTO users (
        600000, 1,
        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
--- 유저 1
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (1, '2025-06-01', 820000, 300000, 1000000);
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (1, '2025-07-01', 910000, 320000, 1100000);
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (1, '2025-08-01', 1030000, 330000, 1100000);
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (1, '2025-09-01', 760000, 310000, 1000000);
+--- 유저 1
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (1, 1, '2025-06-01', 820000, 300000, 1000000);
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (2, 1, '2025-07-01', 910000, 320000, 1100000);
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (3, 1, '2025-08-01', 1030000, 330000, 1100000);
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (4, 1, '2025-09-01', 760000, 310000, 1000000);
 
 -- 유저 2
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (2, '2025-06-01', 650000, 250000, 900000);
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (2, '2025-07-01', 720000, 260000, 900000);
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (2, '2025-08-01', 840000, 270000, 1000000);
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (2, '2025-09-01', 905000, 280000, 1000000);
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (5, 2, '2025-06-01', 650000, 250000, 900000);
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (6, 2, '2025-07-01', 720000, 260000, 900000);
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (7, 2, '2025-08-01', 840000, 270000, 1000000);
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (8, 2, '2025-09-01', 905000, 280000, 1000000);
 
 -- 유저 3
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (3, '2025-07-01', 590000, 220000, 800000);
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (3, '2025-08-01', 630000, 230000, 850000);
-INSERT INTO reports (user_id, report_month, total_expense, fixed_expense, monthly_budget)
-VALUES (3, '2025-09-01', 710000, 240000, 900000);
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (9, 3, '2025-07-01', 590000, 220000, 800000);
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (10, 3, '2025-08-01', 630000, 230000, 850000);
+INSERT INTO reports (report_id, user_id, report_month, monthly_total_expense, monthly_fixed_expense, monthly_budget)
+VALUES (11, 3, '2025-09-01', 710000, 240000, 900000);
+
 
 INSERT INTO transactions (
     user_id, transacted_at, amount, merchant_name,
