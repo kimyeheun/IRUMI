@@ -50,4 +50,12 @@ public class EventController {
                 eventService.leaveRoom(principal)
         ));
     }
+
+    @PostMapping("/fill")
+    public ResponseEntity<ApiResponse<PuzzleResDto>> fillPuzzle(Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_FILL_PUZZLES,
+                eventService.fillPuzzle(principal)
+        ));
+    }
 }

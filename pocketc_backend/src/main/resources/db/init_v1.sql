@@ -44,7 +44,7 @@ INSERT INTO events (
 
 -- Room 더미 데이터
 INSERT INTO rooms (max_number, status, room_code, created_at, updated_at) VALUES
-                                                                                        ( 5, 'IN_PROGRESS', 'AB12CD34', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                                                                                        ( 2, 'IN_PROGRESS', 'AB12CD34', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
                                                                                         (10, 'SUCCESS', 'EF56GH78', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
                                                                                         (8, 'FAILURE', 'IJ90KL12', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
                                                                                         ( 6, 'IN_PROGRESS', 'MN34OP56', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
