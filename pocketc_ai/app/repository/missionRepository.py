@@ -1,0 +1,16 @@
+from sqlalchemy.orm.session import Session
+
+from pocketc_ai.app.models.mission import MissionTemplate
+
+
+class MissionRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_all_mission_template(self) -> list[type[MissionTemplate]]:
+        return self.db.query(MissionTemplate).all()
+
+    def get_mission_template_by_id(self, template_id: int) -> MissionTemplate | None:
+        return (self.db.query(MissionTemplate)
+                .filter(MissionTemplate.template_id == template_id)
+                .first())

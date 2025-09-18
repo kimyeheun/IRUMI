@@ -30,6 +30,6 @@ def get_db():
         db.close()
 
 # NOTE: 일별 집계를 위한 배치 프로그램
-def run_sql(sql: str, params: dict | None = None):
+def run_sql(sql: str, params: list[dict] | None = None):
     with ENGINE.begin() as conn:
         return conn.execute(text(sql), params or {})

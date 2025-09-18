@@ -18,7 +18,7 @@ celery.conf.update(
 
 # 시간당 1회: 최근 3일 재집계(지연/정정 대비, 멱등 UPSERT)
 celery.conf.beat_schedule = {
-    "upsert-user-sub-daily-metrics-hourly": {
+    "upsert-user-sub-daily-batch_program-hourly": {
         "task": "app.tasks.upsert_user_sub_daily_metrics",
         "schedule": crontab(minute=0),  # 매 정각
         "args": [3],                    # lookback_days

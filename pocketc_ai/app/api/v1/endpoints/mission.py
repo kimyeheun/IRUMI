@@ -1,20 +1,38 @@
-from fastapi import APIRouter
+import logging
+from datetime import datetime
+from http.client import HTTPException
+from types import NoneType
+from typing import Dict, Any
+
+from fastapi import APIRouter, Depends
+
+from pocketc_ai.app.schemas.mission import MissionResponse, Missions
+from pocketc_ai.app.services.mission.mission import MissionService
+from pocketc_ai.app.services.mission.mission_service import get_mission_service
 
 router = APIRouter()
 
 @router.get("/")
 def get_mission() :
-    return "mission"
+    return "missionq"
 
-@router.post("/daily")
-def create_daily_mission(userId: int):
+@router.post("/daily", response_model=MissionResponse | NoneType, status_code=201)
+def create_daily_mission(
+        userId: int,
+        service: MissionService = Depends(get_mission_service)
+):
     try:
-        print("hi")
-        # 최근 일주일의 user 결제 내역 가져오기
-        # 클러스터링 진행
-        # 클러스터 id get -> 매핑 된 소분류 id 가져오기
-        # 소분류와 어떤 미션 템플릿을 매핑할지 판단
-        #
+        today = datetime.today()
+
+        missions = service.create_daily_mission(user_id=userId, now=today)
+        data = {"userId": userId, "date": today, "missions": missions}
+
+        payload: Dict[str, Any] = {
+            "status": 201,
+            "message": "데일리 미션 생성 완료",
+            "data": data,
+        }
+        return MissionResponse(**payload)
     except Exception as e:
-        print(e)
-    return
+        logging.warning(f"An error occurred: {e}")
+        return None
