@@ -5,13 +5,12 @@ import com.ssafy.pocketc_backend.domain.event.service.EventService;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
 import static com.ssafy.pocketc_backend.domain.event.exception.EventSuccessType.SUCCESS_GET_ROOM;
+import static com.ssafy.pocketc_backend.domain.event.exception.EventSuccessType.SUCCESS_JOIN_ROOM;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,6 +24,14 @@ public class EventController {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_ROOM,
                 eventService.getRoom(principal)
+        ));
+    }
+
+    @PostMapping("/users/room/join")
+    public ResponseEntity<ApiResponse<RoomResDto>> joinRoom(@RequestParam("roomCode") String roomCode, Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_JOIN_ROOM,
+                eventService.joinRoom(roomCode, principal)
         ));
     }
 }

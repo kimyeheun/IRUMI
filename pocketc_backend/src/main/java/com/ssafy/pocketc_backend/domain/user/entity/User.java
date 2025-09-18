@@ -3,13 +3,11 @@ package com.ssafy.pocketc_backend.domain.user.entity;
 import com.ssafy.pocketc_backend.domain.event.entity.Room;
 import com.ssafy.pocketc_backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
