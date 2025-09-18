@@ -1,6 +1,6 @@
 package com.ssafy.pocketc_backend.domain.puzzle.entity;
 
-import com.ssafy.pocketc_backend.domain.room.entity.Room;
+import com.ssafy.pocketc_backend.domain.event.entity.Room;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
