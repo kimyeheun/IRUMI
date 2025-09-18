@@ -14,7 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.*;
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
@@ -51,27 +54,24 @@ public class EventService {
         user.setRoom(room);
         return getRoomResDto(user);
     }
-//
-//    public RoomResDto createRoom(Integer maxMembers, Principal principal) {
-//        int userId = 1;
-//
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
-//
-//        if (user.getRoom() != null) throw new CustomException(ERROR_ALREADY_INCLUDED_ROOM);
-//
-//        Event event = eventRepository.findFirstByOrderByEventIdDesc();
-//
-//        Room room = Room.builder()
-//                .event(event)
-//                .maxNumber(maxMembers)
-//                .build();
-//
-//        roomRepository.save(room);
-//        user.setRoom(room);
-//        return getRoomResDto(user.getRoom());
-//    }
-//
+
+    public RoomResDto createRoom(Integer maxMembers, Principal principal) {
+        int userId = Integer.parseInt(principal.getName());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        if (user.getRoom() != null) throw new CustomException(ERROR_ALREADY_INCLUDED_ROOM);
+
+        Room room = Room.builder()
+                .maxNumber(maxMembers)
+                .build();
+
+        roomRepository.save(room);
+        user.setRoom(room);
+        return getRoomResDto(user);
+    }
+
     public EventResDto leaveRoom(Principal principal) {
         int userId = Integer.parseInt(principal.getName());
 
