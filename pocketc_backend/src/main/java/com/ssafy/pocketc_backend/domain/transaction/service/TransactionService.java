@@ -116,7 +116,14 @@ public class TransactionService {
         transaction.setSubCategory(categorizedTransaction.getSubCategory());
         transaction.setFixed(categorizedTransaction.isFixed());
 
+        LocalDate curMonth = dto.date().toLocalDate().withDayOfMonth(1);
         transactionRepository.save(transaction);
+        if (transaction.isFixed()) {
+            reportService.updateMonthlyFixedExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
+            reportService.updateMonthlyTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
+        } else {
+            reportService.updateMonthlyTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
+        }
 
         return new TransactionCreatedResDto(transaction.getTransactionId(), transaction.getUser().getUserId());
     }
