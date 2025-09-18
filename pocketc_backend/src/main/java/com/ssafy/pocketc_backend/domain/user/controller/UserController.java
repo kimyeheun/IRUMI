@@ -6,12 +6,14 @@ import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
 import com.ssafy.pocketc_backend.domain.user.service.UserService;
-import com.ssafy.pocketc_backend.global.auth.JwtProvider;
+import com.ssafy.pocketc_backend.global.auth.jwt.JwtProvider;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 import static com.ssafy.pocketc_backend.domain.user.exception.UserSuccessType.*;
 
@@ -51,12 +53,13 @@ public class UserController {
     )
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<?>> updateUser(
-            @RequestHeader("Authorization") String authorizationHeader,
+            Principal principal,
             @RequestBody UserUpdateRequest request
     ) {
-        Integer userId = jwtProvider.getUserIdFromJwt(authorizationHeader.replace("Bearer ", ""));
+        Integer userId = Integer.valueOf(principal.getName());
         userService.updateUser(userId, request);
         return ResponseEntity.ok(ApiResponse.success(UPDATE_MEMBER_SUCCESS));
     }
+
 
 }
