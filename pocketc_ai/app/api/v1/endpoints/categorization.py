@@ -3,22 +3,19 @@ from typing import Dict
 
 from fastapi import APIRouter, Response, Depends
 from sqlalchemy.orm.session import Session
+
 from pocketc_ai.app.db.session import get_db
 from pocketc_ai.app.repository.category import SubCategoryRepository
-
 from pocketc_ai.app.schemas.transaction import CategoryResponse, CategoryRequest, Transaction
 from pocketc_ai.app.services.categorize.categorization import CategorizationService
 
-# from fastapi import APIRouter
-# from requests.models import Response
-
 router = APIRouter()
 
-@router.get("/")
+@router.get("/categories")
 def get_transactions() :
     return "categories"
 
-@router.post("/", response_model=CategoryResponse, status_code=201)
+@router.post("/categories", response_model=CategoryResponse, status_code=201)
 def create_category(req: CategoryRequest, response: Response, db: Session = Depends(get_db)) -> CategoryResponse:
     try:
         categorizer = CategorizationService(fallback="기타")
@@ -29,7 +26,7 @@ def create_category(req: CategoryRequest, response: Response, db: Session = Depe
 
         data = Transaction(
             transactionId=req.transactionId,
-            amount=req.account,
+            amount=req.amount,
             merchantName=req.merchantName,
             transactedAt=req.transactedAt,
 
