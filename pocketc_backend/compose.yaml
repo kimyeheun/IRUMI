@@ -1,6 +1,7 @@
 services:
   mysql:
     image: mysql:8.4
+    container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DB: ${MYSQL_DB}
@@ -59,12 +60,32 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
     restart: unless-stopped
+  # === 신규: AI 서비스 ===
+
+  ai:
+    build:
+      context: ./ai
+      dockerfile: Dockerfile
+    image: app-ai:latest
+    container_name: ai
+    expose:
+      - "8000"
+    environment:
+      TZ: Asia/Seoul
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/docs || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
 
   nginx:
     image: nginx:1.25-alpine
     container_name: nginx
     depends_on:
       - backend
+      - ai
       - mysql
       - redis
     ports:
