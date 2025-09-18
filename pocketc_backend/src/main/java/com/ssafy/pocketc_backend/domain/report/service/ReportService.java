@@ -18,8 +18,10 @@ public class ReportService {
 
     private final ReportRepository reportRepository;
 
-    public void updateTotalExpense(Integer userId, LocalDate month, Integer expense) {
-
+    /**
+     * 월별 총지출액 수정
+     */
+    public void updateMonthlyTotalExpense(Integer userId, LocalDate month, Integer expense) {
         Report report = reportRepository.findByUser_UserIdAndReportMonth(userId, month)
                 .orElseThrow(() -> new CustomException(ERROR_GET_MONTHLY_TOTAL_EXPENSE));
 
@@ -27,7 +29,10 @@ public class ReportService {
         report.setMonthlyTotalExpense(total + expense);
     }
 
-    public void updateFixedExpense(Integer userId, LocalDate month, Integer expense) {
+    /**
+     * 월별 고정비 지출액 수정
+     */
+    public void updateMonthlyFixedExpense(Integer userId, LocalDate month, Integer expense) {
 
         Report report = reportRepository.findByUser_UserIdAndReportMonth(userId, month)
                 .orElseThrow(() -> new CustomException(ERROR_GET_MONTHLY_TOTAL_EXPENSE));

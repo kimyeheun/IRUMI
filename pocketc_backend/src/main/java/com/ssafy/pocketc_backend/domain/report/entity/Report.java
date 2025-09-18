@@ -24,7 +24,7 @@ public class Report {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    private LocalDate month;
+    private LocalDate reportMonth;
     private Integer monthlyTotalExpense;
     private Integer monthlyFixedExpense;
     private Integer monthlyBudget;
