@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.Principal;
 import java.util.*;
 
+import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.ERROR_ALREADY_INCLUDED_ROOM;
+import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.ERROR_GET_ROOM;
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
 
 @Service
@@ -36,20 +38,20 @@ public class EventService {
         return getRoomResDto(user);
     }
 
-//    public RoomResDto joinRoom(String roomCode, Principal principal) {
-//        int userId = 1;
-//
-//        Room room = roomRepository.findByRoomCode(roomCode)
-//                .orElseThrow(() -> new CustomException(ERROR_GET_ROOM));
-//
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
-//
-//        if (user.getRoom() != null) throw new CustomException(ERROR_ALREADY_INCLUDED_ROOM);
-//
-//        user.setRoom(room);
-//        return getRoomResDto(user.getRoom());
-//    }
+    public RoomResDto joinRoom(String roomCode, Principal principal) {
+        int userId = Integer.parseInt(principal.getName());
+
+        Room room = roomRepository.findByRoomCode(roomCode)
+                .orElseThrow(() -> new CustomException(ERROR_GET_ROOM));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        if (user.getRoom() != null) throw new CustomException(ERROR_ALREADY_INCLUDED_ROOM);
+
+        user.setRoom(room);
+        return getRoomResDto(user);
+    }
 //
 //    public RoomResDto createRoom(Integer maxMembers, Principal principal) {
 //        int userId = 1;
