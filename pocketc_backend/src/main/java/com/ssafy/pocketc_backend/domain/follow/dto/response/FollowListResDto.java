@@ -6,6 +6,4 @@ import java.util.List;
 
 public record FollowListResDto (
         List<Follow> follows
-) {
-
-}
+) { }
