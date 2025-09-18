@@ -13,12 +13,12 @@ import static com.ssafy.pocketc_backend.domain.event.exception.EventSuccessType.
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/event")
 public class EventController {
 
     private final EventService eventService;
 
-    @GetMapping("/users/room")
+    @GetMapping("/room")
     public ResponseEntity<ApiResponse<RoomResDto>> getRoom(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_ROOM,
@@ -26,13 +26,13 @@ public class EventController {
         ));
     }
 
-//    @PostMapping("/users/room/join")
-//    public ResponseEntity<ApiResponse<RoomResDto>> joinRoom(@RequestParam("roomCode") String roomCode, Principal principal) {
-//        return ResponseEntity.ok(ApiResponse.success(
-//                SUCCESS_JOIN_ROOM,
-//                eventService.joinRoom(roomCode, principal)
-//        ));
-//    }
+    @PostMapping("/room/join")
+    public ResponseEntity<ApiResponse<RoomResDto>> joinRoom(@RequestParam("roomCode") String roomCode, Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_JOIN_ROOM,
+                eventService.joinRoom(roomCode, principal)
+        ));
+    }
 //
 //    @PostMapping("/users/event/room")
 //    public ResponseEntity<ApiResponse<RoomResDto>> createRoom(@RequestParam("maxMembers") Integer maxMembers, Principal principal) {
