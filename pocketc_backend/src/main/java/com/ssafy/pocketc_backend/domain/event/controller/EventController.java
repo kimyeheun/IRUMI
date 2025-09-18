@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.event.controller;
 
+import com.ssafy.pocketc_backend.domain.event.dto.response.MemberListDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.RoomResDto;
 import com.ssafy.pocketc_backend.domain.event.service.EventService;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
@@ -47,6 +48,14 @@ public class EventController {
         eventService.leaveRoom(principal);
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_LEAVE_ROOM
+        ));
+    }
+
+    @GetMapping("/users/event/room/members")
+    public ResponseEntity<ApiResponse<MemberListDto>> getMembers(Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_GET_MEMBERS,
+                eventService.getMembers(principal)
         ));
     }
 }

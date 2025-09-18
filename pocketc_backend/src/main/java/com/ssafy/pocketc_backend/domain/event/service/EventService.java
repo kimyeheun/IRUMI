@@ -1,8 +1,6 @@
 package com.ssafy.pocketc_backend.domain.event.service;
 
-import com.ssafy.pocketc_backend.domain.event.dto.response.EventResDto;
-import com.ssafy.pocketc_backend.domain.event.dto.response.RoomDetailDto;
-import com.ssafy.pocketc_backend.domain.event.dto.response.RoomResDto;
+import com.ssafy.pocketc_backend.domain.event.dto.response.*;
 import com.ssafy.pocketc_backend.domain.event.entity.Event;
 import com.ssafy.pocketc_backend.domain.event.entity.Room;
 import com.ssafy.pocketc_backend.domain.event.repository.EventRepository;
@@ -15,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.*;
@@ -85,6 +84,29 @@ public class EventService {
 
         List<User> users = userRepository.findAllByRoom(room);
         if (users.isEmpty()) roomRepository.delete(room);
+    }
+
+    public MemberListDto getMembers(Principal principal) {
+
+        int userId = 1;
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        if (user.getRoom() == null) throw new CustomException(ERROR_NOT_INCLUDED_ROOM);
+
+        List<User> members = userRepository.findAllByRoom(user.getRoom());
+        List<MemberDto> memberDtos = new ArrayList<>();
+        for (User member : members) {
+            if (member.getUserId() == userId) continue;
+            memberDtos.add(MemberDto.of(
+                    member.getUserId(),
+                    member.getName(),
+                    "ProfileImageUrl"
+//                    member.getProfileImageUrl()
+            ));
+        }
+        return new MemberListDto(memberDtos);
     }
 
     private RoomResDto getRoomResDto(Room room) {
