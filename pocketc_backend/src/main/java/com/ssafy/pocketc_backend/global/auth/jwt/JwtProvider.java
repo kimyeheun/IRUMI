@@ -1,7 +1,8 @@
-package com.ssafy.pocketc_backend.global.auth;
+package com.ssafy.pocketc_backend.global.auth.jwt;
 
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
 import com.ssafy.pocketc_backend.global.auth.service.RefreshTokenService;
+import com.ssafy.pocketc_backend.global.dev.DevTokenHolder;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -62,6 +63,10 @@ public class JwtProvider {
     }
 
     public boolean validateAccessToken(String token) {
+        //개발자용 고정 토큰 무조건 허용
+        if (token != null && token.equals(DevTokenHolder.DEV_TOKEN)) {
+            return true;
+        }
         try {
             getJwtBody(token);
             return true;
@@ -95,6 +100,10 @@ public class JwtProvider {
 
 
     public Integer getUserIdFromJwt(String token) {
+        // 개발자용 고정 토큰이면 userId=1 고정 반환
+        if (token.equals(DevTokenHolder.DEV_TOKEN)) {
+            return 1;
+        }
         Claims claims = getJwtBody(token);
         return Integer.parseInt(claims.getSubject());
     }

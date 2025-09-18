@@ -7,7 +7,7 @@ import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.exception.UserErrorType;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
-import com.ssafy.pocketc_backend.global.auth.JwtProvider;
+import com.ssafy.pocketc_backend.global.auth.jwt.JwtProvider;
 import com.ssafy.pocketc_backend.global.auth.service.RefreshTokenService;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
