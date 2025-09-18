@@ -4,7 +4,6 @@ import com.ssafy.pocketc_backend.global.exception.type.SuccessType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 
 @Getter

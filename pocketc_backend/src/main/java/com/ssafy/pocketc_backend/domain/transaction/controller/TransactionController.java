@@ -1,7 +1,9 @@
 package com.ssafy.pocketc_backend.domain.transaction.controller;
 
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.MonthReqDto;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionCreateReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionReqDto;
+import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionCreatedResDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionListResDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionResDto;
 import com.ssafy.pocketc_backend.domain.transaction.service.TransactionService;
@@ -58,6 +60,14 @@ public class TransactionController {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_SUB_CATEGORY_TRANSACTIONS,
                 transactionService.getSubCategory(subCategory, principal)
+        ));
+    }
+
+    @PostMapping("/{userId}/transactions")
+    public ResponseEntity<ApiResponse<?>> createTransaction(@PathVariable Integer userId, @RequestBody TransactionCreateReqDto dto) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_CREATE_TRANSACTIONS,
+                transactionService.createTransaction(userId, dto)
         ));
     }
 }
