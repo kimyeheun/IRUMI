@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
-import static com.ssafy.pocketc_backend.domain.event.exception.EventSuccessType.SUCCESS_GET_ROOM;
-import static com.ssafy.pocketc_backend.domain.event.exception.EventSuccessType.SUCCESS_JOIN_ROOM;
+import static com.ssafy.pocketc_backend.domain.event.exception.EventSuccessType.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +31,14 @@ public class EventController {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_JOIN_ROOM,
                 eventService.joinRoom(roomCode, principal)
+        ));
+    }
+
+    @PostMapping("/users/event/rooms")
+    public ResponseEntity<ApiResponse<RoomResDto>> createRoom(@RequestParam("maxMembers") Integer maxMembers, Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_CREATE_ROOM,
+                eventService.createRoom(maxMembers, principal)
         ));
     }
 }
