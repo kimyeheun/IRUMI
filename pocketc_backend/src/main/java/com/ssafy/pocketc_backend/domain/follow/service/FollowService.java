@@ -6,12 +6,16 @@ import com.ssafy.pocketc_backend.domain.follow.entity.Follow;
 import com.ssafy.pocketc_backend.domain.follow.repository.FollowRepository;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
+import com.ssafy.pocketc_backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.ssafy.pocketc_backend.domain.follow.exception.FollowErrorType.ERROR_GET_NOT_FOUND_USER;
+import static com.ssafy.pocketc_backend.domain.follow.exception.FollowErrorType.ERROR_POST_SELF_FOLLOW;
 
 @Service
 @RequiredArgsConstructor
@@ -23,8 +27,7 @@ public class FollowService {
     @Transactional
     public void follow(Integer userId, Integer targetUserId) {
         if (userId.equals(targetUserId)) {
-            /*TODO ERROR HANDLING*/
-            throw new IllegalArgumentException("자기 자신을 팔로우 할 수 없습니다.");
+            throw new CustomException(ERROR_POST_SELF_FOLLOW);
         }
 
         if (followRepository.existsByFollower_UserIdAndFollowee_UserId(userId, targetUserId)) {
@@ -33,7 +36,7 @@ public class FollowService {
 
         if (!userRepository.existsById(targetUserId)) {
             /*TODO ERROR HANDLING*/
-            throw new IllegalArgumentException("존재하지 않는 사용자입니다. : " + targetUserId);
+            throw new CustomException(ERROR_GET_NOT_FOUND_USER);
         }
 
         User followerRef = userRepository.getReferenceById(userId);
