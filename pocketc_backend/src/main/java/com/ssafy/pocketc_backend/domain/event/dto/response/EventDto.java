@@ -4,7 +4,7 @@ import com.ssafy.pocketc_backend.domain.event.entity.Event;
 
 import java.time.LocalDateTime;
 
-public record EventResDto(
+public record EventDto (
         Integer eventId,
         String eventName,
         String eventDescription,
@@ -15,8 +15,8 @@ public record EventResDto(
         LocalDateTime startAt,
         LocalDateTime endAt
 ) {
-    public static EventResDto from(Event event) {
-        return new EventResDto(
+    public static EventDto from(Event event) {
+        return new EventDto(
                 event.getEventId(),
                 event.getEventName(),
                 event.getEventDescription(),
