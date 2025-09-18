@@ -35,7 +35,8 @@ public class Room extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private Status status;
+    @Builder.Default
+    private Status status = Status.IN_PROGRESS;
 
     @OneToMany(mappedBy = "room", fetch = FetchType.LAZY)
     @Builder.Default

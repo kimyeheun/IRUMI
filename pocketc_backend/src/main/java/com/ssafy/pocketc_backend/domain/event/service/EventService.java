@@ -3,6 +3,7 @@ package com.ssafy.pocketc_backend.domain.event.service;
 import com.ssafy.pocketc_backend.domain.event.dto.response.EventResDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.RoomDetailDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.RoomResDto;
+import com.ssafy.pocketc_backend.domain.event.entity.Event;
 import com.ssafy.pocketc_backend.domain.event.entity.Room;
 import com.ssafy.pocketc_backend.domain.event.repository.EventRepository;
 import com.ssafy.pocketc_backend.domain.event.repository.RoomRepository;
@@ -48,6 +49,26 @@ public class EventService {
 
         if (user.getRoom() != null) throw new CustomException(ERROR_ALREADY_INCLUDED_ROOM);
 
+        user.setRoom(room);
+        return getRoomResDto(user.getRoom());
+    }
+
+    public RoomResDto createRoom(Integer maxMembers, Principal principal) {
+        int userId = 1;
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        if (user.getRoom() != null) throw new CustomException(ERROR_ALREADY_INCLUDED_ROOM);
+
+        Event event = eventRepository.findFirstByOrderByEventIdDesc();
+
+        Room room = Room.builder()
+                .event(event)
+                .maxNumber(maxMembers)
+                .build();
+
+        roomRepository.save(room);
         user.setRoom(room);
         return getRoomResDto(user.getRoom());
     }
