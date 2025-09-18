@@ -2,13 +2,17 @@ package com.ssafy.pocketc_backend.domain.transaction.service;
 
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.MonthReqDto;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionCreateReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionReqDto;
+import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionCreatedResDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionListResDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionResDto;
 import com.ssafy.pocketc_backend.domain.transaction.entity.Transaction;
 import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionRepository;
+import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +25,7 @@ import java.util.List;
 
 import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.ERROR_GET_MONTHLY_TRANSACTIONS;
 import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.ERROR_GET_TRANSACTION;
+import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
 
 @Service
 @Transactional
@@ -29,6 +34,7 @@ public class TransactionService {
 
     private final ReportService reportService;
     private final TransactionRepository transactionRepository;
+    private final UserRepository userRepository;
 
     public TransactionResDto getTransactionById(int transactionId, Principal principal) {
 
@@ -90,6 +96,30 @@ public class TransactionService {
         int userId = 1;
         List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndSubCategory(userId, subCategory);
         return buildTransactionListDto(transactions);
+    }
+
+    public TransactionCreatedResDto createTransaction(Integer userId, TransactionCreateReqDto dto) {
+
+        ////////////////////////// 더미 데이터 //////////////////////////
+        /*TODO AI API 호출 : 카테고리 부여*/
+        Transaction categorizedTransaction = new Transaction();
+        categorizedTransaction.setMajorCategory(1);
+        categorizedTransaction.setSubCategory(1);
+        categorizedTransaction.setFixed(true);
+        ////////////////////////// 더미 데이터 //////////////////////////
+
+        Transaction transaction = new Transaction();
+        transaction.setTransactedAt(LocalDateTime.now());
+        transaction.setUser(userRepository.findById(userId).orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR)));
+        transaction.setAmount(dto.amount());
+        transaction.setMerchantName(dto.merchantName());
+        transaction.setMajorCategory(categorizedTransaction.getMajorCategory());
+        transaction.setSubCategory(categorizedTransaction.getSubCategory());
+        transaction.setFixed(categorizedTransaction.isFixed());
+
+        transactionRepository.save(transaction);
+
+        return new TransactionCreatedResDto(transaction.getTransactionId(), transaction.getUser().getUserId());
     }
 
     private TransactionListResDto buildTransactionListDto(List<Transaction> transactions) {

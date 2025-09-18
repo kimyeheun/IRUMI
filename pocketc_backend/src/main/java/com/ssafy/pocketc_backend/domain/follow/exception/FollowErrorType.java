@@ -16,5 +16,7 @@ public enum FollowErrorType implements ErrorType {
     private final String message;
 
     @Override
-    public int getHttpStatusCode() { return httpStatus.value(); }
+    public int getHttpStatusCode() {
+        return httpStatus.value();
+    }
 }
