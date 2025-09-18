@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.util.List;
 
-import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.ERROR_ALREADY_INCLUDED_ROOM;
-import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.ERROR_GET_ROOM;
+import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.*;
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
 
 @Service
@@ -71,6 +71,20 @@ public class EventService {
         roomRepository.save(room);
         user.setRoom(room);
         return getRoomResDto(user.getRoom());
+    }
+
+    public void leaveRoom(Principal principal) {
+        int userId = 1;
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        if (user.getRoom() == null) throw new CustomException(ERROR_NOT_INCLUDED_ROOM);
+        Room room = user.getRoom();
+        user.setRoom(null);
+
+        List<User> users = userRepository.findAllByRoom(room);
+        if (users.isEmpty()) roomRepository.delete(room);
     }
 
     private RoomResDto getRoomResDto(Room room) {
