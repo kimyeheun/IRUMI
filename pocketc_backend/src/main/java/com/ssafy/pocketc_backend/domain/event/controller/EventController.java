@@ -1,6 +1,7 @@
 package com.ssafy.pocketc_backend.domain.event.controller;
 
 import com.ssafy.pocketc_backend.domain.event.dto.response.EventResDto;
+import com.ssafy.pocketc_backend.domain.event.dto.response.PuzzleResDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.RoomResDto;
 import com.ssafy.pocketc_backend.domain.event.service.EventService;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
