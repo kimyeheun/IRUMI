@@ -56,7 +56,7 @@ INSERT INTO users (
     budget, puzzle_attempts,
     created_at, updated_at
 ) VALUES
-      (NULL, '홍길동', 'hong@test.com', 'pw1234',
+      (1, '홍길동', 'hong@test.com', 'pw1234',
        500000, 3,
        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 
@@ -64,7 +64,7 @@ INSERT INTO users (
        300000, 5,
        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 
-      (2, '이영희', 'lee@test.com', 'pw9012',
+      (1, '이영희', 'lee@test.com', 'pw9012',
        450000, 2,
        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 
