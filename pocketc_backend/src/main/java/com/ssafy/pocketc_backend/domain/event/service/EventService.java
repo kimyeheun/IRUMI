@@ -5,13 +5,19 @@ import com.ssafy.pocketc_backend.domain.event.dto.response.RoomDetailDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.RoomResDto;
 import com.ssafy.pocketc_backend.domain.event.entity.Room;
 import com.ssafy.pocketc_backend.domain.event.repository.EventRepository;
+import com.ssafy.pocketc_backend.domain.event.repository.RoomRepository;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
+import com.ssafy.pocketc_backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+
+import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.ERROR_ALREADY_INCLUDED_ROOM;
+import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.ERROR_GET_ROOM;
+import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
 
 @Service
 @Transactional
@@ -19,15 +25,34 @@ import java.security.Principal;
 public class EventService {
 
     private final UserRepository userRepository;
+    private final RoomRepository roomRepository;
     private final EventRepository eventRepository;
 
     public RoomResDto getRoom(Principal principal){
         int userId = 1;
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
 
         if (user.getRoom() == null) return new RoomResDto(null);
-        Room room = user.getRoom();
+        return getRoomResDto(user.getRoom());
+    }
+
+    public RoomResDto joinRoom(String roomCode, Principal principal) {
+        int userId = 1;
+
+        Room room = roomRepository.findByRoomCode(roomCode)
+                .orElseThrow(() -> new CustomException(ERROR_GET_ROOM));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        if (user.getRoom() != null) throw new CustomException(ERROR_ALREADY_INCLUDED_ROOM);
+
+        user.setRoom(room);
+        return getRoomResDto(user.getRoom());
+    }
+
+    private RoomResDto getRoomResDto(Room room) {
         EventResDto eventResDto = EventResDto.from(room.getEvent());
         RoomDetailDto roomDetailDto = RoomDetailDto.of(room.getRoomId(), room.getMaxNumber(), room.getCreatedAt(), String.valueOf(room.getStatus()), room.getRoomCode(), eventResDto);
         return new RoomResDto(roomDetailDto);
