@@ -4,7 +4,7 @@ import com.ssafy.pocketc_backend.domain.follow.entity.Follow;
 
 import java.time.LocalDateTime;
 
-public record FollowResDto (
+public record FollowResDto(
         Integer followeeId,
         LocalDateTime followedAt
 ) {

@@ -57,7 +57,7 @@ public class FollowService {
         return buildFollowListDto(follows);
     }
 
-    public FollowListResDto buildFollowListDto (List<Follow> follows) {
+    public FollowListResDto buildFollowListDto(List<Follow> follows) {
         List<FollowResDto> followResDtoList = new ArrayList<>();
 
         for (Follow follow : follows) followResDtoList.add(FollowResDto.from(follow));
