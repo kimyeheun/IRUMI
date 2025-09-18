@@ -3,7 +3,7 @@ INSERT INTO events (
     start_at, end_at, badge_name, badge_description, created_at, updated_at
 ) VALUES
       ('퍼즐 도전 이벤트',
-       '퍼즐을 완성하면 배지를 획득하는 이벤트',
+       '퍼즐을 완성하면 배지를 획득하는 이벤트헤헷',
        'https://example.com/badge1.png',
        'https://example.com/event1.png',
        '2025-09-01 09:00:00',
@@ -43,13 +43,13 @@ INSERT INTO events (
        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- Room 더미 데이터
-INSERT INTO rooms (event_id, max_number, status, room_code, created_at, updated_at) VALUES
-                                                                                        (1, 5, 'IN_PROGRESS', 'AB12CD34', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                        (1, 10, 'SUCCESS', 'EF56GH78', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                        (2, 8, 'FAILURE', 'IJ90KL12', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                        (2, 6, 'IN_PROGRESS', 'MN34OP56', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                        (3, 4, 'SUCCESS', 'QR78ST90', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                        (3, 12, 'IN_PROGRESS', 'UV12WX34', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO rooms (max_number, status, room_code, created_at, updated_at) VALUES
+                                                                                        ( 5, 'IN_PROGRESS', 'AB12CD34', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                                                                                        (10, 'SUCCESS', 'EF56GH78', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                                                                                        (8, 'FAILURE', 'IJ90KL12', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                                                                                        ( 6, 'IN_PROGRESS', 'MN34OP56', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                                                                                        ( 4, 'SUCCESS', 'QR78ST90', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+                                                                                        ( 12, 'IN_PROGRESS', 'UV12WX34', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO users (
     room_id, name, email, password,
