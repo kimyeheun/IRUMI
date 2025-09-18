@@ -1,6 +1,5 @@
 package com.ssafy.pocketc_backend.domain.event.controller;
 
-import com.ssafy.pocketc_backend.domain.event.dto.response.EventDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.EventResDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.RoomResDto;
 import com.ssafy.pocketc_backend.domain.event.service.EventService;
@@ -36,14 +35,14 @@ public class EventController {
         ));
     }
 
-//    @PostMapping("/users/event/room")
-//    public ResponseEntity<ApiResponse<RoomResDto>> createRoom(@RequestParam("maxMembers") Integer maxMembers, Principal principal) {
-//        return ResponseEntity.ok(ApiResponse.success(
-//                SUCCESS_CREATE_ROOM,
-//                eventService.createRoom(maxMembers, principal)
-//        ));
-//    }
-//
+    @PostMapping("/room")
+    public ResponseEntity<ApiResponse<RoomResDto>> createRoom(@RequestParam("maxMembers") Integer maxMembers, Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_CREATE_ROOM,
+                eventService.createRoom(maxMembers, principal)
+        ));
+    }
+
     @DeleteMapping("/room")
     public ResponseEntity<ApiResponse<EventResDto>> leaveRoom(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
@@ -51,12 +50,4 @@ public class EventController {
                 eventService.leaveRoom(principal)
         ));
     }
-//
-//    @GetMapping("/users/event/room/members")
-//    public ResponseEntity<ApiResponse<?>> getMembers(Principal principal) {
-//        return ResponseEntity.ok(ApiResponse.success(
-//                SUCCESS_GET_MEMBERS,
-//                eventService.getMembers(principal)
-//        ));
-//    }
 }
