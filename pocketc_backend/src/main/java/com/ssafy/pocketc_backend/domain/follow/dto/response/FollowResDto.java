@@ -5,12 +5,12 @@ import com.ssafy.pocketc_backend.domain.follow.entity.Follow;
 import java.time.LocalDateTime;
 
 public record FollowResDto (
-        Integer followerId,
+        Integer followeeId,
         LocalDateTime followedAt
 ) {
     public static FollowResDto from(Follow follow) {
         return new FollowResDto(
-                follow.getFollower().getUserId(),
+                follow.getFollowee().getUserId(),
                 follow.getCreatedAt()
         );
     }
