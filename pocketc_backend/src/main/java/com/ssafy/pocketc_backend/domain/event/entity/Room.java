@@ -45,6 +45,10 @@ public class Room extends BaseTimeEntity {
     @Column(nullable = false, unique = true, length = 10)
     private String roomCode;
 
+    @OneToMany(mappedBy = "room", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Puzzle> puzzles = new ArrayList<>();
+
     @PrePersist
     private void generateRoomCode() {
         if (this.roomCode != null) return;

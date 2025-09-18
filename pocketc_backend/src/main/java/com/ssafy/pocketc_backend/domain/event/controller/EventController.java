@@ -34,11 +34,19 @@ public class EventController {
         ));
     }
 
-    @PostMapping("/users/event/rooms")
+    @PostMapping("/users/event/room")
     public ResponseEntity<ApiResponse<RoomResDto>> createRoom(@RequestParam("maxMembers") Integer maxMembers, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_CREATE_ROOM,
                 eventService.createRoom(maxMembers, principal)
+        ));
+    }
+
+    @DeleteMapping("/users/event/room")
+    public ResponseEntity<ApiResponse<?>> deleteRoom(Principal principal) {
+        eventService.leaveRoom(principal);
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_LEAVE_ROOM
         ));
     }
 }
