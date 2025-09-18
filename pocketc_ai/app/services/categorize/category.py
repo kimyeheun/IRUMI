@@ -1,10 +1,8 @@
-from __future__ import annotations
-
 from datetime import datetime
 
 from requests.sessions import Session
 
-from pocketc_ai.app.repository.category import SubCategoryRepository
+from pocketc_ai.app.repository.categoryRepository import SubCategoryRepository
 from pocketc_ai.app.schemas.transaction import CategoryRequest, Transaction
 from pocketc_ai.app.services.categorize.category_lib import REGEX_RULES
 from pocketc_ai.app.services.categorize.rules.chain import Categorizer

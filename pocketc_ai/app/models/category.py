@@ -11,10 +11,10 @@ class MajorCategory(Base):
     major_name = Column(String(50), nullable=False)
     is_fixed = Column(Boolean, nullable=False, server_default=text('TRUE'))
 
-    sub_categories = relationship("SubCategories", back_populates="major_category")
+    sub_category = relationship("SubCategory", back_populates="major_category")
 
 
-class SubCategories(Base):
+class SubCategory(Base):
     __tablename__ = "sub_categories"
 
     sub_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -26,4 +26,4 @@ class SubCategories(Base):
     sub_name = Column(String(50), nullable=False)
     is_fixed = Column(Boolean, nullable=False, server_default=text('TRUE'))
 
-    major_category = relationship("MajorCategory", back_populates="sub_categories")
+    major_category = relationship("MajorCategory", back_populates="sub_category")

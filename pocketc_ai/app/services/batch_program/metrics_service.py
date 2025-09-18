@@ -2,7 +2,7 @@ from celery import shared_task
 from pocketc_ai.app.db.session import run_sql
 
 UPSERT_SQL = """
-INSERT INTO user_daily_metrics (user_id, sub_id, d, day_count, day_sum, night_count, max_per_txn)
+INSERT INTO user_metrics (user_id, sub_id, d, day_count, day_sum, night_count, max_per_txn)
 WITH kst AS (
   SELECT DATE(CONVERT_TZ(UTC_TIMESTAMP(),'UTC','Asia/Seoul')) AS today_kst
 ),
@@ -37,7 +37,7 @@ ON DUPLICATE KEY UPDATE
   max_per_txn = VALUES(max_per_txn);
 """
 
-@shared_task(name="app.tasks.user_daily_metrics", autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
-def upsert_user_daily_metrics(lookback_days: int = 3):
-    run_sql(UPSERT_SQL, {"lookback": lookback_days})
+@shared_task(name="app.tasks.user_metrics", autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
+def upsert_user_metrics(lookback_days: int = 3):
+    run_sql(UPSERT_SQL, [{"lookback": lookback_days}])
     return {"ok": True, "lookback": lookback_days}

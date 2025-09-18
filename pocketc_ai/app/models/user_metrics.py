@@ -5,8 +5,8 @@ from sqlalchemy.sql.sqltypes import Integer, Date
 from pocketc_ai.app.db.base import Base
 
 
-class UserDailyMetrics(Base):
-    __tablename__ = 'user_daily_metrics'
+class UserMetrics(Base):
+    __tablename__ = 'user_metrics'
 
     user_id = Column(Integer, primary_key=True)
     sub_id = Column(
@@ -21,6 +21,7 @@ class UserDailyMetrics(Base):
     morning_count = Column(Integer, nullable=False, comment="아침 (07~10) 건수")
     afternoon_count = Column(Integer, nullable=False, comment="오후 (12~19) 건수")
     max_per_txn = Column(Integer, nullable=False, comment="1건 최대 금액")
+
     sub_category = relationship("SubCategory")
 
     # user_id = Column(Integer, ForeignKey("users.user_id"), primary_key=True)

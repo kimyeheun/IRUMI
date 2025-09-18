@@ -3,21 +3,15 @@ from typing import Any
 from typing import Dict
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm.session import Session
 
-from pocketc_ai.app.db.session import get_db
 from pocketc_ai.app.schemas.transaction import CategoryResponse, CategoryRequest
-from pocketc_ai.app.services.categorize.categorization import CategoryService
+from pocketc_ai.app.services.categorize.category_service import CategoryService, get_category_service
 
 router = APIRouter()
 
 @router.get("/")
 def get_transactions() :
     return "categories"
-
-
-def get_category_service(db: Session = Depends(get_db)) -> CategoryService:
-    return CategoryService(db, fallback="기타")
 
 @router.post("/categories", response_model=CategoryResponse, status_code=201)
 def create_category(
@@ -33,4 +27,4 @@ def create_category(
         return CategoryResponse(**payload)
     except Exception as e:
         logging.warning(f"An error occurred: {e}")
-        return CategoryResponse(status=400, message="오류")
+        return CategoryResponse(status=400, message=f"{e}")

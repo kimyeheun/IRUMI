@@ -19,7 +19,7 @@ def engine():
     return create_engine(url, pool_pre_ping=True, future=True)
 
 def trigger_rebuild(lookback_days=3):
-    r = requests.post(f"{API_BASE}/admin/rebuild-daily-metrics", params={"lookback_days": lookback_days}, timeout=10)
+    r = requests.post(f"{API_BASE}/admin/rebuild-daily-batch_program", params={"lookback_days": lookback_days}, timeout=10)
     r.raise_for_status()
     return r.json()["task_id"]
 
@@ -45,12 +45,12 @@ if __name__ == "__main__":
         rows_coffee = fetch_metrics(1, 2001, 5)
         rows_delivery = fetch_metrics(1, 2002, 5)
         if rows_coffee and rows_delivery:
-            print("[metrics/coffee]")
+            print("[batch_program/coffee]")
             for r in rows_coffee:
                 print(dict(r))
-            print("[metrics/delivery]")
+            print("[batch_program/delivery]")
             for r in rows_delivery:
                 print(dict(r))
             break
     else:
-        print("No metrics yet. Check worker/beat logs and Celery/Flower.")
+        print("No batch_program yet. Check worker/beat logs and Celery/Flower.")

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from pocketc_ai.app.api.v1.routers import api_router
-from pocketc_ai.app.services.batch_task import upsert_user_daily_metrics
+from pocketc_ai.app.services.batch_program.metrics_service import upsert_user_metrics
 
 app = FastAPI(
     title = "PocketC",
@@ -18,5 +18,5 @@ app.include_router(api_router, prefix="/ai")
 # NOTE: 수동 트리거용(옵션): 운영 중 점검/재집계
 @app.post("/admin/rebuild-daily-metrics")
 def rebuild(lookback_days: int = 3):
-    r = upsert_user_daily_metrics.delay(lookback_days)
+    r = upsert_user_metrics.delay(lookback_days)
     return {"task_id": r.id}
