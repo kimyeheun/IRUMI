@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 import static com.ssafy.pocketc_backend.domain.follow.exception.FollowSuccessType.*;
 
 @RestController
@@ -16,27 +18,25 @@ public class FollowController {
 
     private final FollowService followService;
 
-//    private Integer userId(Principal principal) {
-//        return Integer.parseInt(principal.getName());
-//    }
+    private Integer userId(Principal principal) { return Integer.parseInt(principal.getName()); }
 
-    @PostMapping("{userId}/follows/{targetUserId}")
-    public ResponseEntity<ApiResponse<?>> follow(@PathVariable Integer userId, @PathVariable Integer targetUserId) {
-        followService.follow(userId, targetUserId);
+    @PostMapping("/follows/{targetUserId}")
+    public ResponseEntity<ApiResponse<?>> follow(Principal principal, @PathVariable Integer targetUserId) {
+        followService.follow(userId(principal), targetUserId);
         return ResponseEntity.ok(ApiResponse.success(SUCCESS_POST_FOLLOW));
     }
 
-    @DeleteMapping("{userId}/follows/{targetUserId}")
-    public ResponseEntity<ApiResponse<?>> unfollow(@PathVariable Integer userId, @PathVariable Integer targetUserId) {
-        followService.unfollow(userId, targetUserId);
+    @DeleteMapping("/follows/{targetUserId}")
+    public ResponseEntity<ApiResponse<?>> unfollow(Principal principal, @PathVariable Integer targetUserId) {
+        followService.unfollow(userId(principal), targetUserId);
         return ResponseEntity.ok(ApiResponse.success(SUCCESS_DELETE_FOLLOW));
     }
 
-    @GetMapping("{userId}/follows")
-    public ResponseEntity<ApiResponse<FollowListResDto>> getFollowList(@PathVariable Integer userId) {
+    @GetMapping("/follows")
+    public ResponseEntity<ApiResponse<FollowListResDto>> getFollowList(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_FOLLOWS,
-                followService.getFollowList(userId)
+                followService.getFollowList(userId(principal))
         ));
     }
 }
