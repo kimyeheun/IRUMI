@@ -15,14 +15,14 @@ import static com.ssafy.pocketc_backend.domain.event.exception.EventSuccessType.
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/event")
+@RequestMapping("/api/v1")
 public class EventController {
 
     private final EventService eventService;
 
     private Integer userId(Principal principal) { return Integer.parseInt(principal.getName()); }
 
-    @GetMapping("/room")
+    @GetMapping("/event/room")
     public ResponseEntity<ApiResponse<RoomResDto>> getRoom(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_ROOM,
@@ -30,7 +30,7 @@ public class EventController {
         ));
     }
 
-    @PostMapping("/room/join")
+    @PostMapping("/event/room/join")
     public ResponseEntity<ApiResponse<RoomResDto>> joinRoom(@RequestParam("roomCode") String roomCode, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_JOIN_ROOM,
@@ -38,7 +38,7 @@ public class EventController {
         ));
     }
 
-    @PostMapping("/room")
+    @PostMapping("/event/room")
     public ResponseEntity<ApiResponse<RoomResDto>> createRoom(@RequestParam("maxMembers") Integer maxMembers, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_CREATE_ROOM,
@@ -46,7 +46,7 @@ public class EventController {
         ));
     }
 
-    @DeleteMapping("/room")
+    @DeleteMapping("/event/room")
     public ResponseEntity<ApiResponse<EventResDto>> leaveRoom(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_LEAVE_ROOM,
@@ -54,11 +54,19 @@ public class EventController {
         ));
     }
 
-    @PostMapping("/fill")
+    @PostMapping("/event/fill")
     public ResponseEntity<ApiResponse<PuzzleResDto>> fillPuzzle(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_FILL_PUZZLES,
                 eventService.fillPuzzle(userId(principal))
+        ));
+    }
+
+    @GetMapping("/users/badges")
+    public ResponseEntity<ApiResponse<?>> getBadges(Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_GET_BADGES,
+                eventService.getBadges(userId(principal))
         ));
     }
 }
