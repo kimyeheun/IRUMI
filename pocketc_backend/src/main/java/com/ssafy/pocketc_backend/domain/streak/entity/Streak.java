@@ -23,7 +23,7 @@ public class Streak {
     private User user;
 
     private Integer missionCompletedCount;
-    private Integer spentAmount;
+    private Long spentAmount;
 
     @Builder.Default
     private boolean status = false;

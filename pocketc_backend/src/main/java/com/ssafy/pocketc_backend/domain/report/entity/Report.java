@@ -25,7 +25,7 @@ public class Report {
     private User user;
 
     private LocalDate reportMonth;
-    private Integer monthlyTotalExpense;
-    private Integer monthlyFixedExpense;
-    private Integer monthlyBudget;
+    private Long monthlyTotalExpense;
+    private Long monthlyFixedExpense;
+    private Long monthlyBudget;
 }

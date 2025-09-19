@@ -4,9 +4,9 @@ import java.util.List;
 
 public record TransactionListResDto(
         List<TransactionResDto> transactions,
-        Integer totalSpending
+        Long totalSpending
 ) {
-    public static TransactionListResDto of(List<TransactionResDto> transactions, Integer totalSpending) {
+    public static TransactionListResDto of(List<TransactionResDto> transactions, Long totalSpending) {
         return new TransactionListResDto(transactions, totalSpending);
     }
 }

@@ -10,7 +10,7 @@ public class UserSignupRequest {
     private String name;
     private String email;
     private String password;
-    private Integer budget;
+    private Long budget;
 //    private MultipartFile profileImage;
 
 }
