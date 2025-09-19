@@ -1,11 +1,12 @@
-package com.ssafy.pocketc_backend.domain.streak.entity;
+package com.ssafy.pocketc_backend.domain.user.entity;
 
-import com.ssafy.pocketc_backend.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
 
 @Builder
 @Entity
@@ -17,6 +18,8 @@ public class Streak {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer streakId;
+
+    private LocalDate date;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)

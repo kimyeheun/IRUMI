@@ -120,3 +120,16 @@ INSERT INTO transactions (
       (5, TIMESTAMP '2025-09-06 16:55:00', 78000, '현대백화점',   2, 22, FALSE, TRUE,  CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
       (1, TIMESTAMP '2025-09-07 09:30:00', 110000,'하나투어',     4, 41, TRUE,  TRUE,  CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
       (3, TIMESTAMP '2025-09-08 12:45:00', 22000, '교보문고',     2, 23, TRUE,  TRUE,  CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO streaks (date, user_id, mission_completed_count, spent_amount, status)
+VALUES
+    ('2025-09-01', 1, 2, 15000, true),
+    ('2025-09-02', 1, 1, 8000, false),
+    ('2025-09-03', 1, 3, 20000, true),
+    ('2025-09-04', 1, 0, 0, false),
+    ('2025-09-05', 1, 2, 12000, true),
+    ('2025-09-06', 1, 1, 5000, false),
+    ('2025-09-07', 1, 4, 35000, true),
+    ('2025-09-08', 1, 2, 10000, true),
+    ('2025-09-09', 1, 1, 7000, false),
+    ('2025-09-10', 1, 3, 25000, true);
