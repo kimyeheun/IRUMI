@@ -35,14 +35,14 @@ public class User extends BaseTimeEntity {
 //    private String profileImageUrl;
 
     @Column
-    private Integer budget;
+    private Long budget;
 
     @Column
     private Integer puzzleAttempts;
 
 //    @Column
 //    private String feedback;
-public void updateProfile(String name, String email, Integer budget) {
+public void updateProfile(String name, String email, Long budget) {
     if (name != null) this.name = name;
     if (email != null) this.email = email;
     if (budget != null) this.budget = budget;

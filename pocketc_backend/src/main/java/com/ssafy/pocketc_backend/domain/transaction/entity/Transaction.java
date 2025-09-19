@@ -26,7 +26,7 @@ public class Transaction extends BaseTimeEntity {
     private User user;
 
     private LocalDateTime transactedAt;
-    private Integer amount;
+    private Long amount;
 
     @Column(length = 255)
     private String merchantName;
