@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -30,32 +32,35 @@ class MissionService:
         print("create daily mission")
         # 1) 클러스터 예측 (user_metrics 기반)
         cluster_id = cluster_for_user_from_metrics(self.cluster_path, self.repo, user_id, now)
-        print("create daily mission")
+        print(f"create daily mission : {cluster_id}")
 
         # 2) 클러스터 → 소분류 top-3
         sub_ids = self.cluster.get_sub_by_id(cluster_id)  # repo에 구현 가정
-        print("create daily mission")
+        print(f"create daily mission : {sub_ids}")
 
         # id → 이름 변환(또는 repo가 이름도 리턴)
         subs = self.sub.get_names_by_ids(sub_ids)  # ["커피","간식","택시/대리"] 등
+        print(subs)
         print("create daily mission")
 
         missions = []
         for sub_id, sub_name in zip(sub_ids, subs):
-            print("create daily mission--")
+            print(f"create daily mission--{sub_name}")
 
             # 3) user_stats 준비 (템플릿 가중치 보정용)
             stats = self.repo.get_daily_stats_for_category(user_id, sub_id, now)  # mean_daily_count, night_ratio 등 dict
-            print("create daily mission--")
+            print(f"create daily mission--{stats}")
 
             # 4) 템플릿 선택
             try:
                 tmpl_name = pick_template_for_category(sub_name, user_stats=stats, epsilon=0.1)
             except ValueError:
+                print("valueError??")
                 # EXCLUDED 카테고리
                 continue
             print(f"create daily mission--{tmpl_name}")
 
+            # TODO: tmpl_name ->
             # 5) DSL 생성
             dsl = build_dsl_for_template(tmpl_name, user_id=user_id, sub_id=sub_id, now=now, stats=stats)
             print("create daily mission--")
@@ -70,12 +75,13 @@ class MissionService:
                     missionId=1,
                     mission="", # TODO: mission 만들기
                     subId=sub_id,
-                    missionDsl=dsl,
+                    missionDsl=str(dsl),
                     missionType=0,
                     validFrom=datetime.now(),
                     validTo=datetime.now() + timedelta(days=7)
                 )
             )
+        print(missions)
         return missions
 
 

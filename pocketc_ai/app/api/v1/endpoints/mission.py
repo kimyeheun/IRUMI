@@ -1,12 +1,11 @@
 import logging
-from datetime import datetime
-from http.client import HTTPException
+from datetime import date, datetime
 from types import NoneType
 from typing import Dict, Any
 
 from fastapi import APIRouter, Depends
 
-from pocketc_ai.app.schemas.mission import MissionResponse, Missions
+from pocketc_ai.app.schemas.mission import MissionResponse
 from pocketc_ai.app.services.mission.mission import MissionService
 from pocketc_ai.app.services.mission.mission_service import get_mission_service
 
@@ -14,7 +13,7 @@ router = APIRouter()
 
 @router.get("/")
 def get_mission() :
-    return "missionq"
+    return "mission"
 
 @router.post("/daily", response_model=MissionResponse | NoneType, status_code=201)
 def create_daily_mission(
@@ -22,10 +21,10 @@ def create_daily_mission(
         service: MissionService = Depends(get_mission_service)
 ):
     try:
-        today = datetime.today()
+        today = datetime.now()
 
         missions = service.create_daily_mission(user_id=userId, now=today)
-        data = {"userId": userId, "date": today, "missions": missions}
+        data = {"userId": userId, "date": today.date(), "missions": missions}
 
         payload: Dict[str, Any] = {
             "status": 201,
