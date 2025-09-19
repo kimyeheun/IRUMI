@@ -119,10 +119,10 @@ public class TransactionService {
         LocalDate curMonth = dto.date().toLocalDate().withDayOfMonth(1);
         transactionRepository.save(transaction);
         if (transaction.isFixed()) {
-            reportService.updateMonthlyFixedExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
-            reportService.updateMonthlyTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
+            reportService.updateMonthlyFixedExpense(userId, curMonth, transaction.getAmount());
+            reportService.updateMonthlyTotalExpense(userId, curMonth, transaction.getAmount());
         } else {
-            reportService.updateMonthlyTotalExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
+            reportService.updateMonthlyTotalExpense(userId, curMonth, transaction.getAmount());
         }
 
         return new TransactionCreatedResDto(transaction.getTransactionId(), transaction.getUser().getUserId());
@@ -130,7 +130,7 @@ public class TransactionService {
 
     private TransactionListResDto buildTransactionListDto(List<Transaction> transactions) {
         List<TransactionResDto> transactionResDtoList = new ArrayList<>();
-        int totalSpending = 0;
+        Long totalSpending = 0L;
         for (Transaction transaction : transactions) {
             transactionResDtoList.add(TransactionResDto.from(transaction));
             totalSpending += transaction.getAmount();

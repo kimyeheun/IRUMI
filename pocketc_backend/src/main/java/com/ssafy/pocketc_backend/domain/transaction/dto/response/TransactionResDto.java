@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public record TransactionResDto(
         Integer transactionId,
         LocalDateTime transactedAt,
-        Integer amount,
+        Long amount,
         Integer majorCategory,
         Integer subCategory,
         String merchant,

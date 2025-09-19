@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public record TransactionReqDto(
         LocalDateTime date,
-        Integer amount,
+        Long amount,
         Integer majorCategory,
         Integer subCategory,
         String merchantName,

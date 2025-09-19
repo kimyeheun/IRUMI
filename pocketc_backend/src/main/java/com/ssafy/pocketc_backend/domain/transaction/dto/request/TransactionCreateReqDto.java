@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 public record TransactionCreateReqDto(
         Integer userId,
         LocalDateTime date,
-        Integer amount,
+        Long amount,
         String merchantName
 ) {
-    public static TransactionCreateReqDto of(Integer userId, LocalDateTime date, Integer amount, String merchantName) {
+    public static TransactionCreateReqDto of(Integer userId, LocalDateTime date, Long amount, String merchantName) {
         return new TransactionCreateReqDto(userId, date, amount, merchantName);
     }
 }

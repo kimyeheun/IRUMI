@@ -5,11 +5,11 @@ package com.ssafy.pocketc_backend.domain.report.dto.response;
  * @param categoryId: 카테고리의 ID
  * @param expense: 카테고리의 월간 지출액
  */
-public record ExpenseByCategoryResDto(
+public record ExpenseByCategoryDto(
         Integer categoryId,
-        Integer expense
+        Long expense
 ) {
-    public static ExpenseByCategoryResDto of(Integer categoryId, Integer expense) {
-        return new ExpenseByCategoryResDto(categoryId, expense);
+    public static ExpenseByCategoryDto of(Integer categoryId, Long expense) {
+        return new ExpenseByCategoryDto(categoryId, expense);
     }
 }
