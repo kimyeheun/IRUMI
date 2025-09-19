@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 import pandas as pd
 
 
-def _in_range(t: time, start: time, end: time) -> bool:
+def _in_dawn_range(t: time, start: time, end: time) -> bool:
     # 22~06처럼 자정을 넘는 구간 처리
     if start <= end:
         return start <= t < end
@@ -11,7 +11,7 @@ def _in_range(t: time, start: time, end: time) -> bool:
 
 def compile_plan(dsl: Dict[str, Any]) -> Dict[str, Any]:
     """
-    실행 시 필요한 필터/집계 키만 뽑아놓는 간단한 컴파일.
+    TODO : 실행 시 필요한 필터/집계 키만 뽑아놓는 간단한 컴파일.
     여기선 dsl 그대로 반환해도 충분하지만, 훗날 최적화를 위해 별도 함수로 분리.
     """
     return {"plan": dsl}
@@ -47,7 +47,7 @@ def evaluate_dsl(transactions: pd.DataFrame, dsl: Dict[str, Any]) -> Dict[str, A
             s_t = datetime.strptime(s, "%H:%M").time(); e_t = datetime.strptime(e, "%H:%M").time()
             if "time_only" not in df:
                 df["time_only"] = df["transacted_at"].dt.time
-            val = float((df["time_only"].apply(lambda tt: _in_range(tt, s_t, e_t))).sum())
+            val = float((df["time_only"].apply(lambda tt: _in_dawn_range(tt, s_t, e_t))).sum())
         else:
             return True  # 알 수 없는 조건은 통과
 

@@ -3,7 +3,6 @@ from typing import Dict, Any
 
 
 def _default_caps(stats: Dict[str, float]) -> Dict[str, Any]:
-    # 유저 통계 기반 기본 파라미터(없으면 보수적으로)
     mean_cnt = float(stats.get("mean_daily_count", 0)) or 1.0
     per_std = float(stats.get("per_txn_std", 0.0)) or 0.0
     max_mean = float(stats.get("max_per_txn_mean", 0.0)) or 10000.0
