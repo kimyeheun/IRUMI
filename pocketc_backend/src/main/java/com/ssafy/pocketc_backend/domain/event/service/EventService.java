@@ -158,6 +158,22 @@ public class EventService {
         return getPuzzleResDto(user, room.getUsers());
     }
 
+    public BadgeResDto getBadges(Integer userId) {
+        List<Badge> badges = badgeRepository.findAllByUser_UserId(userId);
+        List<BadgeDto> badgeDtos = new ArrayList<>();
+        for (Badge badge : badges) {
+            badgeDtos.add(BadgeDto.of(
+                    badge.getBadgeId(),
+                    badge.getEvent().getBadgeName(),
+                    badge.getEvent().getBadgeDescription(),
+                    badge.getLevel(),
+                    badge.getEvent().getBadgeImageUrl(),
+                    badge.getCreatedAt()
+            ));
+        }
+        return new BadgeResDto(badgeDtos);
+    }
+
     private RoomResDto getRoomResDto(User user) {
 
         EventDto event = EventDto.from(eventRepository.findFirstByOrderByEventIdDesc());

@@ -14,7 +14,8 @@ public enum EventSuccessType implements SuccessType {
     SUCCESS_CREATE_ROOM(HttpStatus.CREATED, "방 생성 성공"),
     SUCCESS_LEAVE_ROOM(HttpStatus.OK, "방 퇴장 성공"),
     SUCCESS_GET_MEMBERS(HttpStatus.OK, "방 멤버리스트 조회 성공"),
-    SUCCESS_FILL_PUZZLES(HttpStatus.CREATED, "퍼즐 채우기 성공");
+    SUCCESS_FILL_PUZZLES(HttpStatus.CREATED, "퍼즐 채우기 성공"),
+    SUCCESS_GET_BADGES(HttpStatus.OK, "뱃지 조회 성공");
 
     private final HttpStatus httpStatus;
     private final String message;
