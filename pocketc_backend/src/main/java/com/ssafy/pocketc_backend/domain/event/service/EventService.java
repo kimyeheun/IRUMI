@@ -1,8 +1,8 @@
 package com.ssafy.pocketc_backend.domain.event.service;
 
 import com.ssafy.pocketc_backend.domain.event.dto.response.*;
-import com.ssafy.pocketc_backend.domain.event.entity.Puzzle;
-import com.ssafy.pocketc_backend.domain.event.entity.Room;
+import com.ssafy.pocketc_backend.domain.event.entity.*;
+import com.ssafy.pocketc_backend.domain.event.repository.BadgeRepository;
 import com.ssafy.pocketc_backend.domain.event.repository.EventRepository;
 import com.ssafy.pocketc_backend.domain.event.repository.PuzzleRepository;
 import com.ssafy.pocketc_backend.domain.event.repository.RoomRepository;
@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +35,7 @@ public class EventService {
     private final EventRepository eventRepository;
     private final FollowRepository followRepository;
     private final PuzzleRepository puzzleRepository;
+    private final BadgeRepository badgeRepository;
 
     public RoomResDto getRoom(Principal principal){
         int userId = Integer.parseInt(principal.getName());
@@ -143,6 +145,21 @@ public class EventService {
 
         puzzleRepository.save(newPuzzle);
         room.getPuzzles().add(newPuzzle);
+
+        Event event = eventRepository.findFirstByOrderByEventIdDesc();
+
+        if (room.getPuzzles().size() == len * len) {
+            room.setStatus(Status.SUCCESS);
+            for (User member : room.getUsers()) {
+                Badge badge = Badge.builder()
+                        .user(member)
+                        .level(len)
+                        .event(event)
+                        .build();
+                badgeRepository.save(badge);
+            }
+        }
+
         return getPuzzleResDto(user, room.getUsers());
     }
 
@@ -151,6 +168,11 @@ public class EventService {
         EventDto event = EventDto.from(eventRepository.findFirstByOrderByEventIdDesc());
 
         if (user.getRoom() == null) return new RoomResDto(null, event);
+
+        if (user.getRoom().getStatus() == Status.IN_PROGRESS && event.endAt().isBefore(LocalDateTime.now())) {
+            Room room = user.getRoom();
+            room.setStatus(Status.FAILURE);
+        }
 
         List<User> members = userRepository.findAllByRoom(user.getRoom());
         List<MemberDto> memberDtos = new ArrayList<>();
