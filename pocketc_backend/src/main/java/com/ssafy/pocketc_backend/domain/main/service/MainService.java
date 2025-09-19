@@ -1,9 +1,13 @@
 package com.ssafy.pocketc_backend.domain.main.service;
 
 import com.ssafy.pocketc_backend.domain.main.dto.MainResponse;
+import com.ssafy.pocketc_backend.domain.main.dto.StreakDto;
+import com.ssafy.pocketc_backend.domain.main.dto.StreakResDto;
 import com.ssafy.pocketc_backend.domain.report.entity.Report;
 import com.ssafy.pocketc_backend.domain.report.repository.ReportRepository;
 import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionRepository;
+import com.ssafy.pocketc_backend.domain.user.entity.Streak;
+import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,13 +15,17 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class MainService {
+
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final ReportRepository reportRepository;
+    private final StreakRepository streakRepository;
 
     public MainResponse getDailyScoreAndTotal(Integer userId) {
         LocalDate today = LocalDate.now();
@@ -81,5 +89,12 @@ public class MainService {
         return (long) score;
     }
 
-
+    public StreakResDto getStreaks(Integer userId) {
+        List<Streak> streaks = streakRepository.findAllByUser_UserId(userId);
+        List<StreakDto> streakDtos = new ArrayList<>();
+        for (Streak streak : streaks) {
+            streakDtos.add(StreakDto.from(streak));
+        }
+        return new StreakResDto(streakDtos);
+    }
 }
