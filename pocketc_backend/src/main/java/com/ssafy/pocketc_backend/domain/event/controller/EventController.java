@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.event.controller;
 
+import com.ssafy.pocketc_backend.domain.event.dto.response.BadgeResDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.EventResDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.PuzzleResDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.RoomResDto;
@@ -63,7 +64,7 @@ public class EventController {
     }
 
     @GetMapping("/users/badges")
-    public ResponseEntity<ApiResponse<?>> getBadges(Principal principal) {
+    public ResponseEntity<ApiResponse<BadgeResDto>> getBadges(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_BADGES,
                 eventService.getBadges(userId(principal))

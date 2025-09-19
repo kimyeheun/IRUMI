@@ -1,11 +1,20 @@
 package com.ssafy.pocketc_backend.domain.main.controller;
 
 import com.ssafy.pocketc_backend.domain.main.dto.MainResponse;
+import com.ssafy.pocketc_backend.domain.main.dto.StreakResDto;
 import com.ssafy.pocketc_backend.domain.main.service.MainService;
+import com.ssafy.pocketc_backend.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.security.Principal;
+
+import static com.ssafy.pocketc_backend.domain.main.exception.MainSuccessType.SUCCESS_GET_STREAKS;
 
 
 @RestController
@@ -25,7 +34,11 @@ public class MainController {
         return ResponseEntity.ok(dto);
     }
 
-
-
-
+    @GetMapping("/streaks")
+    public ResponseEntity<ApiResponse<StreakResDto>> getStreaks(Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_GET_STREAKS,
+                mainService.getStreaks(Integer.parseInt(principal.getName()))
+        ));
+    }
 }
