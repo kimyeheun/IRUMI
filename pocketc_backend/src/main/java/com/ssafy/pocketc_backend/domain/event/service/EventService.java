@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,16 +36,15 @@ public class EventService {
     private final PuzzleRepository puzzleRepository;
     private final BadgeRepository badgeRepository;
 
-    public RoomResDto getRoom(Principal principal){
-        int userId = Integer.parseInt(principal.getName());
+    public RoomResDto getRoom(Integer userId){
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
 
         return getRoomResDto(user);
     }
 
-    public RoomResDto joinRoom(String roomCode, Principal principal) {
-        int userId = Integer.parseInt(principal.getName());
+    public RoomResDto joinRoom(String roomCode, Integer userId) {
 
         Room room = roomRepository.findByRoomCode(roomCode)
                 .orElseThrow(() -> new CustomException(ERROR_GET_ROOM));
@@ -60,8 +58,7 @@ public class EventService {
         return getRoomResDto(user);
     }
 
-    public RoomResDto createRoom(Integer maxMembers, Principal principal) {
-        int userId = Integer.parseInt(principal.getName());
+    public RoomResDto createRoom(Integer maxMembers, Integer userId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
@@ -77,8 +74,7 @@ public class EventService {
         return getRoomResDto(user);
     }
 
-    public EventResDto leaveRoom(Principal principal) {
-        int userId = Integer.parseInt(principal.getName());
+    public EventResDto leaveRoom(Integer userId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
@@ -94,8 +90,7 @@ public class EventService {
         return new EventResDto(eventDto);
     }
 
-    public PuzzleResDto fillPuzzle(Principal principal) {
-        int userId = Integer.parseInt(principal.getName());
+    public PuzzleResDto fillPuzzle(Integer userId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
@@ -229,5 +224,16 @@ public class EventService {
             prev = A[1];
         }
         return new PuzzleResDto(puzzleDtos, rankDtos);
+    }
+
+    private void createNewEvent() {
+
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            leaveRoom(user.getUserId());
+        }
+
+        Event event = Event.builder().build();
+        eventRepository.save(event);
     }
 }
