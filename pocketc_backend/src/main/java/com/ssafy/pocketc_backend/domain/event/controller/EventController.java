@@ -20,11 +20,13 @@ public class EventController {
 
     private final EventService eventService;
 
+    private Integer userId(Principal principal) { return Integer.parseInt(principal.getName()); }
+
     @GetMapping("/room")
     public ResponseEntity<ApiResponse<RoomResDto>> getRoom(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_ROOM,
-                eventService.getRoom(principal)
+                eventService.getRoom(userId(principal))
         ));
     }
 
@@ -32,7 +34,7 @@ public class EventController {
     public ResponseEntity<ApiResponse<RoomResDto>> joinRoom(@RequestParam("roomCode") String roomCode, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_JOIN_ROOM,
-                eventService.joinRoom(roomCode, principal)
+                eventService.joinRoom(roomCode, userId(principal))
         ));
     }
 
@@ -40,7 +42,7 @@ public class EventController {
     public ResponseEntity<ApiResponse<RoomResDto>> createRoom(@RequestParam("maxMembers") Integer maxMembers, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_CREATE_ROOM,
-                eventService.createRoom(maxMembers, principal)
+                eventService.createRoom(maxMembers, userId(principal))
         ));
     }
 
@@ -48,7 +50,7 @@ public class EventController {
     public ResponseEntity<ApiResponse<EventResDto>> leaveRoom(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_LEAVE_ROOM,
-                eventService.leaveRoom(principal)
+                eventService.leaveRoom(userId(principal))
         ));
     }
 
@@ -56,7 +58,7 @@ public class EventController {
     public ResponseEntity<ApiResponse<PuzzleResDto>> fillPuzzle(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_FILL_PUZZLES,
-                eventService.fillPuzzle(principal)
+                eventService.fillPuzzle(userId(principal))
         ));
     }
 }
