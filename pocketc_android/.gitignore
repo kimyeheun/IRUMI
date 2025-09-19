@@ -1,15 +1,39 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# Android Studio
+.idea/
+.gradle/
+build/
 local.properties
+.DS_Store
+
+# Android-specific files
+**/build/
+**/bin/
+.gradle/
+local.properties
+lint-results.xml
+lint-results.html
+
+# Generated files
+/app/build/
+/app/.cxx/
+/app/src/main/assets/
+/app/src/main/res/
+/app/src/main/jniLibs/
+
+# Android Studio logs
+*.iml
+*.iws
+*.ipr
+*.class
+*.apk
+*.aar
+
+# Keystore files
+*.jks
+*.keystore
+
+# Local test data
+/data/
+
+# Generated Hilt classes
+**/build/generated/hilt/
