@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.example.irumi.model.payments.Transaction
+import com.example.irumi.data.dto.response.Payment
 
 @Composable
 fun PaymentRoute(
@@ -190,7 +190,7 @@ fun DayHeader(date: String) {
 
 @Composable
 fun PaymentItem(
-    payment: Transaction,
+    payment: Payment,
     onClick: () -> Unit
 ) {
     Row(

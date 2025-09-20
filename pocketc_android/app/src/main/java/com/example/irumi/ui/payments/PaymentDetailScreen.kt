@@ -38,7 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.core.state.UiState
-import com.example.irumi.data.dto.response.PaymentDetailResponse
+import com.example.irumi.domain.entity.PaymentEntity
 
 
 @Composable
@@ -86,7 +86,7 @@ fun PaymentDetailRoute(
         is UiState.Failure -> {}
         is UiState.Success -> {
             PaymentDetailScreen(
-                paymentDetail = (state as UiState.Success<PaymentDetailResponse>).data,
+                paymentDetail = (state as UiState.Success<PaymentEntity>).data,
                 majorCategories = viewModel.majorCategories,
                 categoryMap = viewModel.categoryMap,
                 selectedMajorCategory = selectedMajorCategory,
@@ -101,7 +101,7 @@ fun PaymentDetailRoute(
 
 @Composable
 fun PaymentDetailScreen(
-    paymentDetail: PaymentDetailResponse,
+    paymentDetail: PaymentEntity,
     majorCategories: List<String>,
     categoryMap: Map<String, List<String>>,
     selectedMajorCategory: String,
@@ -208,7 +208,7 @@ fun CategorySection(
 }
 
 @Composable
-fun InfoSection(paymentDetail: PaymentDetailResponse) {
+fun InfoSection(paymentDetail: PaymentEntity) {
     Column {
         // 결제일시
         DetailItem(
@@ -315,8 +315,8 @@ fun CategoryRow(
 @Composable
 fun PreviewPaymentDetailScreen() {
     // 미리보기용 더미 데이터와 콜백 함수 전달
-    val samplePaymentDetail = PaymentDetailResponse(
-        transactionId = 501,
+    val samplePaymentDetail = PaymentEntity(
+        paymentId = 501,
         date = "2025-09-11T14:25:00Z",
         amount = 13500,
         majorCategory = 2,

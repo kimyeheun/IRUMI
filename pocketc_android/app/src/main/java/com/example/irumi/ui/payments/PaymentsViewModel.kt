@@ -4,9 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.irumi.core.state.UiState
-import com.example.irumi.data.dto.response.PaymentDetailResponse
+import com.example.irumi.domain.entity.PaymentEntity
 import com.example.irumi.domain.repository.DummyRepository
-import com.example.irumi.model.payments.Transaction
+import com.example.irumi.data.dto.response.Payment
+import com.example.irumi.domain.repository.PaymentsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PaymentsViewModel @Inject constructor(
-    private val dummyRepository: DummyRepository
+    private val paymentsRepository: PaymentsRepository
 ) : ViewModel() {
 
     private val _selectedPaymentId = MutableStateFlow(0)
@@ -31,8 +32,8 @@ class PaymentsViewModel @Inject constructor(
     )
 
     val majorCategories = categoryMap.keys.toList() // 대분류 목록
-    private var _state: MutableStateFlow<UiState<PaymentDetailResponse>> = MutableStateFlow(UiState.Loading)
-    val state: StateFlow<UiState<PaymentDetailResponse>>
+    private var _state: MutableStateFlow<UiState<PaymentEntity>> = MutableStateFlow(UiState.Loading)
+    val state: StateFlow<UiState<PaymentEntity>>
         get() = _state.asStateFlow()
 
     // 대분류/소분류 상태
@@ -47,7 +48,7 @@ class PaymentsViewModel @Inject constructor(
     // todo code 분리
     data class PaymentsByDay(
         val date: String,
-        val payments: List<Transaction>
+        val payments: List<Payment>
     )
 
     // UI에 보여줄 그룹화된 결제 내역
@@ -63,12 +64,12 @@ class PaymentsViewModel @Inject constructor(
     }
 
     fun getMonthTransactions(month: String) {
-        val dummyTransactions = mutableListOf<Transaction>()
+        val dummyPayments = mutableListOf<Payment>()
 
         // 2025-09-11 더미 데이터 10개
         repeat(10) { index ->
-            dummyTransactions.add(
-                Transaction(
+            dummyPayments.add(
+                Payment(
                     transactionId = 501 + index,
                     date = "2025-09-11T14:25:00Z",
                     amount = 13500 + index * 100,
@@ -85,8 +86,8 @@ class PaymentsViewModel @Inject constructor(
 
         // 2025-09-12 더미 데이터 7개
         repeat(7) { index ->
-            dummyTransactions.add(
-                Transaction(
+            dummyPayments.add(
+                Payment(
                     transactionId = 511 + index,
                     date = "2025-09-12T14:25:00Z",
                     amount = 13500 + index * 200,
@@ -103,8 +104,8 @@ class PaymentsViewModel @Inject constructor(
 
         // 2025-09-13 더미 데이터 4개
         repeat(4) { index ->
-            dummyTransactions.add(
-                Transaction(
+            dummyPayments.add(
+                Payment(
                     transactionId = 518 + index,
                     date = "2025-09-13T14:25:00Z",
                     amount = 1350 + index * 50,
@@ -120,14 +121,14 @@ class PaymentsViewModel @Inject constructor(
         }
 
         // todo 서버에 요청 -> 모든 더미 데이터로 totalSpending 계산
-        val totalSpending = dummyTransactions.sumOf { it.amount }
+        val totalSpending = dummyPayments.sumOf { it.amount }
 
-        val grouped = groupTransactionsByDate(dummyTransactions)
+        val grouped = groupTransactionsByDate(dummyPayments)
         _groupedTransactions.value = grouped
         _monthlyTotal.value = totalSpending
     }
 
-    private fun groupTransactionsByDate(transactions: List<Transaction>): List<PaymentsByDay> {
+    private fun groupTransactionsByDate(transactions: List<Payment>): List<PaymentsByDay> {
         // 날짜별로 그룹화
         val groupedMap = transactions.groupBy {
             ZonedDateTime.parse(it.date).toLocalDate()
@@ -165,34 +166,19 @@ class PaymentsViewModel @Inject constructor(
     fun getPaymentDetail() {
         Log.d("getPaymentDetail", "${_selectedPaymentId} 호출")
         viewModelScope.launch {
-            _state.update {
-                UiState.Success(PaymentDetailResponse(
-                    transactionId = 501,
-                    date = "2025-09-11T14:25:00Z",
-                    amount = 13500,
-                    majorCategory = 2,
-                    subCategory = 3,
-                    merchantName = "스타벅스",
-                    isApplied = true,
-                    isFixed = false,
-                    createdAt = "2025-09-11T14:25:30Z",
-                    updatedAt = "2025-09-11T14:25:30Z"
-                ))
-            }
-//            paymentRepository.getPaymentDetail(transactionId)
-//                .onSuccess { response ->
-//                    _state.update {
-//
-//                        UiState.Success(
-//                                response
-//                            )
-//                    }
-//                }
-//                .onFailure {
-//                    _state.update {
-//                            UiState.Failure("서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.")
-//                    }
-//                }
+            paymentsRepository.getPaymentDetail(_selectedPaymentId.value)
+                .onSuccess { response ->
+                    _state.update {
+                        UiState.Success(
+                                response
+                            )
+                    }
+                }
+                .onFailure {
+                    _state.update {
+                            UiState.Failure("서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.")
+                    }
+                }
         }
     }
 
