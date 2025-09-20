@@ -35,28 +35,30 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
 
-    public TransactionResDto getTransactionById(int transactionId, Principal principal) {
-
+    // 여기서 userId를 사용하고 있지는 않은거 같은데
+    public TransactionResDto getTransactionById(int transactionId, Integer userId) {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
         return TransactionResDto.from(transaction);
     }
 
-    public TransactionListResDto getMonthlyTransactionList(MonthReqDto dto, Principal principal) {
-        int userId = 1;
-        LocalDateTime from = dto.month().atDay(1).atStartOfDay();
-        LocalDateTime to = dto.month().plusMonths(1).atDay(1).atStartOfDay();
+    // 현재 달과 일치하는 결제내역을 조회한다.
+    public TransactionListResDto getMonthlyTransactionList(LocalDate now, Integer userId) {
+        // 입력된 시간이 현재 시간보다 미래 시간이라면 ERROR를 반환합니다.
+        YearMonth yearMonth = YearMonth.from(now);
+        if (yearMonth.isAfter(YearMonth.now())) throw new CustomException(ERROR_GET_MONTHLY_TRANSACTIONS);
 
-        if (dto.month().isAfter(YearMonth.now())) throw new CustomException(ERROR_GET_MONTHLY_TRANSACTIONS);
-
-        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndTransactedAtGreaterThanEqualAndTransactedAtLessThan(userId, from, to);
+        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndTransactedAtBetween(
+                userId,
+                now.withDayOfMonth(1),
+                now.withDayOfMonth(now.lengthOfMonth())
+        );
 
         return buildTransactionListDto(transactions);
     }
 
-    public TransactionResDto updateTransaction(Integer transactionId, TransactionReqDto dto, Principal principal) {
-        int userId = 1;
+    public TransactionResDto updateTransaction(Integer transactionId, TransactionReqDto dto, int userId) {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
@@ -85,14 +87,12 @@ public class TransactionService {
         return TransactionResDto.from(transaction);
     }
 
-    public TransactionListResDto getMajorCategory(Integer majorCategory, Principal principal) {
-        int userId = 1;
+    public TransactionListResDto getMajorCategory(Integer majorCategory, Integer userId) {
         List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndMajorCategory(userId, majorCategory);
         return buildTransactionListDto(transactions);
     }
 
-    public TransactionListResDto getSubCategory(Integer subCategory, Principal principal) {
-        int userId = 1;
+    public TransactionListResDto getSubCategory(Integer subCategory, Integer userId) {
         List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndSubCategory(userId, subCategory);
         return buildTransactionListDto(transactions);
     }
