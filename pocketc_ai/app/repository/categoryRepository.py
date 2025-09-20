@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from sqlalchemy import select
+import pandas as pd
+from pandas import DataFrame
 from sqlalchemy.orm.session import Session
 
 from pocketc_ai.app.models.category import SubCategory
@@ -26,3 +27,7 @@ class SubCategoryRepository:
                 .filter(SubCategory.sub_id.in_(sub_ids))
                 .all())
         return [name for (name,) in rows]
+
+    def get_all_sub_as_df(self) -> DataFrame:
+        query = self.db.query(SubCategory.sub_id, SubCategory.sub_name, SubCategory.is_fixed)
+        return pd.read_sql(query.statement, self.db.bind)

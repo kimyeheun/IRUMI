@@ -23,14 +23,18 @@ services:
     command: celery -A app.celery_app.celery flower --port=5555
     env_file: .env
     environment:
-      # 기본 인증 (변경 권장)
       - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH}
     ports:
       - "5555:5555"
     depends_on: [redis]
 
   redis:
-    image: redis:7
+    image: redis:7-alpine
+    container_name: pocketc_redis
+    command: redis-server --port 6379
+    ports:
+      - "6379:6379"
+    restart: always
 
   db:
     image: mysql:8

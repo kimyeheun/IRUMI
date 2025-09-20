@@ -15,7 +15,6 @@ def _time_flags(df: pd.DataFrame) -> pd.DataFrame:
     df["dow"] = dt.dt.weekday              # 0=Mon ... 6=Sun
     df["hour"] = dt.dt.hour
     df["is_weekend"] = df["dow"] >= 5
-    # 시간대 bin (00-06, 06-11, 11-14, 14-18, 18-22, 22-24)
     bins  = [0, 6, 11, 14, 18, 22, 24]
     labels = ["h00_06","h06_11","h11_14","h14_18","h18_22","h22_24"]
     df["hour_bin"] = pd.cut(df["hour"], bins=bins, right=False, labels=labels, include_lowest=True)
@@ -155,9 +154,6 @@ def build_user_features(
         # 평균 구매 간격(시간)
         mean_gap_h = tx.groupby("user_id").apply(_interpurchase_hours).rename("rec_mean_gap_hours")
 
-    # -----------------------------
-    # 5) 병합
-    # -----------------------------
     parts = [base.drop(columns=["last_dt"], errors="ignore"), spend_share, freq_share, top1, top3]
     if include_diversity_concentration:
         parts += [hhi, ent]
@@ -167,9 +163,6 @@ def build_user_features(
         parts += [rec[["rec_7_over_30","trend_7_vs_prev7"]], days_since_last, mean_gap_h]
 
     feats = pd.concat(parts, axis=1)
-    # 결측 · 무한 방지
     feats = feats.replace([np.inf, -np.inf], np.nan).fillna(0.0)
-
-    # 정렬(보기 좋게)
     feats = feats.sort_index(axis=1)
     return feats

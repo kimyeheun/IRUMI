@@ -37,30 +37,35 @@ class MissionService:
         subs = self.sub.get_names_by_ids(sub_ids)
 
         missions = []
-        for sub_id, sub_name in zip(sub_ids, subs):
-            # 3) user_stats 준비 (템플릿 가중치 보정용)
+        mission_counts = [2, 2, 1]
+        for i, (sub_id, sub_name) in enumerate(zip(sub_ids, subs)):
+            if len(missions) >= 5: break
+
             stats = self.repo.get_daily_stats_for_category(user_id, sub_id, now)
-            # 4) 템플릿 선택
-            try:
-                tmpl_name = pick_template_for_category(sub_name, user_stats=stats, epsilon=0.1)
-            except ValueError:
-                continue
-            # 5) DSL 생성
-            dsl = build_dsl_for_template(tmpl_name, user_id=user_id, sub_id=sub_id, now=now, stats=stats)
-            # 6) 미션 문장 생성하기
-            mission_text, params = build_mission_sentence(tmpl_name, sub_id, sub_name, stats, self.template)
-            # 7) 저장(또는 반환)
-            missions.append(
-                Mission(
-                    missionId=1,
-                    mission=mission_text,
-                    subId=sub_id,
-                    missionDsl=str(dsl),
-                    missionType=0,
-                    validFrom=datetime.now(),
-                    validTo=datetime.now() + timedelta(days=7)
-                )
-            )
+            generated_templates = []
+            for _ in range(mission_counts[i]):
+                try:
+                    # 4) 템플릿 선택 (이미 생성된 템플릿 제외)
+                    tmpl_name = pick_template_for_category(sub_name, user_stats=stats, epsilon=0.1, exclude=generated_templates)
+                    generated_templates.append(tmpl_name)
+                    # 5) DSL 생성
+                    dsl = build_dsl_for_template(tmpl_name, user_id=user_id, sub_id=sub_id, now=now, stats=stats)
+                    # 6) 미션 문장 생성하기
+                    mission_text, params = build_mission_sentence(tmpl_name, sub_id, sub_name, stats, self.template)
+                    # 7) 저장(또는 반환)
+                    missions.append(
+                        Mission(
+                            missionId=1,  # 임시 ID
+                            mission=mission_text,
+                            subId=sub_id,
+                            missionDsl=str(dsl),
+                            missionType=0,
+                            validFrom=datetime.now(),
+                            validTo=datetime.now() + timedelta(days=7)
+                        )
+                    )
+                except ValueError:
+                    break
         return missions
 
 
