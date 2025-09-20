@@ -5,11 +5,6 @@ import pandas as pd
 
 
 def cluster_category_profile(tx: pd.DataFrame, assign: pd.DataFrame) -> pd.DataFrame:
-    """
-    tx: columns = [user_id, sub_id, transacted_at, amount, ...]
-    assign: DataFrame({"user_id", "cluster"})  # KMeans 라벨 결과
-    반환: cluster x sub_id 단위 프로파일(금액/건수/평균티켓/비중/최근14일 추세)
-    """
     df = tx.copy()
     df["transacted_at"] = pd.to_datetime(df["transacted_at"])
     df = df.merge(assign, on="user_id", how="inner")
@@ -42,10 +37,6 @@ def cluster_category_profile(tx: pd.DataFrame, assign: pd.DataFrame) -> pd.DataF
 def score_categories(profile: pd.DataFrame,
                      w_share=0.5, w_trend=0.3, w_ticket=0.2,
                      min_cnt=5, min_share=0.02) -> pd.DataFrame:
-    """
-    profile: cluster_category_profile() 결과
-    가중합 점수로 절약 후보 카테고리를 상위 정렬해 반환
-    """
     df = profile.copy()
 
     # 군집별 z-score 정규화
@@ -58,7 +49,5 @@ def score_categories(profile: pd.DataFrame,
     df["z_ticket"] = df.groupby("cluster").apply(_z, "avg_ticket").reset_index(level=0, drop=True)
 
     df["score"] = w_share*df["z_share"] + w_trend*df["z_trend"] + w_ticket*df["z_ticket"]
-
-    # 희소/미미한 카테고리 컷(노이즈 방지)
     df = df[(df["cnt"] >= min_cnt) & (df["share_30d"] >= min_share)]
     return df.sort_values(["cluster","score"], ascending=[True, False])

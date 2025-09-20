@@ -5,7 +5,6 @@ from sklearn.cluster import KMeans
 
 def find_optimal_k_with_elbow(X: pd.DataFrame, max_k: int = 10) -> int:
     k_range = range(2, max_k + 1)
-
     inertias = []
 
     for k in k_range:
