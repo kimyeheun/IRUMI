@@ -35,6 +35,5 @@ def build_dsl_for_template(name: str, user_id: int, sub_id: int, now: datetime, 
     elif name == "CATEGORY_BAN_DAILY":
         base["conditions"] = [{"type": "count", "comparator": "==", "value": 0}]
     else:
-        # fallback: 지출 상한
         base["conditions"] = [{"type": "total_spend", "comparator": "<=", "value": caps["daily_budget"]}]
     return base
