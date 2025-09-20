@@ -15,6 +15,10 @@ class UserMetricsRepository:
     def __init__(self, db: Session):
         self.db = db
 
+    def get_all_metrics_as_df(self) -> DataFrame:
+        query = self.db.query(UserMetrics)
+        return pd.read_sql(query.statement, self.db.bind)
+
     def get_user_metrics(self, user_id: int) ->  list[type[UserMetrics]] :
         return self.db.query(UserMetrics).filter(UserMetrics.user_id == user_id).all()
 
@@ -72,10 +76,6 @@ class UserMetricsRepository:
             "end_d": end_date
         }).first()
 
-        print("userMetricsRepo")
-        print(row)
-
-        # DB에서 바로 값이 오면 사용(없으면 폴백)
         if row is not None and any(v is not None for v in row):
             mean_daily_count = float(row.mean_daily_count or 0.0)
             per_txn_std = float(row.per_txn_std or 0.0)
