@@ -7,7 +7,6 @@ import joblib
 import pandas as pd
 
 from pocketc_ai.app.repository.transactionRepository import TransactionRepository
-from pocketc_ai.app.repository.userMetricsRepository import UserMetricsRepository
 from pocketc_ai.app.services.batch_program.clustering.features import build_user_features
 
 
@@ -24,7 +23,7 @@ def cluster_for_user(cluster_path:Path, repo:TransactionRepository, user_id: int
     cluster = int(kmeans.predict(Xs)[0])
     return cluster
 
-def build_user_features_from_metrics(metrics: pd.DataFrame) -> pd.DataFrame:
+def cluster_for_user_from_metrics(metrics: pd.DataFrame) -> pd.DataFrame:
     if metrics.empty:
         return pd.DataFrame([{}])
 
@@ -59,11 +58,9 @@ def build_user_features_from_metrics(metrics: pd.DataFrame) -> pd.DataFrame:
 #     feature_cols = json.loads((cluster_path / "feature_cols.json").read_text(encoding="utf-8"))
 #
 #     df = repo.get_user_term_metrics_as_df(user_id=user_id, now=now, days=days)
-#     print(df)
 #     user_feat = build_user_features_from_metrics(df)
-#     print(user_feat)
 #     user_feat = user_feat.sort_index(axis=1)
-#
+#     # TODO: columns랑 feature_cols랑 맞춰야 함
 #     X = user_feat.reindex(columns=feature_cols, fill_value=0.0).astype(float)
 #     # X = X.iloc[0].values
 #
@@ -72,44 +69,3 @@ def build_user_features_from_metrics(metrics: pd.DataFrame) -> pd.DataFrame:
 #
 #     return int(kmeans.predict(Xs)[0])
 
-def cluster_for_user_from_metrics(cluster_path: Path,
-                                 repo: UserMetricsRepository,
-                                 user_id: int,
-                                 now: datetime,
-                                 days: int = 30) -> int | None:
-    scaler = joblib.load(cluster_path / "scaler.joblib")
-    kmeans = joblib.load(cluster_path / "kmeans.joblib")
-    feature_cols = json.loads((cluster_path / "feature_cols.json").read_text(encoding="utf-8"))
-
-    df = repo.get_user_term_metrics_as_df(user_id=user_id, now=now.date(), days=days)
-    user_feat = build_user_features_from_metrics(df)  # DataFrame 한 행
-    print(user_feat.columns)
-    print(feature_cols)
-    # 1) 피처 정렬/결측 0
-    X = user_feat.reindex(columns=feature_cols, fill_value=0.0).astype(float)
-    x = X.iloc[0].values
-
-    # 2) 진단 로그
-    nonzero = [(c, float(X[c].iloc[0])) for c in feature_cols if float(X[c].iloc[0]) != 0.0]
-    print(f"[cluster] user={user_id} #nonzero={len(nonzero)} sample={nonzero[:8]}")
-
-    # 입력이 전부 0이면 바로 fallback
-    if (x == 0).all():
-        print("[cluster] all-zero feature vector → fallback to rule-based or default cluster")
-        return 0  # 또는 None / 규칙기반 디폴트
-
-    # 3) 스케일러/모델 내부 체크
-    try:
-        var0 = getattr(scaler, "var_", None)
-        mean0 = getattr(scaler, "mean_", None)
-        print(f"[scaler] has_var={var0 is not None} zeros_in_var={int((var0==0).sum()) if var0 is not None else 'n/a'}")
-        print(f"[kmeans] n_clusters={getattr(kmeans, 'n_clusters', 'n/a')}")
-    except Exception:
-        pass
-
-    # 4) 변환/예측
-    Xs = scaler.transform(X.values)
-    pred = int(kmeans.predict(Xs)[0])
-    print(f"[cluster] pred={pred}")
-
-    return pred

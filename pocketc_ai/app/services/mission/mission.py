@@ -11,8 +11,7 @@ from pocketc_ai.app.repository.missionRepository import MissionRepository
 from pocketc_ai.app.repository.transactionRepository import TransactionRepository
 from pocketc_ai.app.repository.userMetricsRepository import UserMetricsRepository
 from pocketc_ai.app.schemas.mission import Missions, Mission
-from pocketc_ai.app.services.mission.clustering import cluster_for_user_from_metrics, cluster_for_user
-from pocketc_ai.app.services.mission.dsl.dsl_runtime import compile_plan
+from pocketc_ai.app.services.mission.clustering import cluster_for_user
 from pocketc_ai.app.services.mission.dsl.dsl_templates import build_dsl_for_template
 from pocketc_ai.app.services.mission.templates_to_mission import pick_template_for_category, build_mission_sentence
 
@@ -48,11 +47,8 @@ class MissionService:
                 continue
             # 5) DSL 생성
             dsl = build_dsl_for_template(tmpl_name, user_id=user_id, sub_id=sub_id, now=now, stats=stats)
-            # # 6-1) 실행 계획 생성
-            # plan = compile_plan(dsl)
-            # 6-2) 미션 생성하기
+            # 6) 미션 문장 생성하기
             mission_text, params = build_mission_sentence(tmpl_name, sub_id, sub_name, stats, self.template)
-
             # 7) 저장(또는 반환)
             missions.append(
                 Mission(
@@ -65,7 +61,6 @@ class MissionService:
                     validTo=datetime.now() + timedelta(days=7)
                 )
             )
-
         return missions
 
 

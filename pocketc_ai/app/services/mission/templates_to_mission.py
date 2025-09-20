@@ -118,7 +118,6 @@ def _compute_params_for_template(tmpl_code: str, sub_id: int, sub_name: str, sta
     params: Dict[str, Any] = {"label": sub_name, "sub_id": sub_id}
 
     if tmpl_code == "CATEGORY_BAN_DAILY":
-        # 오늘 {label} 안 사기
         pass
     elif tmpl_code == "SPEND_CAP_DAILY":
         params["amount"] = caps["daily_budget"]
@@ -130,10 +129,7 @@ def _compute_params_for_template(tmpl_code: str, sub_id: int, sub_name: str, sta
         time_label, time_ranges = _derive_time_params(stats)
         params["time_label"] = time_label
         params["time_ranges"] = time_ranges
-    # 다른 코드 추가 시 이곳에 분기 추가
     return params
-
-
 
 def build_mission_sentence(
     tmpl_code: str,

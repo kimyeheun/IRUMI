@@ -1,5 +1,5 @@
 import logging
-from datetime import date, datetime
+from datetime import datetime
 from types import NoneType
 from typing import Dict, Any
 
