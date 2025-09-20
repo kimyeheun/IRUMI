@@ -4,9 +4,9 @@ import java.time.LocalDate;
 
 public record MonthlySavingScoreDto(
         LocalDate month,
-        Integer savingScore
+        Double savingScore
 ) {
-    public static MonthlySavingScoreDto of(LocalDate month, Integer savingScore) {
+    public static MonthlySavingScoreDto of(LocalDate month, Double savingScore) {
         return new MonthlySavingScoreDto(month, savingScore);
     }
 }

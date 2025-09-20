@@ -23,11 +23,13 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
+    private Integer userId(Principal principal) { return Integer.parseInt(principal.getName()); }
+
     @GetMapping("/transactions/{transactionId}")
     public ResponseEntity<ApiResponse<TransactionResDto>> getTransaction(@PathVariable("transactionId") Integer transactionId, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
             SUCCESS_GET_TRANSACTION,
-            transactionService.getTransactionById(transactionId, principal)
+            transactionService.getTransactionById(transactionId, userId(principal))
         ));
     }
 
@@ -35,7 +37,7 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<TransactionListResDto>> getTransactions(@RequestBody MonthReqDto dto, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_MONTHLY_TRANSACTIONS,
-                transactionService.getMonthlyTransactionList(dto, principal)
+                transactionService.getMonthlyTransactionList(dto.month().atDay(1), userId(principal))
         ));
     }
 
@@ -43,7 +45,7 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<TransactionResDto>> updateTransaction(@PathVariable("transactionId") Integer transactionId, @RequestBody TransactionReqDto dto, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_UPDATE_TRANSACTION,
-                transactionService.updateTransaction(transactionId, dto, principal)
+                transactionService.updateTransaction(transactionId, dto, userId(principal))
         ));
     }
 
@@ -51,7 +53,7 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<TransactionListResDto>> getMajorCategoryTransactions(@PathVariable("majorCategory") Integer majorCategory, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_MAJOR_CATEGORY_TRANSACTIONS,
-                transactionService.getMajorCategory(majorCategory, principal)
+                transactionService.getMajorCategory(majorCategory, userId(principal))
         ));
     }
 
@@ -59,7 +61,7 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<TransactionListResDto>> getSubCategoryTransactions(@PathVariable("subCategory") Integer subCategory, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_SUB_CATEGORY_TRANSACTIONS,
-                transactionService.getSubCategory(subCategory, principal)
+                transactionService.getSubCategory(subCategory, userId(principal))
         ));
     }
 
