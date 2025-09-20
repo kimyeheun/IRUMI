@@ -4,7 +4,6 @@ import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +25,7 @@ public class Room extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Builder.Default
-    private Status status = Status.IN_PROGRESS;
+    private Status status = Status.SUCCESS;
 
     @OneToMany(mappedBy = "room", fetch = FetchType.LAZY)
     @Builder.Default
