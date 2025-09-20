@@ -102,7 +102,6 @@ class UserMetricsRepository:
                                    "start_d": start_date,
                                    "end_d": end_date
                                }).all()
-
         if not rows:
             return {
                 "mean_daily_count": 0.0,
