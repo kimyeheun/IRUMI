@@ -46,7 +46,7 @@ public class ReportService {
     }
 
     public MonthlyReportResDto getReport(Integer userId, LocalDate now) {
-        // 입력된 시간이 현재 시간보다 미래 시간이라면 ERROR를 반환합니다.
+        // 입력된 시간이 현재 시간보다 미래 시간이라면 ERROR를 반환
         YearMonth yearMonth = YearMonth.from(now);
         if (yearMonth.isAfter(YearMonth.now())) throw new CustomException(ERROR_GET_MONTHLY_TRANSACTIONS);
 
