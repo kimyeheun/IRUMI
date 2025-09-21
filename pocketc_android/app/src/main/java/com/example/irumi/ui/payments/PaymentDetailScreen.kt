@@ -44,7 +44,8 @@ import com.example.irumi.domain.entity.PaymentEntity
 @Composable
 fun PaymentDetailRoute(
     paddingValues: PaddingValues,
-    viewModel: PaymentsViewModel = hiltViewModel()
+    viewModel: PaymentsViewModel = hiltViewModel(),
+    navigateUp: () -> Unit
     ) {
 //    val coroutineScope = rememberCoroutineScope()
 //    val snackBarHostState = remember { SnackbarHostState() }
@@ -72,7 +73,7 @@ fun PaymentDetailRoute(
     // 1. 대분류 관련 상태 변수
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = lifecycleOwner)
+    val state by viewModel.paymentDetailState.collectAsStateWithLifecycle(lifecycleOwner = lifecycleOwner)
     val selectedMajorCategory by viewModel.selectedMajorCategory.collectAsStateWithLifecycle(lifecycleOwner = lifecycleOwner)
     val selectedMinorCategory by viewModel.selectedMinorCategory.collectAsStateWithLifecycle(lifecycleOwner = lifecycleOwner)
 
@@ -93,7 +94,10 @@ fun PaymentDetailRoute(
                 selectedMinorCategory = selectedMinorCategory,
                 onMajorCategorySelected = viewModel::onSelectedMajorCategorySelected,
                 onMinorCategorySelected = viewModel::onSelectedMinorCategorySelected,
-                onEditClick = viewModel::onEditClick
+                onEditClick = {
+                    viewModel.onEditClick()
+                    navigateUp()
+                }
             )
         }
     }

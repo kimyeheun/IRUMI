@@ -21,10 +21,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,84 +39,46 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.irumi.data.dto.response.Payment
+import com.example.irumi.domain.entity.PaymentEntity
+import androidx.compose.runtime.remember
+import com.example.irumi.ui.payments.model.PaymentsByDay
+import com.example.irumi.ui.payments.model.PaymentsListItem
+import com.example.irumi.ui.payments.model.PaymentsUiState
 
 @Composable
 fun PaymentRoute(
-//    onBackButtonClick: () -> Unit,
     paddingValues: PaddingValues,
-    navigateToPaymentDetail: () -> Unit,
-//    viewModel: FollowViewModel = hiltViewModel()
+    viewModel: PaymentsViewModel = hiltViewModel(),
+    onNavigateToDetail: (Int) -> Unit
 ) {
-//    val followers by viewModel.followers.collectAsStateWithLifecycle()
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val uiState by viewModel.paymentsUiState.collectAsState()
 
-//    LaunchedEffect(viewModel.sideEffect, lifecycleOwner) {
-//        viewModel.sideEffect.flowWithLifecycle(lifecycleOwner.lifecycle).collect { effect ->
-//            when (effect) {
-//                is FollowPageSideEffect.ShowSnackbar -> {
-//                    showSnackBar(effect.message)
-//                }
-//                is FollowPageSideEffect.ShowError -> {
-//                    showSnackBar(effect.errorType.description)
-//                }
-//            }
-//        }
-//    }
+    LaunchedEffect(Unit) {
+        viewModel.navigationEffect.collect {
+            when (it) {
+                is PaymentsNavigationEffect.NavigateToDetail -> onNavigateToDetail(it.paymentId)
+            }
+        }
+    }
 
-//    FollowScreen(
-//        followers = followers,
-//        following = following,
-//        followType = followType,
-//        paddingValues = paddingValues,
-//        onUserClick = navigateToUserProfile,
-//        onMyClick = navigateToMyPage,
-//        onBackButtonClick = onBackButtonClick,
-//        onRefresh = viewModel::refresh,
-//        onFollowButtonClick = viewModel::toggleFollow
-//    )
     PaymentsScreen(
-        onPaymentItemClick = navigateToPaymentDetail
+        uiState = uiState,
+        paddingValues = paddingValues,
+        onPaymentItemClick = viewModel::onPaymentItemClick
     )
 }
 
 @Composable
-fun PaymentsScreen(viewModel: PaymentsViewModel = hiltViewModel(),
-                   onPaymentItemClick: () -> Unit) {
-    val lifecycleOwner = LocalLifecycleOwner.current // screen이 속한 mainActivity의 생명주기
-
-//    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = lifecycleOwner) // 백그라운드 리소스 절약
-
-    // LaunchedEffect -> 컴포저블이 처음 나타날 때 또는 key 값 변경 시 코루틴 시작
-    // key1 = true -> 컴포저블이 처음 실행 될 때 단 한 번만 실행되도록 보장
-//    LaunchedEffect(key1 = true) {
-//        Log.d("getDummy", "호출")
-//        viewModel.getDummy(2)
-//    }
-//
-//    when (state) {
-//        is UiState.Empty -> {}
-//        is UiState.Loading -> {
-//            Log.d("getDummy", "Loading")
-//        }
-//
-//        is UiState.Failure -> {
-//            Log.d("getDummy", "실패")
-//        }
-//
-//        is UiState.Success -> {
-//            Log.d("서버 테스트 ", (state as UiState.Success<DummyEntity>).data.userId.toString())
-//        }
-//    }
-
-
-    // todo -> ViewModel에서 관리할 상태 (예시)
-    val currentMonth = "2025년 9월"
-    val groupedPayments by viewModel.groupedTransactions.collectAsState()
-    val monthlyTotal by viewModel.monthlyTotal.collectAsState()
+fun PaymentsScreen(
+    uiState: PaymentsUiState,
+    paddingValues: PaddingValues,
+    onPaymentItemClick: (Int) -> Unit
+) {
+    val currentMonth = "2025년 9월" // TODO: ViewModel에서 관리
 
     Scaffold(
+        modifier = Modifier.padding(paddingValues),
         topBar = {
             Column(
                 modifier = Modifier
@@ -121,7 +86,6 @@ fun PaymentsScreen(viewModel: PaymentsViewModel = hiltViewModel(),
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 상단 네비게이션
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -130,13 +94,8 @@ fun PaymentsScreen(viewModel: PaymentsViewModel = hiltViewModel(),
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                         contentDescription = "이전달",
-                        modifier = Modifier.size(24.dp)
-                            .clickable {
-                                // 여기에 클릭 시 실행할 동작을 작성하세요.
-                                // 예: 다음 달로 이동하는 함수 호출
-                            }
+                        modifier = Modifier.size(24.dp).clickable { /* TODO */ }
                     )
-                    //Button(onClick = { /* 이전 달 */ }) { Text("<") }
                     Text(
                         text = "$currentMonth 결제내역",
                         fontWeight = FontWeight.Bold,
@@ -145,32 +104,55 @@ fun PaymentsScreen(viewModel: PaymentsViewModel = hiltViewModel(),
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = "다음달",
-                        modifier = Modifier.size(24.dp)
-                            .clickable {
-                                // 여기에 클릭 시 실행할 동작을 작성하세요.
-                                // 예: 다음 달로 이동하는 함수 호출
-                            }
+                        modifier = Modifier.size(24.dp).clickable { /* TODO */ }
                     )
                 }
-                // 당월 지출
-                Text("당월 지출 : $monthlyTotal", modifier = Modifier.padding(top = 8.dp))
+                Text("당월 지출 : ${uiState.monthlyTotal} 원", modifier = Modifier.padding(top = 8.dp))
             }
         }
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            groupedPayments.forEach { paymentByDay ->
-                // 일별 헤더 아이템
-                item {
-                    DayHeader(date = paymentByDay.date)
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (uiState.error != null) {
+                Text(
+                    text = uiState.error,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            } else {
+                val flattenedList = remember(uiState.groupedTransactions) {
+                    val list = mutableListOf<PaymentsListItem>()
+                    uiState.groupedTransactions.forEach { paymentByDay ->
+                        list.add(PaymentsListItem.Header(paymentByDay.date, paymentByDay.dailyTotal))
+                        paymentByDay.payments.forEach { payment ->
+                            list.add(PaymentsListItem.Payment(payment, onPaymentItemClick))
+                        }
+                    }
+                    list
                 }
-                // 일별 결제 내역 아이템들
-                items(items = paymentByDay.payments) { payment ->
-                    PaymentItem(payment = payment,
-                        onClick = onPaymentItemClick)
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(
+                        items = flattenedList,
+                        key = { item ->
+                            when (item) {
+                                is PaymentsListItem.Header -> "header-${item.date}"
+                                is PaymentsListItem.Payment -> "payment-${item.payment.paymentId}"
+                            }
+                        }
+                    ) { item ->
+                        when (item) {
+                            is PaymentsListItem.Header -> DayHeader(date = item.date, dailyTotal = item.dailyTotal)
+                            is PaymentsListItem.Payment -> PaymentItem(payment = item.payment, onClick = { item.onPaymentItemClick(item.payment.paymentId) })
+                        }
+                    }
                 }
             }
         }
@@ -178,19 +160,22 @@ fun PaymentsScreen(viewModel: PaymentsViewModel = hiltViewModel(),
 }
 
 @Composable
-fun DayHeader(date: String) {
-    Text(
-        text = date,
-        fontWeight = FontWeight.Bold,
+fun DayHeader(date: String, dailyTotal: Int) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
-    )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = date, fontWeight = FontWeight.Bold)
+        Text(text = "$dailyTotal 원", fontWeight = FontWeight.SemiBold, color = Color.Gray)
+    }
 }
 
 @Composable
 fun PaymentItem(
-    payment: Payment,
+    payment: PaymentEntity,
     onClick: () -> Unit
 ) {
     Row(
@@ -200,7 +185,6 @@ fun PaymentItem(
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Box(
             modifier = Modifier
                 .size(60.dp)
@@ -219,13 +203,12 @@ fun PaymentItem(
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "${payment.majorCategory} | ${payment.subCategory}",
+                text = "${payment.majorCategory} | ${payment.subCategory}", // TODO: 카테고리명으로 변환
                 fontSize = 12.sp,
                 color = Color.Gray
             )
         }
 
-        // Right Section: Amount & Action Button
         Column(
             horizontalAlignment = Alignment.End
         ) {
@@ -233,10 +216,9 @@ fun PaymentItem(
                 text = "${payment.amount} 원",
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
-                color = if (payment.amount < 0) Color.Black else Color.Blue // Assuming negative for expenses
             )
             if (!payment.isApplied) {
-                Button(onClick = { /* 반영 버튼 클릭 */ }) {
+                Button(onClick = { /* TODO: 반영 버튼 클릭 */ }) {
                     Text("반영", fontSize = 12.sp)
                 }
             }
@@ -247,5 +229,26 @@ fun PaymentItem(
 @Preview(showBackground = true)
 @Composable
 fun PreviewPaymentsScreen() {
-    PaymentsScreen(onPaymentItemClick = {})
+    val sampleState = PaymentsUiState(
+        isLoading = false,
+        monthlyTotal = 123456,
+        groupedTransactions = listOf(
+            PaymentsByDay(
+                date = "2025. 09. 12 (금)",
+                dailyTotal = 50000,
+                payments = listOf(
+                    PaymentEntity(1, "", 25000, 1, 1, "스타벅스", true, false, "", ""),
+                    PaymentEntity(2, "", 25000, 1, 2, "메가커피", false, false, "", "")
+                )
+            ),
+            PaymentsByDay(
+                date = "2025. 09. 11 (목)",
+                dailyTotal = 73456,
+                payments = listOf(
+                    PaymentEntity(3, "", 73456, 2, 1, "버거킹", true, true, "", "")
+                )
+            )
+        )
+    )
+    PaymentsScreen(uiState = sampleState, paddingValues = PaddingValues(), onPaymentItemClick = {})
 }
