@@ -67,9 +67,7 @@ services:
     env_file: ./pocketc_ai/.env
     depends_on: [ redis_ai, mysql ]
     ports: [ "8000:8000" ]
-    networks:
-      appnet:
-        aliases: [ai]
+
   nginx:
     image: nginx:1.25-alpine
     container_name: nginx
