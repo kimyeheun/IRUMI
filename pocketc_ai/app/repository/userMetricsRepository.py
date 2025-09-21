@@ -8,7 +8,7 @@ from pandas import DataFrame
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from pocketc_ai.app.models.user_metrics import UserMetrics
+from app.models.user_metrics import UserMetrics
 
 
 class UserMetricsRepository:

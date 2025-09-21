@@ -1,6 +1,4 @@
 import json
-import os
-from datetime import datetime, timedelta
 from pathlib import Path
 
 import joblib
@@ -10,11 +8,9 @@ from kneed import KneeLocator
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-# 중요: 이 스크립트를 프로젝트 루트에서 실행하려면 경로 설정이 필요할 수 있습니다.
-# 예: sys.path.append(os.getcwd())
-from pocketc_ai.app.db.session import get_db
-from pocketc_ai.app.repository.categoryRepository import SubCategoryRepository
-from pocketc_ai.app.repository.userMetricsRepository import UserMetricsRepository
+from app.db.session import get_db
+from app.repository.categoryRepository import SubCategoryRepository
+from app.repository.userMetricsRepository import UserMetricsRepository
 
 
 def get_data(metrics, sub):

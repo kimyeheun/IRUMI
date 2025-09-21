@@ -2,7 +2,7 @@ from typing import Optional
 
 from sqlalchemy.orm.session import Session
 
-from pocketc_ai.app.models.mission import MissionTemplate
+from app.models.mission import MissionTemplate
 
 
 class MissionRepository:

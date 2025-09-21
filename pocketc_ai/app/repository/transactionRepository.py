@@ -4,7 +4,7 @@ import pandas as pd
 from pandas import DataFrame
 from sqlalchemy.orm.session import Session
 
-from pocketc_ai.app.models.transaction import Transaction
+from app.models.transaction import Transaction
 
 
 class TransactionRepository:

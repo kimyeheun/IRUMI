@@ -1,6 +1,6 @@
 from sqlalchemy.orm.session import Session
 
-from pocketc_ai.app.models.cluster import Cluster
+from app.models.cluster import Cluster
 
 
 class ClusterRepository:

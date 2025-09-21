@@ -2,25 +2,32 @@ import os
 from celery import Celery
 from celery.schedules import crontab
 
-BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
-BACKEND_URL = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/1")
+BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+BACKEND_URL = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/1")
 
-celery = Celery("pocketc", broker=BROKER_URL, backend=BACKEND_URL)
+celery = Celery("pocketc_ai", broker=BROKER_URL, backend=BACKEND_URL)
 
 celery.conf.update(
-    timezone="Asia/Seoul",     # 주기 작업은 이 타임존 기준으로 동작
-    enable_utc=True,           # 권장: 내부는 UTC, 스케줄 표시만 tz
-    task_always_eager=False,   # 테스트 때만 True
+    timezone="Asia/Seoul",
+    enable_utc=True,
+    task_always_eager=False,
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
+    broker_connection_retry_on_startup=True,
 )
 
-# 시간당 1회: 최근 3일 재집계(지연/정정 대비, 멱등 UPSERT)
+celery.conf.update(
+    include=[
+        "app.task.cluster_service",
+        "app.task.metrics_service",
+    ],
+)
+
 celery.conf.beat_schedule = {
-    "upsert-user-sub-daily-batch_program-hourly": {
-        "task": "app.tasks.upsert_user_sub_daily_metrics",
-        "schedule": crontab(minute=0),  # 매 정각
-        "args": [3],                    # lookback_days
+    "upsert-user-metrics-daily-batch_program": {
+        "task": "app.tasks.user_metrics",
+        "schedule": crontab(minute=0),
+        "args": [3],
     },
 }

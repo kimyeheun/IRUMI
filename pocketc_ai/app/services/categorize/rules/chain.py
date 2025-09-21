@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from pocketc_ai.app.services.categorize.rules.base import Rule
+from app.services.categorize.rules.base import Rule
 
 
 class Categorizer:
