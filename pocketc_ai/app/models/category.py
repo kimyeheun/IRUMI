@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, text
 from sqlalchemy.orm import relationship
 
-from pocketc_ai.app.db.base import Base
+from app.db.base import Base
 
 
 class MajorCategory(Base):

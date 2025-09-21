@@ -4,8 +4,8 @@ from typing import Dict
 
 from fastapi import APIRouter, Depends
 
-from pocketc_ai.app.schemas.transaction import CategoryResponse, CategoryRequest
-from pocketc_ai.app.services.categorize.category_service import CategoryService, get_category_service
+from app.schemas.transaction import CategoryResponse, CategoryRequest
+from app.services.categorize.category_service import CategoryService, get_category_service
 
 router = APIRouter()
 

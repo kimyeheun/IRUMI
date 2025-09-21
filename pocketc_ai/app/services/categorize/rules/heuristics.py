@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pocketc_ai.app.services.categorize.category_lib import CAFE_HINT, CONVENIENCE_HINT  # 패턴 재사용
-from pocketc_ai.app.services.categorize.rules.base import Rule
+from app.services.categorize.category_lib import CAFE_HINT, CONVENIENCE_HINT  # 패턴 재사용
+from app.services.categorize.rules.base import Rule
 
 
 class CafeRule(Rule):

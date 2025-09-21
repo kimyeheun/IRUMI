@@ -4,7 +4,7 @@ import pandas as pd
 from pandas import DataFrame
 from sqlalchemy.orm.session import Session
 
-from pocketc_ai.app.models.category import SubCategory
+from app.models.category import SubCategory
 
 
 class SubCategoryRepository:

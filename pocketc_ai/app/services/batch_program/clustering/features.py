@@ -17,7 +17,9 @@ def _time_flags(df: pd.DataFrame) -> pd.DataFrame:
     df["is_weekend"] = df["dow"] >= 5
     bins  = [0, 6, 11, 14, 18, 22, 24]
     labels = ["h00_06","h06_11","h11_14","h14_18","h18_22","h22_24"]
-    df["hour_bin"] = pd.cut(df["hour"], bins=bins, right=False, labels=labels, include_lowest=True)
+    # (옵션) 카테고리로 고정해 피벗 시 모든 구간 보장
+    df["hour_bin"] = pd.Categorical(pd.cut(df["hour"], bins=bins, right=False, labels=labels, include_lowest=True),
+                                    categories=labels, ordered=True)
     return df
 
 def _safe_div(a, b):
@@ -31,13 +33,13 @@ def _entropy(shares: np.ndarray, eps: float = 1e-12) -> float:
     p = shares[shares > 0]
     return float(-np.sum(p * np.log(p + eps)))
 
-def _interpurchase_hours(grp: pd.DataFrame) -> float:
-    dt = pd.to_datetime(grp["transacted_at"]).sort_values()
+def _interpurchase_hours_series(s: pd.Series) -> float:
+    # FIX: Series 전용 구현 (경고/형 변환 이슈 제거)
+    dt = pd.to_datetime(s).sort_values()
     if len(dt) < 2:
         return np.nan
     diff_h = (dt.diff().dropna().dt.total_seconds() / 3600.0).values
     return float(np.mean(diff_h))
-
 
 def build_user_features(
     tx: pd.DataFrame,
@@ -82,12 +84,12 @@ def build_user_features(
     # 금액 share
     spend_by_sub = tx.groupby(["user_id","sub_id"])["amount"].sum().rename("spend")
     spend_pvt = spend_by_sub.reset_index().pivot_table(
-        index="user_id", columns="sub_id", values="spend", fill_value=0.0
+        index="user_id", columns="sub_id", values="spend", fill_value=0.0, observed=False  # FIX: observed 명시
     )
     # 빈도 share
     freq_by_sub = tx.groupby(["user_id","sub_id"])["amount"].size().rename("freq")
     freq_pvt = freq_by_sub.reset_index().pivot_table(
-        index="user_id", columns="sub_id", values="freq", fill_value=0.0
+        index="user_id", columns="sub_id", values="freq", fill_value=0.0, observed=False  # FIX
     )
 
     # 유니버스 고정(없으면 발견된 sub_id 사용)
@@ -120,12 +122,14 @@ def build_user_features(
 
     if include_time_distributions:
         # 시간대(금액 기준 비중)
-        spend_hour = tx.pivot_table(index="user_id", columns="hour_bin", values="amount", aggfunc="sum", fill_value=0.0)
+        spend_hour = tx.pivot_table(index="user_id", columns="hour_bin", values="amount",
+                                    aggfunc="sum", fill_value=0.0, observed=False)  # FIX
         spend_hour = spend_hour.div(spend_hour.sum(axis=1).replace(0, np.nan), axis=0).fillna(0.0)
         spend_hour.columns = [f"time_spend_share::{c}" for c in spend_hour.columns]
 
         # 요일(금액 기준 비중)
-        spend_dow = tx.pivot_table(index="user_id", columns="dow", values="amount", aggfunc="sum", fill_value=0.0)
+        spend_dow = tx.pivot_table(index="user_id", columns="dow", values="amount",
+                                   aggfunc="sum", fill_value=0.0, observed=False)  # FIX
         spend_dow = spend_dow.div(spend_dow.sum(axis=1).replace(0, np.nan), axis=0).fillna(0.0)
         spend_dow.columns = [f"time_spend_share::dow{c}" for c in spend_dow.columns]
 
@@ -151,8 +155,10 @@ def build_user_features(
         )
         days_since_last = (tmax - base["last_dt"]).dt.days.rename("rec_days_since_last")
 
-        # 평균 구매 간격(시간)
-        mean_gap_h = tx.groupby("user_id").apply(_interpurchase_hours).rename("rec_mean_gap_hours")
+        # FIX: 그룹화는 Series로, 이름은 agg에서 바로 부여(경고/에러 제거)
+        mean_gap_h = tx.groupby("user_id")["transacted_at"].agg(
+            rec_mean_gap_hours=_interpurchase_hours_series
+        )
 
     parts = [base.drop(columns=["last_dt"], errors="ignore"), spend_share, freq_share, top1, top3]
     if include_diversity_concentration:
@@ -160,7 +166,7 @@ def build_user_features(
     if include_time_distributions:
         parts += [spend_hour, spend_dow, weekend_share]
     if include_recency_trend:
-        parts += [rec[["rec_7_over_30","trend_7_vs_prev7"]], days_since_last, mean_gap_h]
+        parts += [rec[["rec_7_over_30", "trend_7_vs_prev7"]], days_since_last, mean_gap_h]
 
     feats = pd.concat(parts, axis=1)
     feats = feats.replace([np.inf, -np.inf], np.nan).fillna(0.0)
