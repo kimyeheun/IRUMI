@@ -1,4 +1,4 @@
-package com.example.irumi.model.event
+package com.example.irumi.data.dto.response
 
 import java.time.LocalDateTime
 
