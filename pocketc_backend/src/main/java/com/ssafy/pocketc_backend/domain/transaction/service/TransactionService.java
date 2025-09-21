@@ -35,7 +35,7 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
 
-    public TransactionResDto getTransactionById(int transactionId, Principal principal) {
+    public TransactionResDto getTransactionById(int transactionId, Integer userId) {
 
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
@@ -43,8 +43,7 @@ public class TransactionService {
         return TransactionResDto.from(transaction);
     }
 
-    public TransactionListResDto getMonthlyTransactionList(MonthReqDto dto, Principal principal) {
-        int userId = 1;
+    public TransactionListResDto getMonthlyTransactionList(MonthReqDto dto, Integer userId) {
         LocalDateTime from = dto.month().atDay(1).atStartOfDay();
         LocalDateTime to = dto.month().plusMonths(1).atDay(1).atStartOfDay();
 
@@ -55,8 +54,7 @@ public class TransactionService {
         return buildTransactionListDto(transactions);
     }
 
-    public TransactionResDto updateTransaction(Integer transactionId, TransactionReqDto dto, Principal principal) {
-        int userId = 1;
+    public TransactionResDto updateTransaction(Integer transactionId, TransactionReqDto dto, Integer userId) {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
@@ -85,14 +83,12 @@ public class TransactionService {
         return TransactionResDto.from(transaction);
     }
 
-    public TransactionListResDto getMajorCategory(Integer majorCategory, Principal principal) {
-        int userId = 1;
+    public TransactionListResDto getMajorCategory(Integer majorCategory, Integer userId) {
         List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndMajorCategory(userId, majorCategory);
         return buildTransactionListDto(transactions);
     }
 
-    public TransactionListResDto getSubCategory(Integer subCategory, Principal principal) {
-        int userId = 1;
+    public TransactionListResDto getSubCategory(Integer subCategory, Integer userId) {
         List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndSubCategory(userId, subCategory);
         return buildTransactionListDto(transactions);
     }
