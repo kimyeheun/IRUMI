@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 
-from pocketc_ai.app.api.v1.routers import api_router
-from pocketc_ai.app.services.batch_program.clustering.cluster_service import cluster_model_task
-from pocketc_ai.app.services.batch_program.metrics_service import upsert_user_metrics
+from app.api.v1.routers import api_router
+from app.task.cluster_service import cluster_model_task
+from app.task.metrics_service import upsert_user_metrics
+from app.celery_app import BROKER_URL, BACKEND_URL
 
 app = FastAPI(
     title = "PocketC",
@@ -24,5 +25,8 @@ def rebuild_metrics(lookback_days: int = 3):
 
 @app.post("/admin/rebuild-clusters")
 def rebuild_clusters():
-    r = cluster_model_task.delay()
+    print("BROKER_URL=", BROKER_URL, "BACKEND_URL=", BACKEND_URL, flush=True)
+    print("??")
+    r = cluster_model_task.apply_async()
+    print(r)
     return {"task_id": r.id}

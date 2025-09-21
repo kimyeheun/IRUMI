@@ -5,9 +5,9 @@ from typing import Dict, Any
 
 from fastapi import APIRouter, Depends
 
-from pocketc_ai.app.schemas.mission import MissionResponse
-from pocketc_ai.app.services.mission.mission import MissionService
-from pocketc_ai.app.services.mission.mission_service import get_mission_service
+from app.schemas.mission import MissionResponse
+from app.services.mission.mission import MissionService
+from app.services.mission.mission_service import get_mission_service
 
 router = APIRouter()
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import List, Tuple, Optional
 
-from pocketc_ai.app.services.categorize.rules.base import Rule
+from app.services.categorize.rules.base import Rule
 
 
 class RegexRule(Rule):

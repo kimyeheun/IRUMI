@@ -28,7 +28,7 @@ def fetch_metrics(user_id=1, sub_id=2001, days=3):
     with eng.connect() as conn:
         rows = conn.execute(text("""
         SELECT d, day_count, day_sum, night_count, morning_count, afternoon_count, max_per_txn
-        FROM user_daily_metrics
+        FROM user_metrics
         WHERE user_id=:u AND sub_id=:s
         ORDER BY d DESC
         LIMIT :lim

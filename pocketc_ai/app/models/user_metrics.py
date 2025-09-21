@@ -2,7 +2,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import Column, ForeignKey, Index
 from sqlalchemy.sql.sqltypes import Integer, Date
 
-from pocketc_ai.app.db.base import Base
+from app.db.base import Base
 
 
 class UserMetrics(Base):
