@@ -5,6 +5,7 @@ import com.example.irumi.data.dto.response.PaymentCheckRequest
 import com.example.irumi.data.dto.response.PaymentDetailResponse
 import com.example.irumi.data.dto.response.PaymentsResponse
 import com.example.irumi.domain.entity.PaymentEntity
+import com.example.irumi.domain.entity.PaymentsHistoryEntity
 
 interface PaymentsRepository {
     suspend fun getPaymentDetail(
@@ -12,7 +13,7 @@ interface PaymentsRepository {
     ): Result<PaymentEntity>
 
     suspend fun getPayments(
-    ): Result<PaymentsResponse>
+    ): Result<PaymentsHistoryEntity>
 
     suspend fun putPaymentDetail(
         transactionId: Int,
