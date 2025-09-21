@@ -93,19 +93,19 @@ services:
       - /usr/libexec/docker/cli-plugins/docker-compose:/usr/libexec/docker/cli-plugins/docker-compose:ro
 
   worker:
-    build: .pocketc_ai/
+    build: ./pocketc_ai/
     command: celery -A app.celery_app.celery worker -l info --concurrency=4
     env_file: .env
     depends_on: [redis_ai, mysql]
 
   beat:
-    build: .pocketc_ai/
+    build: ./pocketc_ai/
     command: celery -A app.celery_app.celery beat -l info
     env_file: .env
     depends_on: [redis_ai, mysql]
 
   flower:
-    build: .pocketc_ai/
+    build: ./pocketc_ai/
     command: celery -A app.celery_app.celery flower --port=5555
     env_file: .env
     environment:
