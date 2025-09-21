@@ -65,11 +65,11 @@ public class TransactionController {
         ));
     }
 
-    @PostMapping("/{userId}/transactions")
-    public ResponseEntity<ApiResponse<?>> createTransaction(@PathVariable Integer userId, @RequestBody TransactionCreateReqDto dto) {
+    @PostMapping("/transactions")
+    public ResponseEntity<ApiResponse<?>> createTransaction(Principal principal, @RequestBody TransactionCreateReqDto dto) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_CREATE_TRANSACTIONS,
-                transactionService.createTransaction(userId, dto)
+                transactionService.createTransaction(userId(principal), dto)
         ));
     }
 }

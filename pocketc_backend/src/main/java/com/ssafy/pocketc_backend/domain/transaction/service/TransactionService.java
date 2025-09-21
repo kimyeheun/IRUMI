@@ -42,7 +42,6 @@ public class TransactionService {
 
         return TransactionResDto.from(transaction);
     }
-
     // 현재 달과 일치하는 결제내역을 조회한다.
     public TransactionListResDto getMonthlyTransactionList(LocalDate now, Integer userId) {
         // 입력된 시간이 현재 시간보다 미래 시간이라면 ERROR를 반환합니다.
