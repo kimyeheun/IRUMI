@@ -1,11 +1,6 @@
-networks:
-  appnet:
-    external: true
-
 services:
   mysql:
     image: mysql:8.4
-    networks: [appnet]
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -24,9 +19,7 @@ services:
       timeout: 3s
       retries: 20
     restart: unless-stopped
-
   redis:
-    networks: [appnet]
     image: redis:7-alpine
     container_name: redis
     command: >
@@ -41,7 +34,6 @@ services:
     restart: unless-stopped
 
   backend:
-    networks: [appnet]
     build:
       context: .
       dockerfile: Dockerfile
@@ -68,7 +60,6 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     restart: unless-stopped
   nginx:
-    networks: [appnet]
     image: nginx:1.25-alpine
     container_name: nginx
     depends_on:
@@ -84,10 +75,8 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
     restart: unless-stopped
-
   jenkins:
     image: jenkins/jenkins:lts
-    networks: [appnet]
     container_name: jenkins
     restart: unless-stopped
     user: root
