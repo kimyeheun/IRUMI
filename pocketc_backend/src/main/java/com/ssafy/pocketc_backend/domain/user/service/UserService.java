@@ -1,5 +1,7 @@
 package com.ssafy.pocketc_backend.domain.user.service;
 
+import com.ssafy.pocketc_backend.domain.report.entity.Report;
+import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
@@ -15,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.*;
 
 @Service
@@ -25,6 +29,8 @@ public class UserService {
     //private final S3UploadService s3UploadService;
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
+
+    private final ReportService reportService;
 
     public void signup(UserSignupRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -40,7 +46,17 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
+
+        Report report = new Report();
+        report.setUser(user);
+        report.setReportMonth(LocalDate.now());
+        report.setMonthlyTotalExpense(0L);
+        report.setMonthlyFixedExpense(0L);
+        report.setMonthlyBudget(0L);
+
+        reportService.save(report);
     }
+
     public UserLoginResponse login(UserLoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new CustomException(LOGIN_FAIL));
