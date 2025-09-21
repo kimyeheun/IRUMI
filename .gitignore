@@ -15,3 +15,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# AI 서버용
+.venv
+*.env
+*__pycache__/
