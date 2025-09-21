@@ -71,7 +71,6 @@ services:
     container_name: nginx
     depends_on:
       - backend
-      - ai
       - mysql
       - redis
     ports:
