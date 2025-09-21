@@ -64,7 +64,7 @@ services:
   ai:
     build: { context: ./pocketc_ai, dockerfile: Dockerfile }
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
-    env_file: ./pocketc_ai/.env
+    env_file: .env
     depends_on: [ redis_ai, mysql ]
     ports: [ "8000:8000" ]
 
