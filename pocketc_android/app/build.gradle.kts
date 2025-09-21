@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.androidx.benchmark.traceprocessor)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.compose.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -84,6 +85,10 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
     // ViewModel + Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.3")
+
+    // Jetpack Navigation
+    implementation("androidx.navigation:navigation-compose:2.9.4")
+    implementation("androidx.navigation:navigation-runtime-ktx:2.9.4")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.57.1")

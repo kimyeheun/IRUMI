@@ -1,11 +1,11 @@
-package com.example.irumi.model.payments
+package com.example.irumi.data.dto.response
 
-data class TransactionMonthResponse(
-    val transactions: List<Transaction>,
+data class PaymentsResponse(
+    val payments: List<Payment>,
     val totalSpending: Int
 )
 
-data class Transaction(
+data class Payment(
     val transactionId: Int,
     val date: String,
     val amount: Int,

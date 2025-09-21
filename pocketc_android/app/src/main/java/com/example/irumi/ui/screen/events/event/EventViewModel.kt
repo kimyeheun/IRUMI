@@ -2,9 +2,9 @@ package com.example.irumi.ui.screen.events.event
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.irumi.model.event.PuzzleData
-import com.example.irumi.model.event.Puzzle
-import com.example.irumi.model.event.User
+import com.example.irumi.data.dto.response.PuzzleData
+import com.example.irumi.data.dto.response.Puzzle
+import com.example.irumi.data.dto.response.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
