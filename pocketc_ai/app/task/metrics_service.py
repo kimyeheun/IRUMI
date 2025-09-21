@@ -1,8 +1,8 @@
 from celery import shared_task
-from pocketc_ai.app.db.session import run_sql
+from app.db.session import run_sql
 
 UPSERT_SQL = """
-INSERT INTO user_metrics (user_id, sub_id, d, day_count, day_sum, night_count, max_per_txn)
+INSERT INTO user_metrics (user_id, sub_id, d, day_count, day_sum, night_count, morning_count, afternoon_count, max_per_txn)
 WITH kst AS (
   SELECT DATE(CONVERT_TZ(UTC_TIMESTAMP(),'UTC','Asia/Seoul')) AS today_kst
 ),

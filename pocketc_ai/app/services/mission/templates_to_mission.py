@@ -5,7 +5,7 @@ import random
 from collections import defaultdict
 from typing import Dict, Any, Tuple, List
 
-from pocketc_ai.app.services.mission.dsl.dsl_templates import _default_caps
+from app.services.mission.dsl.dsl_templates import _default_caps
 
 TemplateName = str
 

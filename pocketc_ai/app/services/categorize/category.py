@@ -2,12 +2,12 @@ from datetime import datetime
 
 from requests.sessions import Session
 
-from pocketc_ai.app.repository.categoryRepository import SubCategoryRepository
-from pocketc_ai.app.schemas.transaction import CategoryRequest, Transaction
-from pocketc_ai.app.services.categorize.category_lib import REGEX_RULES
-from pocketc_ai.app.services.categorize.rules.chain import Categorizer
-from pocketc_ai.app.services.categorize.rules.heuristics import CafeRule, ConvenienceRule, DiningTimeRule
-from pocketc_ai.app.services.categorize.rules.regex_rule import RegexRule
+from app.repository.categoryRepository import SubCategoryRepository
+from app.schemas.transaction import CategoryRequest, Transaction
+from app.services.categorize.category_lib import REGEX_RULES
+from app.services.categorize.rules.chain import Categorizer
+from app.services.categorize.rules.heuristics import CafeRule, ConvenienceRule, DiningTimeRule
+from app.services.categorize.rules.regex_rule import RegexRule
 
 
 class Categorization:

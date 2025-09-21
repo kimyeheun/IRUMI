@@ -5,22 +5,22 @@ from pathlib import Path
 
 from sqlalchemy.orm.session import Session
 
-from pocketc_ai.app.repository.categoryRepository import SubCategoryRepository
-from pocketc_ai.app.repository.clusterRepository import ClusterRepository
-from pocketc_ai.app.repository.missionRepository import MissionRepository
-from pocketc_ai.app.repository.transactionRepository import TransactionRepository
-from pocketc_ai.app.repository.userMetricsRepository import UserMetricsRepository
-from pocketc_ai.app.schemas.mission import Missions, Mission
-from pocketc_ai.app.services.mission.clustering import cluster_for_user
-from pocketc_ai.app.services.mission.dsl.dsl_templates import build_dsl_for_template
-from pocketc_ai.app.services.mission.templates_to_mission import pick_template_for_category, build_mission_sentence
+from app.repository.categoryRepository import SubCategoryRepository
+from app.repository.clusterRepository import ClusterRepository
+from app.repository.missionRepository import MissionRepository
+from app.repository.transactionRepository import TransactionRepository
+from app.repository.userMetricsRepository import UserMetricsRepository
+from app.schemas.mission import Missions, Mission
+from app.services.mission.clustering import cluster_for_user
+from app.services.mission.dsl.dsl_templates import build_dsl_for_template
+from app.services.mission.templates_to_mission import pick_template_for_category, build_mission_sentence
 
 
 class MissionService:
     def __init__(self, db: Session):
         self.db = db
         # TODO: 환경 변수로 바꾸기
-        self.cluster_path = Path("pocketc_ai/app/services/mission/cluster")
+        self.cluster_path = Path("app/services/mission/cluster")
         self.repo = UserMetricsRepository(db)
         self.sub = SubCategoryRepository(db)
         self.trans = TransactionRepository(db)

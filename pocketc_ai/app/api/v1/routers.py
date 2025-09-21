@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from pocketc_ai.app.api.v1.endpoints import categorization, mission
+from app.api.v1.endpoints import categorization, mission
 
 api_router = APIRouter()
 
