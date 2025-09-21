@@ -6,8 +6,8 @@ from typing import Dict, Any
 import joblib
 import pandas as pd
 
-from pocketc_ai.app.repository.transactionRepository import TransactionRepository
-from pocketc_ai.app.services.batch_program.clustering.features import build_user_features
+from app.repository.transactionRepository import TransactionRepository
+from app.services.batch_program.clustering.features import build_user_features
 
 
 def cluster_for_user(cluster_path:Path, repo:TransactionRepository, user_id: int, now:datetime, days: int = 30) -> int | None:

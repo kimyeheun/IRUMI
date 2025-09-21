@@ -2,7 +2,7 @@ from sqlalchemy.sql.functions import func
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import Integer, String, DateTime, Boolean, BigInteger
 
-from pocketc_ai.app.db.base import Base
+from app.db.base import Base
 
 
 class Transaction(Base):

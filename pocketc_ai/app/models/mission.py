@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.sql.schema import Column, ForeignKey
 from sqlalchemy.sql.sqltypes import Integer, String, JSON, TIMESTAMP
 
-from pocketc_ai.app.db.base import Base
+from app.db.base import Base
 
 
 class Mission(Base):
