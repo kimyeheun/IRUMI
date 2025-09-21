@@ -37,7 +37,7 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<TransactionListResDto>> getTransactions(@RequestBody MonthReqDto dto, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_MONTHLY_TRANSACTIONS,
-                transactionService.getMonthlyTransactionList(dto, userId(principal))
+                transactionService.getMonthlyTransactionList(dto.month().atDay(1), userId(principal))
         ));
     }
 

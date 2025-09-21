@@ -8,16 +8,15 @@ import java.util.List;
  * @param currMonthExpense: 현재 달의 총지출액
  * @param lastMonthExpense: 지난 달의 총지출액
  * @param expenseByCategories: 카테고리별 지출액
- * @param monthlySavingScores: 월별 절약 점수
  */
 public record MonthlyReportResDto(
         Long budget,
         Long currMonthExpense,
         Long lastMonthExpense,
         List<ExpenseByCategoryDto> expenseByCategories,
-        List<MonthlySavingScoreDto> monthlySavingScores
+        List<MonthlySavingScoreDto> monthlySavingScoreList
 ) {
-    private static MonthlyReportResDto of(Long budget, Long currMonthExpense, Long lastMonthExpense, List<ExpenseByCategoryDto> expenseByCategories, List<MonthlySavingScoreDto> monthlySavingScores) {
-        return new MonthlyReportResDto(budget, currMonthExpense, lastMonthExpense, expenseByCategories, monthlySavingScores);
+    public static MonthlyReportResDto of(Long budget, Long currMonthExpense, Long lastMonthExpense, List<ExpenseByCategoryDto> expenseByCategories, List<MonthlySavingScoreDto> monthlySavingScoreList) {
+        return new MonthlyReportResDto(budget, currMonthExpense, lastMonthExpense, expenseByCategories, monthlySavingScoreList);
     }
 }

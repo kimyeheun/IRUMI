@@ -35,26 +35,29 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
 
+    // 여기서 userId를 사용하고 있지는 않은거 같은데
     public TransactionResDto getTransactionById(int transactionId, Integer userId) {
-
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
         return TransactionResDto.from(transaction);
     }
+    // 현재 달과 일치하는 결제내역을 조회한다.
+    public TransactionListResDto getMonthlyTransactionList(LocalDate now, Integer userId) {
+        // 입력된 시간이 현재 시간보다 미래 시간이라면 ERROR를 반환합니다.
+        YearMonth yearMonth = YearMonth.from(now);
+        if (yearMonth.isAfter(YearMonth.now())) throw new CustomException(ERROR_GET_MONTHLY_TRANSACTIONS);
 
-    public TransactionListResDto getMonthlyTransactionList(MonthReqDto dto, Integer userId) {
-        LocalDateTime from = dto.month().atDay(1).atStartOfDay();
-        LocalDateTime to = dto.month().plusMonths(1).atDay(1).atStartOfDay();
-
-        if (dto.month().isAfter(YearMonth.now())) throw new CustomException(ERROR_GET_MONTHLY_TRANSACTIONS);
-
-        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndTransactedAtGreaterThanEqualAndTransactedAtLessThan(userId, from, to);
+        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndTransactedAtBetween(
+                userId,
+                now.withDayOfMonth(1),
+                now.withDayOfMonth(now.lengthOfMonth())
+        );
 
         return buildTransactionListDto(transactions);
     }
 
-    public TransactionResDto updateTransaction(Integer transactionId, TransactionReqDto dto, Integer userId) {
+    public TransactionResDto updateTransaction(Integer transactionId, TransactionReqDto dto, int userId) {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
