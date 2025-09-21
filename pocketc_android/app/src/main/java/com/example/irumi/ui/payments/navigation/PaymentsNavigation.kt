@@ -5,38 +5,42 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.example.irumi.core.navigation.Route
+import com.example.irumi.core.navigation.PaymentDetail
+import com.example.irumi.core.navigation.Payments
 import com.example.irumi.ui.payments.PaymentDetailRoute
 import com.example.irumi.ui.payments.PaymentRoute
-import kotlinx.serialization.Serializable
+
+fun NavController.navigateToPayments(navOptions: NavOptions? = null) {
+    navigate(Payments, navOptions)
+}
 
 fun NavGraphBuilder.paymentsNavGraph(
     paddingValues: PaddingValues,
-    navigateToPaymentDetail: () -> Unit
+    onNavigateToDetail: (Int) -> Unit
 ) {
-    composable(route = "payments"){
+    composable<Payments> {
         PaymentRoute(
             paddingValues = paddingValues,
-            navigateToPaymentDetail = navigateToPaymentDetail
+            onNavigateToDetail = onNavigateToDetail
         )
     }
 }
 
 fun NavController.navigateToPaymentDetail(
+    paymentId: Int,
     navOptions: NavOptions? = null
 ) {
-    navigate("paymentDetail", navOptions)
+    navigate(PaymentDetail(paymentId), navOptions)
 }
 
 fun NavGraphBuilder.paymentDetailNavGraph(
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    navigateUp: () -> Unit
 ) {
-    composable(route = "paymentDetail"){
+    composable<PaymentDetail> {
         PaymentDetailRoute(
-            paddingValues = paddingValues
+            paddingValues = paddingValues,
+            navigateUp = navigateUp
         )
     }
 }
-
-@Serializable
-data object PaymentDetail : Route

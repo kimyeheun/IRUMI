@@ -28,14 +28,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.irumi.core.navigation.Route
 import com.example.irumi.ui.theme.BrandGreen
 
-sealed class BottomNavItem(val label: String, val icon: ImageVector, val route: String) {
-    data object Home : BottomNavItem("홈", Icons.Filled.Home, "home")
-    data object Payments : BottomNavItem("결제 내역", Icons.Filled.List, "payments")
-    data object Stats : BottomNavItem("통계", Icons.Filled.BarChart, "stats")
-    data object Events : BottomNavItem("이벤트", Icons.Filled.Event, "events")
+sealed class BottomNavItem(val label: String, val icon: ImageVector, val route: Route) {
+    data object Home : BottomNavItem("홈", Icons.Filled.Home, com.example.irumi.core.navigation.Home)
+    data object Payments : BottomNavItem("결제 내역", Icons.Filled.List, com.example.irumi.core.navigation.Payments)
+    data object Stats : BottomNavItem("통계", Icons.Filled.BarChart, com.example.irumi.core.navigation.Stats)
+    data object Events : BottomNavItem("이벤트", Icons.Filled.Event, com.example.irumi.core.navigation.Events)
 }
 
 @Composable
@@ -71,7 +73,7 @@ fun BottomNavBar(
             items.forEach { item ->
 //            val isSelected = selected::class == item::class
                 // 2. 현재 경로가 아이템의 경로와 일치하면 선택된 상태로 간주합니다.
-                val isSelected = currentDestination?.route == item.route
+                val isSelected = currentDestination?.hierarchy?.any { it.route == item.route::class.qualifiedName } == true
 
 
                 val circleColor by animateColorAsState(

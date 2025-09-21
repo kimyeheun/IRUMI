@@ -2,16 +2,23 @@ package com.example.irumi.ui.main
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.irumi.core.navigation.Events
+import com.example.irumi.core.navigation.Home
+import com.example.irumi.core.navigation.Payments
+import com.example.irumi.core.navigation.Route
+import com.example.irumi.core.navigation.Stats
 import com.example.irumi.ui.payments.navigation.navigateToPaymentDetail
+import kotlin.reflect.KClass
 
-val bottomNavScreens = listOf(
-    "home",
-    "payments",
-    "stats",
-    "events"
+val bottomNavScreens: List<KClass<out Route>> = listOf(
+    Home::class,
+    Payments::class,
+    Stats::class,
+    Events::class
 )
 
 class MainNavigator(
@@ -19,18 +26,22 @@ class MainNavigator(
 ) {
     @Composable
     fun shouldShowBottomBar(): Boolean {
-        val currentRoute = navController
+        val currentDestination = navController
             .currentBackStackEntryAsState()
             .value
             ?.destination
-            ?.route
-            ?.substringBefore("?") // 쿼리 파라미터 제거
 
-        return currentRoute != null && currentRoute in bottomNavScreens
+        return currentDestination?.hierarchy?.any { dest ->
+            bottomNavScreens.any { it.qualifiedName == dest.route }
+        } == true
     }
 
-    fun navigateToPaymentDetail() {
-        navController.navigateToPaymentDetail()
+    fun navigateToPaymentDetail(paymentId: Int) {
+        navController.navigateToPaymentDetail(paymentId)
+    }
+
+    fun navigateUp() {
+        navController.navigateUp()
     }
 }
 

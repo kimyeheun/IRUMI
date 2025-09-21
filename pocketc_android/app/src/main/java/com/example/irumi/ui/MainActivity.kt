@@ -14,6 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.irumi.core.navigation.Events
+import com.example.irumi.core.navigation.Home
+import com.example.irumi.core.navigation.Stats
 import com.example.irumi.ui.component.navBar.BottomNavBar
 import com.example.irumi.ui.main.MainNavigator
 import com.example.irumi.ui.main.rememberMainNavigator
@@ -35,82 +38,44 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(navigator: MainNavigator = rememberMainNavigator()) {
     val brand = Color(0xFF4CAF93)
-//    val navController = rememberNavController()
-
-    // 현재 경로를 관찰하여 BottomBar 표시 여부 결정
-//    val navBackStackEntry by navController.currentBackStackEntryAsState()
-//    val currentRoute = navBackStackEntry?.destination?.route
-
-//    val shouldShowBottomBar = remember(currentRoute) {
-//        when (currentRoute) {
-//            "payments", "home", "stats", "events" -> true
-//            else -> false
-//        }
-//    }
-
-//    val items = remember {
-//        listOf(
-//            BottomNavItem.Home,
-//            BottomNavItem.Payments,
-//            BottomNavItem.Stats,
-//            BottomNavItem.Events
-//        )
-//    }
-//    var selected by remember { mutableStateOf<BottomNavItem>(BottomNavItem.Home) }
 
     Scaffold(
         bottomBar = {
             BottomNavBar(
                 visible = navigator.shouldShowBottomBar(),
                 navController = navigator.navController)
-//            BottomNavBar(
-//                items = items,
-//                selected = selected,
-//                onSelect = { selected = it }
-//            )
         }
     ) { inner ->
         NavHost(
             navController = navigator.navController,
-            startDestination = "home", // 앱 시작 시 보여줄 화면
+            startDestination = Home, // 앱 시작 시 보여줄 화면
             modifier = Modifier.fillMaxSize()
                 .padding(inner),
             contentAlignment = Alignment.Center,
             enterTransition = { EnterTransition.None },
-                    exitTransition = { ExitTransition.None },
-                    popEnterTransition = { EnterTransition.None },
-                    popExitTransition = { ExitTransition.None }
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None }
         ) {
-            composable("home") {
+            composable<Home> {
                 HomeScreen(brand)
             }
-            composable("stats") {
+            composable<Stats> {
                 StatsScreen(brand)
             }
-            composable("events") {
+            composable<Events> {
                 EventsScreen(brand)
             }
 
             paymentsNavGraph(
-                navigateToPaymentDetail = {
-                    navigator.navigateToPaymentDetail()
-                },
+                onNavigateToDetail = navigator::navigateToPaymentDetail,
                 paddingValues = inner
             )
 
             paymentDetailNavGraph(
-                paddingValues = inner
+                paddingValues = inner,
+                navigateUp = navigator::navigateUp
             )
         }
-//        Box(Modifier
-//            .fillMaxSize()
-//            .padding(inner), contentAlignment = Alignment.Center) {
-//            when (selected) {
-//                BottomNavItem.Home -> HomeScreen(brand)
-//                BottomNavItem.Payments -> PaymentsScreen(brand)
-//                BottomNavItem.Stats -> StatsScreen(brand)
-//                BottomNavItem.Events -> EventsScreen(brand)
-//            }
-//        }
     }
 }
