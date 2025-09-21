@@ -40,4 +40,5 @@ ON DUPLICATE KEY UPDATE
 @shared_task(name="app.tasks.user_metrics", autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
 def upsert_user_metrics(lookback_days: int = 3):
     run_sql(UPSERT_SQL, [{"lookback": lookback_days}])
+    print("user_metrics upserted")
     return {"ok": True, "lookback": lookback_days}

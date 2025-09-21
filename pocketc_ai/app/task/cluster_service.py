@@ -68,13 +68,9 @@ def get_cluster_data_from_model(repo: TransactionRepository, sub: SubCategoryRep
 
 @shared_task(name="app.tasks.cluster_model", autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
 def cluster_model_task():
-    print("db")
     db = next(get_db())
-    print("dn12")
     try:
-        print("??")
         run_sql(TRUNCATE_SQL)
-        print("trun  sql")
         repo = TransactionRepository(db)
         sub = SubCategoryRepository(db)
         cluster_data = get_cluster_data_from_model(repo, sub)
