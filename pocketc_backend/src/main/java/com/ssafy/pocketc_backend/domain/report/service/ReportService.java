@@ -129,4 +129,7 @@ public class ReportService {
         return monthlySavingScore;
     }
 
+    public void save(Report report) {
+        reportRepository.save(report);
+    }
 }
