@@ -1,3 +1,6 @@
+networks:
+  appnet: { external: true }
+
 services:
   mysql:
     image: mysql:8.4
@@ -19,33 +22,37 @@ services:
       timeout: 3s
       retries: 20
     restart: unless-stopped
+    networks: [appnet]
+
   redis:
     image: redis:7-alpine
     container_name: redis
     command: >
       sh -lc 'exec redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}'
-    volumes:
-      - redis-data:/data
+    volumes: [redis-data:/data]
     healthcheck:
       test: [ "CMD-SHELL", "redis-cli ${REDIS_PASSWORD:+-a ${REDIS_PASSWORD}} ping | grep PONG" ]
       interval: 5s
       timeout: 3s
       retries: 20
     restart: unless-stopped
+    networks: [appnet]
+
+  redis_ai:
+    image: redis:7-alpine
+    container_name: redis_ai
+    command: redis-server --port 6379
+    restart: always
+    networks: [appnet]
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: { context: ./pocketc_backend, dockerfile: Dockerfile }
     image: app:latest
     container_name: backend
     depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    expose:
-      - "8080"
+      mysql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    expose: ["8080"]
     environment:
       SERVER_PORT: 8080
       TZ: Asia/Seoul
@@ -59,22 +66,27 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
     restart: unless-stopped
+
+  ai:
+    build: { context: ./pocketc_ai, dockerfile: Dockerfile }
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    env_file: ./pocketc_ai/.env
+    depends_on: [ redis_ai, mysql ]
+    ports: [ "8000:8000" ]
+    networks:
+      appnet:
+        aliases: [ai]
   nginx:
     image: nginx:1.25-alpine
     container_name: nginx
-    depends_on:
-      - backend
-      - mysql
-      - redis
-    ports:
-      - "80:80"
-      - "443:443"
-      - "3306:3306"
-      - "6379:6379"
+    depends_on: [backend, mysql, redis, ai]
+    ports: ["80:80", "443:443", "3306:3306", "6379:6379"]
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
     restart: unless-stopped
+    networks: [appnet]
+
   jenkins:
     image: jenkins/jenkins:lts
     container_name: jenkins
@@ -89,8 +101,27 @@ services:
       - /usr/bin/docker:/usr/bin/docker
       - /usr/libexec/docker/cli-plugins/docker-compose:/usr/libexec/docker/cli-plugins/docker-compose:ro
 
-volumes:
-  mysql-data:
-  redis-data:
-  jenkins_home:
-    external: true
+  worker:
+    build: .pocketc_ai/
+    command: celery -A app.celery_app.celery worker -l info --concurrency=4
+    env_file: .env
+    depends_on: [redis_ai, db]
+    networks: [appnet]
+
+  beat:
+    build: .pocketc_ai/
+    command: celery -A app.celery_app.celery beat -l info
+    env_file: .env
+    depends_on: [redis_ai, db]
+    networks: [appnet]
+
+  flower:
+    build: .pocketc_ai/
+    command: celery -A app.celery_app.celery flower --port=5555
+    env_file: .env
+    environment:
+      - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH}
+    ports:
+      - "5555:5555"
+    depends_on: [redis_ai]
+    networks: [appnet]
