@@ -42,7 +42,6 @@ services:
   backend:
     build: { context: ./pocketc_backend, dockerfile: Dockerfile }
     image: app:latest
-    container_name: backend
     depends_on:
       mysql: { condition: service_healthy }
       redis: { condition: service_healthy }
