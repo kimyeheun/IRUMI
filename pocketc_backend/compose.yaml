@@ -5,6 +5,7 @@ networks:
 services:
   mysql:
     image: mysql:8.4
+    networks: [appnet]
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -25,6 +26,7 @@ services:
     restart: unless-stopped
 
   redis:
+    networks: [appnet]
     image: redis:7-alpine
     container_name: redis
     command: >
@@ -85,6 +87,7 @@ services:
 
   jenkins:
     image: jenkins/jenkins:lts
+    networks: [appnet]
     container_name: jenkins
     restart: unless-stopped
     user: root
