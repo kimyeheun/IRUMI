@@ -2,9 +2,9 @@ package com.ssafy.pocketc_backend.domain.report.repository;
 
 import com.ssafy.pocketc_backend.domain.report.dto.response.ExpenseByCategoryDto;
 import com.ssafy.pocketc_backend.domain.report.entity.Report;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -25,6 +25,7 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
             "AND t.transactedAt >= :start " +
             "AND t.transactedAt < :end " +
             "GROUP BY t.majorCategory")
+
     List<ExpenseByCategoryDto> findExpenseByCategoryForMonth(
             @Param("userId") Integer userId,
             @Param("start") LocalDateTime start,
