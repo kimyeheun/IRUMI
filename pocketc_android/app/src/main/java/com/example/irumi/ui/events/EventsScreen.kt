@@ -5,12 +5,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
+import timber.log.Timber
 
 @Composable
 fun EventsScreen(brand: Color, viewModel: EventViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
 
     // TODO viewmodel 을 안넘기고,, 데이터만 넘기는건?
+    Timber.d("EventScreen -> uiState: $uiState")
     when (uiState) {
         is EventUiState.NoRoom -> {
             NoEventScreen()

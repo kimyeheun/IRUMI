@@ -52,6 +52,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import com.example.irumi.data.dto.response.RoomStatus
 import com.example.irumi.domain.entity.EventEntity
 import com.example.irumi.domain.entity.MemberEntity
 import com.example.irumi.domain.entity.PuzzleEntity
@@ -59,14 +60,18 @@ import com.example.irumi.domain.entity.RankEntity
 import com.example.irumi.domain.entity.RoomEntity
 
 @Composable
-fun EventRoomScreen(viewModel: EventViewModel = hiltViewModel(), roomEntity: RoomEntity, eventEntity: EventEntity, isSuccess: Boolean? = null) {
+fun EventRoomScreen(
+    viewModel: EventViewModel = hiltViewModel(),
+    roomEntity: RoomEntity,
+    eventEntity: EventEntity,
+    isSuccess: Boolean? = null
+) {
+    // ViewModel 관리 변수
     val context = LocalContext.current
-
     val puzzleImageUrl by viewModel.puzzleImageUrl.collectAsState()
 
+    // UI 전용 상태
     val placeholderBitmap = rememberPlaceholderBitmap()
-
-    // TODO 뷰모델로?
     var bitmap by remember { mutableStateOf<Bitmap?>(placeholderBitmap) }
     var selectedUserId by remember { mutableStateOf<Int?>(null) }
 
@@ -78,7 +83,8 @@ fun EventRoomScreen(viewModel: EventViewModel = hiltViewModel(), roomEntity: Roo
         topBar = {
             TopBar(
                 filledCount = roomEntity.puzzles.size,
-                totalPieces = roomEntity.puzzles.size // TODO 계산 해야 함.
+                totalPieces = viewModel.totalPieces,
+                onLeaveClick = viewModel::leaveRoom
             )
         }
     ) { innerPadding ->
@@ -98,7 +104,6 @@ fun EventRoomScreen(viewModel: EventViewModel = hiltViewModel(), roomEntity: Roo
                 Spacer(modifier = Modifier.height(24.dp))
             }
             item {
-
                 bitmap?.let { loadedBitmap ->
                     PuzzleGrid(
                         roomEntity = roomEntity,
@@ -118,10 +123,7 @@ fun EventRoomScreen(viewModel: EventViewModel = hiltViewModel(), roomEntity: Roo
             item {
                 AttemptsSection(
                     attemptsRemaining = roomEntity.puzzleAttempts,
-                    onMatchButtonClick = {
-                        // TODO: '맞추기' 버튼 클릭 시 로직 구현
-                        // 예를 들어, viewModel.onMatchButtonClick() 호출
-                    }
+                    onMatchButtonClick = viewModel::fillPuzzle
                 )
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -130,7 +132,7 @@ fun EventRoomScreen(viewModel: EventViewModel = hiltViewModel(), roomEntity: Roo
                 items = roomEntity.ranks.map { rankEntity ->
                     val member = roomEntity.members.find { it.userId == rankEntity.userId }
                     UserRanking(
-                        userId = rankEntity.userId, // Pass userId
+                        userId = rankEntity.userId,
                         rank = rankEntity.rank,
                         nickname = member?.name ?: "Unknown",
                         filledCount = rankEntity.count,
@@ -187,7 +189,7 @@ fun PuzzleGrid(roomEntity: RoomEntity, members: List<MemberEntity>, bitmap: Bitm
         2 -> 5
         3 -> 7
         5 -> 9
-        else -> 9
+        else -> 7
     }
     val totalRows = totalCols
     val puzzleMap = remember(roomEntity.puzzles) {
@@ -226,7 +228,7 @@ fun PuzzleGrid(roomEntity: RoomEntity, members: List<MemberEntity>, bitmap: Bitm
 }
 
 @Composable
-fun TopBar(filledCount: Int, totalPieces: Int) {
+fun TopBar(filledCount: Int, totalPieces: Int, onLeaveClick: () -> Unit) {
     Box (
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -237,7 +239,7 @@ fun TopBar(filledCount: Int, totalPieces: Int) {
             modifier = Modifier.align(Alignment.Center)
         )
         Button(
-            onClick = { /* 나가기 버튼 클릭 이벤트 */ },
+            onClick = onLeaveClick,
             colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
             modifier = Modifier.align(Alignment.CenterEnd)
         ) {
@@ -410,7 +412,7 @@ fun PreviewEventRoomScreen() {
         createdAt = "2025-09-21T10:00:00Z",
         maxMembers = 4,
         puzzleAttempts = 5,
-        status = "IN_PROGRESS",
+        status = RoomStatus.IN_PROGRESS,
         roomCode = "ABCD123",
         puzzles = List(16) { index ->
             PuzzleEntity(
