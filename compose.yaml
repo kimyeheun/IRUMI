@@ -84,6 +84,7 @@ services:
     container_name: jenkins
     restart: unless-stopped
     user: root
+    env_file: [ .env ]
     environment:
       JENKINS_OPTS: --prefix=/jenkins
     volumes:
