@@ -14,8 +14,8 @@ app = FastAPI(
 
 # NOTE: swagger-url CORS 오류 처리
 origins = [
-    "https://your-domain.com", # 실제 서비스 도메인
-    "http://localhost",       # 로컬 테스트용
+    "https://www.irumi.my", # 실제 서비스 도메인
+    "http://localhost",
 ]
 
 app.add_middleware(
