@@ -1,9 +1,9 @@
 package com.example.irumi.data.repositoryimpl
 
-import com.example.irumi.data.datasource.PaymentsDataSource
+import com.example.irumi.data.datasource.payments.PaymentsDataSource
 import com.example.irumi.data.dto.request.PaymentEditRequest
-import com.example.irumi.data.dto.response.PaymentCheckRequest
-import com.example.irumi.data.dto.response.PaymentDetailResponse
+import com.example.irumi.data.dto.response.payments.PaymentCheckRequest
+import com.example.irumi.data.dto.response.payments.PaymentDetailResponse
 import com.example.irumi.data.mapper.toPaymentEntity
 import com.example.irumi.data.mapper.toPaymentsHistoryEntity
 import com.example.irumi.domain.entity.PaymentEntity

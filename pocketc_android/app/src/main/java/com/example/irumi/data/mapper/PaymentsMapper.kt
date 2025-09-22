@@ -1,8 +1,8 @@
 package com.example.irumi.data.mapper
 
-import com.example.irumi.data.dto.response.Payment
-import com.example.irumi.data.dto.response.PaymentDetailResponse
-import com.example.irumi.data.dto.response.PaymentsResponse
+import com.example.irumi.data.dto.response.payments.Payment
+import com.example.irumi.data.dto.response.payments.PaymentDetailResponse
+import com.example.irumi.data.dto.response.payments.PaymentsResponse
 import com.example.irumi.domain.entity.PaymentEntity
 import com.example.irumi.domain.entity.PaymentsHistoryEntity
 
