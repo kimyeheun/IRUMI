@@ -49,8 +49,8 @@ services:
     image: app:latest
     depends_on:
       mysql: { condition: service_healthy }
-      redis: { condition: service_healthy }
-      ai: { condition: service_healthy }
+      redis_ai: { condition: service_healthy }
+      ai: { condition: service_started }
     expose: ["8080"]
     environment:
       SERVER_PORT: 8080
@@ -64,7 +64,7 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
-      AI_BASE_URL: http://ai:8080
+      AI_BASE_URL: http://ai:8000
     restart: unless-stopped
 
   ai:
@@ -74,11 +74,6 @@ services:
     depends_on:
       mysql: { condition: service_healthy }
       redis_ai: { condition: service_healthy }
-    healthcheck:
-      test: [ "CMD", "curl", "-fsS", "http://localhost:8000/health" ]
-      interval: 10s
-      timeout: 2s
-      retries: 10
     environment:
       DB_HOST: mysql
       DB_PORT: ${DB_PORT}
