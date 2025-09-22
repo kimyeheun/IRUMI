@@ -35,7 +35,6 @@ def cluster_for_user_from_metrics(metrics: pd.DataFrame) -> pd.DataFrame:
         day_count_sum=("day_count", "sum"),
         max_per_txn_mean=("max_per_txn", "mean"),
     )
-    # 비율
     g["night_ratio"] = (g["night_count_sum"] / g["day_count_sum"]).fillna(0.0)
 
     feat: Dict[str, Any] = {}
@@ -47,25 +46,3 @@ def cluster_for_user_from_metrics(metrics: pd.DataFrame) -> pd.DataFrame:
         feat[f"night_ratio__{sid}"]      = float(row["night_ratio"])
         feat[f"max_per_txn_mean__{sid}"] = float(row["max_per_txn_mean"] or 0.0)
     return pd.DataFrame([feat])
-
-# def cluster_for_user_from_metrics(cluster_path: Path,
-#                                  repo: UserMetricsRepository,
-#                                  user_id: int,
-#                                  now: datetime,
-#                                  days: int = 30) -> int | None:
-#     scaler = joblib.load(cluster_path / "scaler.joblib")
-#     kmeans = joblib.load(cluster_path / "kmeans.joblib")
-#     feature_cols = json.loads((cluster_path / "feature_cols.json").read_text(encoding="utf-8"))
-#
-#     df = repo.get_user_term_metrics_as_df(user_id=user_id, now=now, days=days)
-#     user_feat = build_user_features_from_metrics(df)
-#     user_feat = user_feat.sort_index(axis=1)
-#     # TODO: columns랑 feature_cols랑 맞춰야 함
-#     X = user_feat.reindex(columns=feature_cols, fill_value=0.0).astype(float)
-#     # X = X.iloc[0].values
-#
-#     # X = user_feat.reindex(columns=feature_cols, fill_value=0.0).values
-#     Xs = scaler.transform(X.values)
-#
-#     return int(kmeans.predict(Xs)[0])
-
