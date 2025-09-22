@@ -15,6 +15,8 @@ import com.example.irumi.ui.home.component.StreakSection
 import com.example.irumi.ui.home.component.TodoSection
 import com.example.irumi.ui.theme.BrandGreen
 
+// boolean 으로 true/false 데일리 미션 (ai 가 추천 해주는 5가지 미션)
+
 data class Friend(val id: Int, val name: String)
 
 @Composable
