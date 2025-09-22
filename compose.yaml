@@ -29,10 +29,10 @@ services:
     image: redis:7-alpine
     container_name: redis
     command: >
-      sh -lc 'exec redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}'
+        sh -lc 'exec redis-server --appendonly yes $${REDIS_PASSWORD:+--requirepass $${REDIS_PASSWORD}}'
     volumes: [redis-data:/data]
     healthcheck:
-      test: [ "CMD-SHELL", "redis-cli ${REDIS_PASSWORD:+-a ${REDIS_PASSWORD}} ping | grep PONG" ]
+      test: [ "CMD-SHELL", "redis-cli $${REDIS_PASSWORD:+-a $${REDIS_PASSWORD}} ping | grep PONG" ]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -42,9 +42,10 @@ services:
   redis_ai:
     image: redis:7-alpine
     container_name: redis_ai
-    command: redis-server --port 6379
+    command: >
+        sh -lc 'exec redis-server --port 6379 $${REDIS_PASSWORD:+--requirepass $${REDIS_PASSWORD}}'
     healthcheck:
-      test: [ "CMD-SHELL", "redis-cli ${REDIS_PASSWORD:+-a ${REDIS_PASSWORD}} ping | grep PONG" ]
+      test: [ "CMD-SHELL", "redis-cli $${REDIS_PASSWORD:+-a $${REDIS_PASSWORD}} ping | grep PONG" ]
       interval: 5s
       timeout: 3s
       retries: 20
