@@ -22,7 +22,7 @@ data class Room(
     @SerialName("puzzleAttempts")
     val puzzleAttempts: Int,
     @SerialName("status")
-    val status: String,
+    val status: RoomStatus,
     @SerialName("roomCode")
     val roomCode: String,
     @SerialName("puzzles")
@@ -32,6 +32,14 @@ data class Room(
     @SerialName("members")
     val members: List<Member>
 )
+
+// TODO 파일 분리
+@Serializable
+enum class RoomStatus {
+    SUCCESS,
+    IN_PROGRESS,
+    FAILURE
+}
 
 @Serializable
 data class Event(

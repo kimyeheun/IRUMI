@@ -2,12 +2,12 @@ package com.example.irumi.data.di
 
 import com.example.irumi.data.datasource.DummyDataSource
 import com.example.irumi.data.datasource.DummyLocalDataSource
-import com.example.irumi.data.datasource.EventsDataSource
-import com.example.irumi.data.datasource.LocalEventDataSource
+import com.example.irumi.data.datasource.events.EventsDataSource
 import com.example.irumi.data.datasource.auth.AuthDataSource
 import com.example.irumi.data.datasource.auth.AuthLocalDataSource
 import com.example.irumi.data.datasource.payments.PaymentsDataSource
 import com.example.irumi.data.datasource.payments.PaymentsLocalDataSource
+import com.example.irumi.data.datasource.events.EventsLocalDataSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -32,5 +32,5 @@ abstract class DataSourceModule {
 
     @Binds
     @Singleton
-    abstract fun bindEventsDataSource(eventsDataSource: LocalEventDataSource): EventsDataSource
+    abstract fun bindEventsDataSource(eventsDataSource: EventsLocalDataSource): EventsDataSource
 }

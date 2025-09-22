@@ -1,11 +1,13 @@
 package com.example.irumi.domain.entity
 
+import com.example.irumi.data.dto.response.RoomStatus
+
 data class RoomEntity(
     val roomId: Int,
     val createdAt: String,
     val maxMembers: Int,
     val puzzleAttempts: Int,
-    val status: String,
+    val status: RoomStatus,
     val roomCode: String,
     val puzzles: List<PuzzleEntity>,
     val ranks: List<RankEntity>,
