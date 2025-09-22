@@ -6,6 +6,7 @@ import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserProfileResponse;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.exception.UserErrorType;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
@@ -95,8 +96,17 @@ public class UserService {
         refreshTokenService.delete(userId.toString());
     }
 
-    //회원정보수정
-    //TODO: 회원이 프로필 삭제 시 기본 이미지로 덮어씌울것
+    public UserProfileResponse getProfile(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        return new UserProfileResponse(
+                user.getUserId(),
+                user.getName(),
+                user.getBudget(),
+                user.getProfileImageUrl()
+        );
+    }
     @Transactional
     public void updateUser(Integer userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)

@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,16 +23,16 @@ public class MainController {
 
     private final MainService mainService;
     @Operation(summary = "절약점수와 오늘 총 지출 조회")
-
-    @GetMapping("/{userId}/daily")
+    @GetMapping("/daily")
     public ResponseEntity<MainResponse> getDailyStats(
-            @PathVariable Integer userId) {
-
+            Principal principal) {
+        Integer userId = Integer.valueOf(principal.getName());
         MainResponse dto = mainService.getDailyScoreAndTotal(userId);
 
         return ResponseEntity.ok(dto);
     }
 
+    @Operation(summary = "스트릭 조회")
     @GetMapping("/streaks")
     public ResponseEntity<ApiResponse<StreakResDto>> getStreaks(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(

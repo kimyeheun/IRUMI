@@ -45,12 +45,13 @@ public class MainService {
         //지난달 변동비
         long lastFixed = (lastReport != null && lastReport.getMonthlyFixedExpense() != null)
                 ? lastReport.getMonthlyFixedExpense() : 0;
-        long dailyBudget = getDailyBudget(userId,today);
-        long budgetScore = calcBudgetScore(total,dailyBudget);
+
+        long dailyBudget = getDailyBudget(userId, today);
+        long budgetScore = calcBudgetScore(total, dailyBudget);
         long efficiencyScore = calcEfficiencyScore(fixed, total, lastFixed, lastTotal);
 
-        double w1 = 0.5, w2 = 0.5;//우선 5대5로 설정
-        long savingScore = (long)(w1 * budgetScore + w2 * efficiencyScore);
+        double w1 = 0.7, w2 = 0.3;
+        long savingScore = (long) (w1 * budgetScore + w2 * efficiencyScore);
 
 
         return new MainResponse(savingScore, total);
@@ -67,14 +68,16 @@ public class MainService {
         long daysInMonth = YearMonth.from(today).lengthOfMonth();
         return daysInMonth == 0 ? 0 : monthlyBudget / daysInMonth;
     }
+
     //예산 준수점수
     //1-(오늘 소비-하루 평균 에산)/하루 평균예산
     private Long calcBudgetScore(Long total, Long dailyBudget) {
         if (dailyBudget == 0) return 100L;
-        double ratio = (double)(total-dailyBudget)/dailyBudget;
-        double score = Math.min(100,(Math.max(0,(1-ratio)*100)));
+        double ratio = (double) (total - dailyBudget) / dailyBudget;
+        double score = Math.min(100, (Math.max(0, (1 - ratio) * 100)));
         return (long) score;
     }
+
     //필수 비필수 비율
     //a/b
     //a:오늘 필수소비/오늘 총소비
@@ -82,7 +85,7 @@ public class MainService {
     private Long calcEfficiencyScore(Long fixed, Long total, Long lastFixed, Long lastTotal) {
         if (total == 0) return 100L;//소비가 0이면 100점으로 간주
         double ERtoday = (double) fixed / total;
-        double ERlast = (double) lastFixed/lastTotal;
+        double ERlast = (double) lastFixed / lastTotal;
         double ratio = ERlast == 0 ? 1 : ERtoday / ERlast;  // 0으로 나누기 방지
         double score = Math.min(1, ratio) * 100;
 
