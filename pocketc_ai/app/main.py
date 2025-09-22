@@ -1,14 +1,29 @@
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 from app.api.v1.routers import api_router
 from app.task.cluster_service import cluster_model_task
 from app.task.metrics_service import upsert_user_metrics
-from app.celery_app import BROKER_URL, BACKEND_URL
 
 app = FastAPI(
     title = "PocketC",
     description = "PocketC 프로젝트의 AI",
     version = "1.0.0",
+    docs_url="/docs"
+)
+
+# NOTE: swagger-url CORS 오류 처리
+origins = [
+    "https://your-domain.com", # 실제 서비스 도메인
+    "http://localhost",       # 로컬 테스트용
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/health")
@@ -25,8 +40,5 @@ def rebuild_metrics(lookback_days: int = 3):
 
 @app.post("/admin/rebuild-clusters")
 def rebuild_clusters():
-    print("BROKER_URL=", BROKER_URL, "BACKEND_URL=", BACKEND_URL, flush=True)
-    print("??")
     r = cluster_model_task.apply_async()
-    print(r)
     return {"task_id": r.id}
