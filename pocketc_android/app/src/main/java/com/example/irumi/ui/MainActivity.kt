@@ -1,5 +1,8 @@
+// ui/MainActivity.kt
 package com.example.irumi.ui
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,19 +15,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.irumi.core.navigation.Events
 import com.example.irumi.core.navigation.Home
 import com.example.irumi.core.navigation.Stats
+import com.example.irumi.ui.auth.login.LoginActivity
 import com.example.irumi.ui.component.navBar.BottomNavBar
+import com.example.irumi.ui.events.EventsScreen
+import com.example.irumi.ui.home.HomeScreen
 import com.example.irumi.ui.main.MainNavigator
 import com.example.irumi.ui.main.rememberMainNavigator
 import com.example.irumi.ui.payments.navigation.paymentDetailNavGraph
 import com.example.irumi.ui.payments.navigation.paymentsNavGraph
-import com.example.irumi.ui.events.EventsScreen
-import com.example.irumi.ui.home.HomeScreen
-import com.example.irumi.ui.stats.StatsScreen
+import com.example.irumi.ui.stats.StatsRoute
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -43,13 +48,15 @@ fun MainScreen(navigator: MainNavigator = rememberMainNavigator()) {
         bottomBar = {
             BottomNavBar(
                 visible = navigator.shouldShowBottomBar(),
-                navController = navigator.navController)
+                navController = navigator.navController
+            )
         }
     ) { inner ->
         NavHost(
             navController = navigator.navController,
             startDestination = Home, // 앱 시작 시 보여줄 화면
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(inner),
             contentAlignment = Alignment.Center,
             enterTransition = { EnterTransition.None },
@@ -61,7 +68,15 @@ fun MainScreen(navigator: MainNavigator = rememberMainNavigator()) {
                 HomeScreen(brand)
             }
             composable<Stats> {
-                StatsScreen(brand)
+                val ctx = LocalContext.current
+                StatsRoute(
+                    brand = brand,
+                    onLoggedOut = {
+                        // 로그아웃 성공 시 로그인 화면으로 이동 + MainActivity 종료
+                        ctx.startActivity(Intent(ctx, LoginActivity::class.java))
+                        (ctx as? Activity)?.finish()
+                    }
+                )
             }
             composable<Events> {
                 EventsScreen(brand)
