@@ -21,16 +21,29 @@ import com.example.irumi.ui.intro.IntroActivity
 import com.example.irumi.ui.theme.BrandGreen
 import kotlinx.coroutines.delay
 import androidx.compose.ui.graphics.Color
+import com.example.irumi.core.pref.TokenStore
+import com.example.irumi.ui.MainActivity
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : ComponentActivity() {
+
+    @Inject lateinit var tokenStore: TokenStore
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 자동 로그인 조건 계산 (토큰 존재 + autoLogin ON)
+        val goHome = tokenStore.autoLogin && !tokenStore.accessToken.isNullOrBlank()
+
         setContent {
-            // 1.5초 후 IntroActivity로 이동
+            // 1.5초 후 분기 이동
             LaunchedEffect(Unit) {
                 delay(1500)
-                startActivity(Intent(this@SplashActivity, IntroActivity::class.java))
+                val next = if (goHome) MainActivity::class.java else IntroActivity::class.java
+                startActivity(Intent(this@SplashActivity, next))
                 finish()
             }
 
@@ -62,7 +75,7 @@ class SplashActivity : ComponentActivity() {
 
                 // 하단 저작권 문구
                 Text(
-                    text = "POCKETC. All rights reserved.",
+                    text = "IRUMI. All rights reserved.",
                     color = Color.White,
                     fontSize = 12.sp,
                     modifier = Modifier
