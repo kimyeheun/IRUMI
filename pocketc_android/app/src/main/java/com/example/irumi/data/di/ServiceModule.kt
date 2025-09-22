@@ -1,5 +1,6 @@
 package com.example.irumi.data.di
 
+import com.example.irumi.data.service.AuthService
 import com.example.irumi.data.service.DummyService
 import com.example.irumi.data.service.PaymentsService
 import dagger.Module
@@ -16,6 +17,11 @@ object ServiceModule {
     @Singleton
     fun bindDummyService(retrofit: Retrofit): DummyService =
         retrofit.create(DummyService::class.java)
+
+    @Provides
+    @Singleton
+    fun bindAuthService(retrofit: Retrofit): AuthService =
+        retrofit.create(AuthService::class.java)
 
     @Provides
     @Singleton

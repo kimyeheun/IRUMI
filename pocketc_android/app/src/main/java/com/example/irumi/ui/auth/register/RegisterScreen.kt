@@ -1,7 +1,9 @@
+// ui/auth/register/RegisterScreen.kt
 package com.example.irumi.ui.auth.register
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -10,35 +12,51 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.irumi.ui.auth.AuthMockRepository
-import com.example.irumi.ui.auth.SignUpRequest
-import com.example.irumi.ui.auth.SignUpResult
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.irumi.ui.auth.AuthViewModel
 import com.example.irumi.ui.component.button.PrimaryButton
 import com.example.irumi.ui.theme.BrandGreen
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterRoute(
-    onDone: () -> Unit,
-    onGoHome: () -> Unit,
-    onBack: () -> Unit
+    onDone: () -> Unit,   // "이미 계정있음 → 로그인으로"
+    onGoHome: () -> Unit, // 회원가입 성공 후 홈 이동
+    onBack: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var nickname by remember { mutableStateOf("") }
-    var loading by remember { mutableStateOf(false) }
+    var budgetText by remember { mutableStateOf("") } // 숫자 입력
+    var rememberMe by remember { mutableStateOf(true) }
 
-    val brand = BrandGreen
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val loading = viewModel.loading
+    val error = viewModel.error
+    val isLoggedIn = viewModel.isLoggedIn
 
-    fun isEnabled() = name.isNotBlank() && email.isNotBlank() &&
-            password.isNotBlank() && nickname.isNotBlank()
+    // 가입 성공(토큰 저장 완료)이면 홈으로
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            Toast.makeText(context, "회원가입이 완료되었습니다", Toast.LENGTH_SHORT).show()
+            onGoHome()
+        }
+    }
+    // 에러 토스트
+    LaunchedEffect(error) {
+        error?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+    }
+
+    fun isEnabled(): Boolean =
+        name.isNotBlank() && email.isNotBlank() &&
+                password.isNotBlank() && budgetText.toIntOrNull()?.let { it > 0 } == true &&
+                !loading
 
     Scaffold(
         topBar = {
@@ -57,37 +75,27 @@ fun RegisterRoute(
         }
     ) { inner ->
         Surface(
-            modifier = Modifier.fillMaxSize().padding(inner),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(inner),
             color = Color.White
         ) {
             RegisterScreen(
                 name = name,
                 email = email,
                 password = password,
-                nickname = nickname,
+                budgetText = budgetText,
+                rememberMe = rememberMe,
                 loading = loading,
-                brand = brand,
                 onNameChange = { name = it },
                 onEmailChange = { email = it },
                 onPasswordChange = { password = it },
-                onNicknameChange = { nickname = it },
+                onBudgetChange = { budgetText = it.filter { ch -> ch.isDigit() } }, // 숫자만
+                onRememberChange = { rememberMe = it },
                 onSubmit = {
-                    if (!isEnabled() || loading) return@RegisterScreen
-                    loading = true
-                    scope.launch {
-                        val req = SignUpRequest(name, email, password, nickname)
-                        when (val res = AuthMockRepository.signUp(req)) {
-                            is SignUpResult.Success -> {
-                                loading = false
-                                Toast.makeText(context, "회원가입이 완료되었습니다 (Mock)", Toast.LENGTH_SHORT).show()
-                                onGoHome()
-                            }
-                            is SignUpResult.Error -> {
-                                loading = false
-                                Toast.makeText(context, "${res.status} ${res.message}", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
+                    if (!isEnabled()) return@RegisterScreen
+                    val budget = budgetText.toIntOrNull() ?: return@RegisterScreen
+                    viewModel.signUp(name, email, password, budget, remember = rememberMe)
                 },
                 onGoLogin = onDone
             )
@@ -100,18 +108,21 @@ fun RegisterScreen(
     name: String,
     email: String,
     password: String,
-    nickname: String,
+    budgetText: String,
+    rememberMe: Boolean,
     loading: Boolean,
-    brand: androidx.compose.ui.graphics.Color,
     onNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
-    onNicknameChange: (String) -> Unit,
+    onBudgetChange: (String) -> Unit,
+    onRememberChange: (Boolean) -> Unit,
     onSubmit: () -> Unit,
     onGoLogin: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -132,22 +143,33 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 56.dp)
         )
         OutlinedTextField(
-            value = nickname, onValueChange = onNicknameChange,
-            label = { Text("닉네임") }, singleLine = true,
+            value = budgetText, onValueChange = onBudgetChange,
+            label = { Text("월 예산 (숫자)") }, singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 56.dp)
         )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(checked = rememberMe, onCheckedChange = onRememberChange)
+            Text("자동 로그인")
+        }
 
         PrimaryButton(
             text = if (loading) "처리 중..." else "회원가입",
             onClick = onSubmit,
             modifier = Modifier.fillMaxWidth(),
             enabled = name.isNotBlank() && email.isNotBlank() &&
-                    password.isNotBlank() && nickname.isNotBlank(),
+                    password.isNotBlank() && budgetText.isNotBlank() && !loading,
             loading = loading
         )
 
         TextButton(onClick = onGoLogin) {
-            Text("이미 계정이 있으신가요? 로그인", color = brand)
+            Text("이미 계정이 있으신가요? 로그인", color = BrandGreen)
         }
     }
 }
@@ -156,9 +178,18 @@ fun RegisterScreen(
 @Composable
 private fun RegisterPreview() {
     RegisterScreen(
-        name = "", email = "", password = "", nickname = "",
-        loading = false, brand = BrandGreen,
-        onNameChange = {}, onEmailChange = {}, onPasswordChange = {}, onNicknameChange = {},
-        onSubmit = {}, onGoLogin = {}
+        name = "",
+        email = "",
+        password = "",
+        budgetText = "",
+        rememberMe = true,
+        loading = false,
+        onNameChange = {},
+        onEmailChange = {},
+        onPasswordChange = {},
+        onBudgetChange = {},
+        onRememberChange = {},
+        onSubmit = {},
+        onGoLogin = {}
     )
 }

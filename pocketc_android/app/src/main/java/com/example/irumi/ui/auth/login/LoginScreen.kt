@@ -1,4 +1,4 @@
-package com.example.pocketc.ui.auth.login
+package com.example.irumi.ui.auth.login
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
@@ -13,24 +13,38 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.irumi.ui.auth.AuthMockRepository
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.irumi.ui.auth.AuthViewModel
 import com.example.irumi.ui.component.button.PrimaryButton
-import com.example.irumi.ui.theme.BrandGreen
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginRoute(
     onSuccess: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
-    val brand = BrandGreen
-    var id by remember { mutableStateOf("") }
-    var pw by remember { mutableStateOf("") }
-    var loading by remember { mutableStateOf(false) }
-
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+
+    var email by remember { mutableStateOf("") }
+    var pw by remember { mutableStateOf("") }
+    var rememberMe by remember { mutableStateOf(true) }
+
+    val loading = viewModel.loading
+    val error = viewModel.error
+    val isLoggedIn = viewModel.isLoggedIn
+
+    // 로그인 성공 시 이동
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            Toast.makeText(context, "로그인 성공", Toast.LENGTH_SHORT).show()
+            onSuccess()
+        }
+    }
+    // 에러 토스트
+    LaunchedEffect(error) {
+        error?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+    }
 
     Scaffold(
         topBar = {
@@ -49,28 +63,20 @@ fun LoginRoute(
         }
     ) { inner ->
         Surface(
-            modifier = Modifier.fillMaxSize().padding(inner),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(inner),
             color = Color.White
         ) {
             LoginScreen(
-                id = id,
+                email = email,
                 pw = pw,
+                rememberMe = rememberMe,
                 loading = loading,
-                onIdChange = { id = it },
+                onEmailChange = { email = it },
                 onPwChange = { pw = it },
-                onSubmit = {
-                    loading = true
-                    scope.launch {
-                        val ok = AuthMockRepository.login(id, pw)
-                        loading = false
-                        if (ok) {
-                            Toast.makeText(context, "로그인 성공 (Mock)", Toast.LENGTH_SHORT).show()
-                            onSuccess()
-                        } else {
-                            Toast.makeText(context, "아이디/비밀번호를 확인해 주세요", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
+                onRememberChange = { rememberMe = it },
+                onSubmit = { viewModel.login(email, pw, remember = rememberMe) }
             )
         }
     }
@@ -78,39 +84,57 @@ fun LoginRoute(
 
 @Composable
 fun LoginScreen(
-    id: String,
+    email: String,
     pw: String,
+    rememberMe: Boolean,
     loading: Boolean,
-    onIdChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
     onPwChange: (String) -> Unit,
+    onRememberChange: (Boolean) -> Unit,
     onSubmit: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
-            value = id,
-            onValueChange = onIdChange,
-            label = { Text("아이디 (임시: 1234)") },
+            value = email,
+            onValueChange = onEmailChange,
+            label = { Text("이메일") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 56.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 56.dp)
         )
         OutlinedTextField(
             value = pw,
             onValueChange = onPwChange,
-            label = { Text("비밀번호 (임시: 1234)") },
+            label = { Text("비밀번호") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 56.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 56.dp)
         )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(checked = rememberMe, onCheckedChange = onRememberChange)
+            Text("자동 로그인")
+        }
 
         PrimaryButton(
             text = if (loading) "확인 중..." else "로그인",
             onClick = onSubmit,
             modifier = Modifier.fillMaxWidth(),
-            enabled = id.isNotBlank() && pw.isNotBlank(),
+            enabled = email.isNotBlank() && pw.isNotBlank() && !loading,
             loading = loading
         )
     }
@@ -120,11 +144,13 @@ fun LoginScreen(
 @Composable
 private fun LoginScreenPreview() {
     LoginScreen(
-        id = "",
+        email = "",
         pw = "",
+        rememberMe = true,
         loading = false,
-        onIdChange = {},
+        onEmailChange = {},
         onPwChange = {},
+        onRememberChange = {},
         onSubmit = {}
     )
 }

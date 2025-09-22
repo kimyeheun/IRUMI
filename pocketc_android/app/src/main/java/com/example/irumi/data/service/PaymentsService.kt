@@ -2,9 +2,9 @@ package com.example.irumi.data.service
 
 import com.example.irumi.core.network.BaseResponse
 import com.example.irumi.data.dto.request.PaymentEditRequest
-import com.example.irumi.data.dto.response.PaymentCheckRequest
-import com.example.irumi.data.dto.response.PaymentDetailResponse
-import com.example.irumi.data.dto.response.PaymentsResponse
+import com.example.irumi.data.dto.response.payments.PaymentCheckRequest
+import com.example.irumi.data.dto.response.payments.PaymentDetailResponse
+import com.example.irumi.data.dto.response.payments.PaymentsResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH

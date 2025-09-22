@@ -1,4 +1,4 @@
-package com.example.irumi.data.dto.response
+package com.example.irumi.data.dto.response.payments
 
 data class PaymentsResponse(
     val payments: List<Payment>,
