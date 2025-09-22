@@ -1,10 +1,11 @@
-package com.example.irumi.data.datasource
+package com.example.irumi.data.datasource.payments
 
 import com.example.irumi.core.network.BaseResponse
 import com.example.irumi.data.dto.request.PaymentEditRequest
-import com.example.irumi.data.dto.response.PaymentCheckRequest
-import com.example.irumi.data.dto.response.PaymentDetailResponse
-import com.example.irumi.data.dto.response.PaymentsResponse
+import com.example.irumi.data.dto.response.payments.Payment
+import com.example.irumi.data.dto.response.payments.PaymentCheckRequest
+import com.example.irumi.data.dto.response.payments.PaymentDetailResponse
+import com.example.irumi.data.dto.response.payments.PaymentsResponse
 import javax.inject.Inject
 
 
@@ -28,9 +29,9 @@ class PaymentsLocalDataSource @Inject constructor() : PaymentsDataSource {
 
     override suspend fun getPayments(): BaseResponse<PaymentsResponse> {
         val dummyPayments = listOf(
-            com.example.irumi.data.dto.response.Payment(1, "2025-09-12T10:00:00Z", 25000, 1, 1, "스타벅스", true, false, "", ""),
-            com.example.irumi.data.dto.response.Payment(2, "2025-09-12T11:00:00Z", 15000, 1, 2, "메가커피", false, false, "", ""),
-            com.example.irumi.data.dto.response.Payment(3, "2025-09-11T15:30:00Z", 73456, 2, 1, "버거킹", true, true, "", "")
+            Payment(1, "2025-09-12T10:00:00Z", 25000, 1, 1, "스타벅스", true, false, "", ""),
+            Payment(2, "2025-09-12T11:00:00Z", 15000, 1, 2, "메가커피", false, false, "", ""),
+            Payment(3, "2025-09-11T15:30:00Z", 73456, 2, 1, "버거킹", true, true, "", "")
         )
         val dummyResponse = PaymentsResponse(
             payments = dummyPayments,
