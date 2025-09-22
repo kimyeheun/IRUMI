@@ -5,6 +5,7 @@ import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserProfileResponse;
 import com.ssafy.pocketc_backend.domain.user.service.UserService;
 import com.ssafy.pocketc_backend.global.auth.jwt.JwtProvider;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
@@ -53,6 +54,14 @@ public class UserController {
         userService.logout(authorizationHeader);
         return ResponseEntity.ok(ApiResponse.success(LOGOUT_SUCCESS));
     }
+    @Operation(summary = "내 회원정보 조회", description = "회원정보(이름, 이메일, 프로필 이미지 등)를 조회합니다.")
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileResponse> getMyProfile(Principal principal) {
+        Integer userId = Integer.valueOf(principal.getName());
+        return ResponseEntity.ok(userService.getProfile(userId));
+    }
+
+
 
     @Operation(summary = "회원정보 수정", description = "전달하지 않은 필드는 변경되지 않음 " +
             "수정 가능한 항목: 이름, 이메일, 비밀번호, 예산, 프로필 이미지(잠시 제외) "
