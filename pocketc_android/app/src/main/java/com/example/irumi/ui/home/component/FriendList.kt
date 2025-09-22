@@ -1,4 +1,4 @@
-package com.example.irumi.ui.screen.home.component
+package com.example.irumi.ui.home.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,7 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.irumi.ui.screen.home.Friend
+import com.example.irumi.ui.home.Friend
 
 @Composable
 fun FriendList(

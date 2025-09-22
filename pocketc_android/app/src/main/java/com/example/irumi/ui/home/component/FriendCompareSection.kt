@@ -1,4 +1,4 @@
-package com.example.irumi.ui.screen.home.component
+package com.example.irumi.ui.home.component
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text

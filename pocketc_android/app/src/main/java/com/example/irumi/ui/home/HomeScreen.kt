@@ -1,15 +1,18 @@
-package com.example.irumi.ui.screen.home
+package com.example.irumi.ui.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.irumi.ui.screen.home.component.*
+import com.example.irumi.ui.home.component.FriendCompareSection
+import com.example.irumi.ui.home.component.FriendList
+import com.example.irumi.ui.home.component.MyScoreSection
+import com.example.irumi.ui.home.component.StreakSection
+import com.example.irumi.ui.home.component.TodoSection
 import com.example.irumi.ui.theme.BrandGreen
 
 data class Friend(val id: Int, val name: String)
