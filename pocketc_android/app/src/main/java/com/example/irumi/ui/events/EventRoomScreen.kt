@@ -1,4 +1,4 @@
-package com.example.irumi.ui.screen.events
+package com.example.irumi.ui.events
 
 import android.content.Context
 import android.graphics.Bitmap

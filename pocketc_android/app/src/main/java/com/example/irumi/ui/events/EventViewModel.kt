@@ -1,4 +1,4 @@
-package com.example.irumi.ui.screen.events
+package com.example.irumi.ui.events
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

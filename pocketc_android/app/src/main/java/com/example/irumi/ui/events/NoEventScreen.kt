@@ -1,4 +1,4 @@
-package com.example.irumi.ui.screen.events
+package com.example.irumi.ui.events
 
 import android.R
 import androidx.compose.foundation.Image
