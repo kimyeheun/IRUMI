@@ -53,6 +53,8 @@ pipeline {
               GIT_SHA=$(git rev-parse --short=12 HEAD)
               BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
+              docker compose down backend
+
               DB_HOST=mysql DB_PORT=3306 MYSQL_DB=pocketcdb MYSQL_USER=hamster \
               MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" MYSQL_PASSWORD="$MYSQL_PASSWORD" \
               REDIS_HOST=redis REDIS_PORT=6379 REDIS_PASSWORD="$REDIS_PASSWORD" \
