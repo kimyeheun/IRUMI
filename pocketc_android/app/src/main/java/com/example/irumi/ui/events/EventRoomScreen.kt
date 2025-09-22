@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,10 +24,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -74,6 +77,18 @@ fun EventRoomScreen(
     val placeholderBitmap = rememberPlaceholderBitmap()
     var bitmap by remember { mutableStateOf<Bitmap?>(placeholderBitmap) }
     var selectedUserId by remember { mutableStateOf<Int?>(null) }
+    val userRankings = remember(roomEntity) {
+        roomEntity.ranks.map { rankEntity ->
+            val member = roomEntity.members.find { it.userId == rankEntity.userId }
+            UserRanking(
+                userId = rankEntity.userId,
+                rank = rankEntity.rank,
+                nickname = member?.name ?: "Unknown",
+                filledCount = rankEntity.count,
+                totalPieces = roomEntity.puzzles.size
+            )
+        }
+    }
 
     LaunchedEffect(puzzleImageUrl) {
         bitmap = loadBitmapFromUrl(context, puzzleImageUrl, placeholderBitmap)
@@ -100,7 +115,10 @@ fun EventRoomScreen(
                 }
             }
             item {
-                PuzzleMembers(roomEntity.members)
+                PuzzleMembers(members = roomEntity.members,
+                    onFollowClick = { memberId ->
+                        viewModel.followUser(memberId)
+                    })
                 Spacer(modifier = Modifier.height(24.dp))
             }
             item {
@@ -129,16 +147,7 @@ fun EventRoomScreen(
             }
 
             items(
-                items = roomEntity.ranks.map { rankEntity ->
-                    val member = roomEntity.members.find { it.userId == rankEntity.userId }
-                    UserRanking(
-                        userId = rankEntity.userId,
-                        rank = rankEntity.rank,
-                        nickname = member?.name ?: "Unknown",
-                        filledCount = rankEntity.count,
-                        totalPieces = roomEntity.puzzles.size
-                    )
-                }
+                items = userRankings
             ) { ranking ->
                 RankingItem(ranking) { userId -> selectedUserId = userId } // Pass the lambda
                 Spacer(modifier = Modifier.height(8.dp))
@@ -148,7 +157,13 @@ fun EventRoomScreen(
 }
 
 @Composable
-fun PuzzleMembers(members: List<MemberEntity>) {
+fun PuzzleMembers(
+    members: List<MemberEntity>,
+    onFollowClick: (Int) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedMemberForDialog by remember { mutableStateOf<MemberEntity?>(null) }
+
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -157,8 +172,15 @@ fun PuzzleMembers(members: List<MemberEntity>) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .clickable { // TODO 멤버 클릭 시 팔로우 ~
-                         }
+                    .combinedClickable(
+                        onClick = { /* 일반 클릭 시 동작 (옵션) */ },
+                        onLongClick = {
+                            if(!member.isFriend) {
+                                selectedMemberForDialog = member // 클릭 시 멤버 선택
+                                showDialog = true
+                            }
+                        }
+                    )
             ) {
                 Box(
                     modifier = Modifier
@@ -181,6 +203,55 @@ fun PuzzleMembers(members: List<MemberEntity>) {
 //            }
 //        }
     }
+
+    selectedMemberForDialog?.let { memberToShow ->
+        if (showDialog) {
+            FollowDialog(
+                member = memberToShow,
+                onDismissRequest = {
+                    showDialog = false
+                    selectedMemberForDialog = null
+                },
+                onConfirmFollow = {
+                    onFollowClick(memberToShow.userId)
+                    showDialog = false
+                    selectedMemberForDialog = null
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun FollowDialog(
+    member: MemberEntity,
+    onDismissRequest: () -> Unit,
+    onConfirmFollow: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            Text(text = "${member.name}님을 팔로우하시겠어요?")
+        },
+        text = {
+            Text(text = "팔로우하면 해당 멤버의 활동 소식을 받아볼 수 있습니다.")
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirmFollow
+            ) {
+                Text("팔로우")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismissRequest
+            ) {
+                Text("취소")
+            }
+        },
+        modifier = Modifier.padding(16.dp)
+    )
 }
 
 @Composable

@@ -132,6 +132,16 @@ class EventViewModel @Inject constructor(
                 }
         }
     }
+
+    fun followUser(userId: Int) {
+        viewModelScope.launch {
+                // TODO: 여기에 실제 팔로우 API 호출 로직을 구현
+                // 예를 들어, userRepository.followUser(userId)
+                Timber.d("!!! EventViewModel Attempting to follow user: $userId")
+                // _followResult.value = Result.success(Unit) // 예시: 성공 상태 업데이트
+            // snackber
+        }
+    }
 }
 
 sealed class EventUiState {
