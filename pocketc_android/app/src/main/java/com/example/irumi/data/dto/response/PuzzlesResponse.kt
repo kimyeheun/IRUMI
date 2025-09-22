@@ -1,26 +1,14 @@
 package com.example.irumi.data.dto.response
 
-import java.time.LocalDateTime
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class PuzzlesResponse(
-    val data: PuzzleData
-)
-
-data class PuzzleData(
+    @SerialName("puzzles")
     val puzzles: List<Puzzle>,
-    val totalPieces: Int,
-    val filledCount: Int
-)
-
-data class Puzzle(
-    val pieceId: Int,
-    val row: Int,
-    val column: Int,
-    val filledBy: User?, //todo 나중에 지우기
-    val filledAt: LocalDateTime? //todo 나중에 지우기
-)
-
-data class User(
-    val userId: Int,
-    val nickname: String
+    @SerialName("ranks")
+    val ranks: List<Rank>,
+    @SerialName("puzzleAttempts")
+    val puzzleAttempts: Int
 )

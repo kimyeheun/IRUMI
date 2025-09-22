@@ -104,4 +104,7 @@ dependencies {
     // JSON Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+
+    // Timber Log
+    implementation("com.jakewharton.timber:timber:5.0.1")
 }
