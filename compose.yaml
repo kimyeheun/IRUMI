@@ -54,10 +54,9 @@ services:
   backend:
     build: { context: ./pocketc_backend, dockerfile: Dockerfile }
     image: app:latest
-    env_file: .env
     depends_on:
       mysql: { condition: service_healthy }
-      redis_ai: { condition: service_healthy }
+      redis: { condition: service_healthy }
       ai: { condition: service_started }
     expose: ["8080"]
     environment:
@@ -79,7 +78,6 @@ services:
   ai:
     build: { context: ./pocketc_ai, dockerfile: Dockerfile }
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
-    env_file: .env
     depends_on:
       mysql: { condition: service_healthy }
       redis_ai: { condition: service_healthy }
@@ -121,7 +119,6 @@ services:
   worker:
     build: ./pocketc_ai/
     command: celery -A app.celery_app.celery worker -l info --concurrency=4
-    env_file: .env
     depends_on:
       mysql: { condition: service_healthy }
       redis_ai: { condition: service_started }
@@ -136,7 +133,6 @@ services:
   beat:
     build: ./pocketc_ai/
     command: celery -A app.celery_app.celery beat -l info
-    env_file: .env
     depends_on:
       mysql: { condition: service_healthy }
       redis_ai: { condition: service_started }
@@ -151,7 +147,6 @@ services:
   flower:
     build: ./pocketc_ai/
     command: celery -A app.celery_app.celery flower --port=5555
-    env_file: .env
     ports:
       - "5555:5555"
     depends_on:
