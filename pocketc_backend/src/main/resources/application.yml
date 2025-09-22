@@ -31,6 +31,16 @@ spring:
         secret-key: ${AWS_SECRET_ACCESS_KEY}
 jwt:
   secret: ${JWT_SECRET}
+springdoc:
+  swagger-ui:
+    # 'urls' 설정을 통해 여러 개의 API 문서를 그룹으로 묶는거
+    urls:
+      # 원래 Spring Boot API
+      - name: 'Backend API (Spring Boot)'
+        url: '/v3/api-docs'  # springdoc이 기본으로 생성하는 API 문서 경로
+      # FastAPI
+      - name: 'AI API (FastAPI)'
+        url: '/ai/openapi.json' # Nginx에 설정된 FastAPI의 openapi.json 경로
 ---
 spring:
   config:
