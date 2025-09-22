@@ -2,9 +2,11 @@ package com.example.irumi.data.di
 
 import com.example.irumi.data.repositoryimpl.AuthRepositoryImpl
 import com.example.irumi.data.repositoryimpl.DummyRepositoryImpl
+import com.example.irumi.data.repositoryimpl.EventsRepositoryImpl
 import com.example.irumi.data.repositoryimpl.PaymentsRepositoryImpl
 import com.example.irumi.domain.repository.AuthRepository
 import com.example.irumi.domain.repository.DummyRepository
+import com.example.irumi.domain.repository.EventsRepository
 import com.example.irumi.domain.repository.PaymentsRepository
 import dagger.Binds
 import dagger.Module
@@ -26,4 +28,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindPaymentsRepository(paymentsRepositoryImpl: PaymentsRepositoryImpl): PaymentsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindEventRepository(eventRepositoryImpl: EventsRepositoryImpl): EventsRepository
 }

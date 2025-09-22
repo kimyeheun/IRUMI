@@ -1,4 +1,4 @@
-package com.example.irumi.ui.screen.stats
+package com.example.irumi.ui.stats
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
