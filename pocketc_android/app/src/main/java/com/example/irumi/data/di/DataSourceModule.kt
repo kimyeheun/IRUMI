@@ -22,6 +22,7 @@ abstract class DataSourceModule {
     @Binds
     @Singleton
     abstract fun bindAuthDataSource(authDataSource: AuthLocalDataSource): AuthDataSource
+    // 실서버 붙일 때는 AuthRemoteDataSource 로만 바꾸면 된다.
 
     @Binds
     @Singleton
