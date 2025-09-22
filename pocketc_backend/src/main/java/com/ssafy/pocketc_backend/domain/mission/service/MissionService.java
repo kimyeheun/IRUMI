@@ -70,10 +70,16 @@ public class MissionService {
     private Mono<List<Mission>> fetchDailyMissionsFromAi(User user) {
 
         return missionAiClient.getDailyMissions(user.getUserId())
-                .map(res -> {
-                    if (res == null || res.data() == null || res.data().missions() == null) return List.<Mission>of();
-                    if (res.status() != 201) throw new CustomException(ERROR_GET_MISSIONS);
-                    return res.data().missions().stream().map(item -> Mission.builder()
+                .handle((res, sink) -> {
+                    if (res == null || res.data() == null || res.data().missions() == null) {
+                        sink.next(List.<Mission>of());
+                        return;
+                    }
+                    if (res.status() != 201) {
+                        sink.error(new CustomException(ERROR_GET_MISSIONS));
+                        return;
+                    }
+                    sink.next(res.data().missions().stream().map(item -> Mission.builder()
                             .user(user)
                             .subId(item.subId())
                             .dsl(item.dsl())
@@ -82,7 +88,7 @@ public class MissionService {
                             .validFrom(item.validFrom())
                             .validTo(item.validTo())
                             .build()
-                    ).toList();
+                    ).toList());
                 });
     }
 }
