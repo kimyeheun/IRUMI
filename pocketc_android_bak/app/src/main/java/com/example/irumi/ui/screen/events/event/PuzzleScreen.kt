@@ -45,9 +45,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import com.example.irumi.data.dto.response.Puzzle
-import com.example.irumi.data.dto.response.PuzzleData
-import com.example.irumi.data.dto.response.User
+import com.example.irumi.model.event.Puzzle
+import com.example.irumi.model.event.PuzzleData
+import com.example.irumi.model.event.User
 
 @Composable
 fun PuzzleScreen(viewModel: PuzzleViewModel = viewModel()) {
