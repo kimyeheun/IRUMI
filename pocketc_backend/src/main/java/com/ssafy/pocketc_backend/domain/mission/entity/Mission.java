@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.mission.entity;
 
+import com.ssafy.pocketc_backend.domain.event.entity.Status;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,14 +32,12 @@ public class Mission {
     @Column(length = 512, nullable = false)
     private String mission;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 512, nullable = false)
-    private TimeTag timeTag = TimeTag.DAILY;
+    private Integer type;
 
     private LocalDateTime validFrom;
     private LocalDateTime validTo;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Builder.Default
     private Status status = Status.IN_PROGRESS;
 }

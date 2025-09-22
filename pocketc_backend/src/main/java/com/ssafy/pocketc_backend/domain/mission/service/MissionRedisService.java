@@ -1,78 +1,62 @@
 package com.ssafy.pocketc_backend.domain.mission.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionReqDto;
+import com.ssafy.pocketc_backend.domain.mission.entity.Mission;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class MissionRedisService {
 
-    private final RedisTemplate<String, String> redis; // 위에서 만든 String 전용
-    private final ObjectMapper mapper;                 // 위에서 만든 ObjectMapper
+    private final StringRedisTemplate redis;     // 값은 JSON 문자열로
+    private final ObjectMapper mapper;
 
-    private static final java.time.ZoneId ZONE = java.time.ZoneId.of("Asia/Seoul");
-
-    /** key 예시: missions:{userId}:{yyyy-MM-dd} */
-    public String buildKey(Integer userId, java.time.LocalDate date) {
-        return "missions:%d:%s".formatted(userId, date);
+    public String buildKey(Integer userId, LocalDate date) {
+        return userId + ":" + date; // 예: 1:2025-09-22
     }
 
-    /** 자정까지 TTL */
-    public java.time.Duration ttlUntilMidnight() {
-        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(ZONE);
-        java.time.ZonedDateTime midnight = now.toLocalDate().plusDays(1).atStartOfDay(ZONE);
-        return java.time.Duration.between(now, midnight);
+    /** 오늘 자정까지 TTL */
+    public Duration ttlUntilNext6am() {
+        ZoneId KST = ZoneId.of("Asia/Seoul");
+        ZonedDateTime now = ZonedDateTime.now(KST);
+        ZonedDateTime next6am = now.plusDays(1)
+                .toLocalDate()
+                .atTime(6, 0)
+                .atZone(KST);
+        return Duration.between(now, next6am);
     }
 
-    /** 단건 저장 */
-    public void putOne(String key, MissionReqDto dto, java.time.Duration ttl) {
-        try {
-            String json = mapper.writeValueAsString(dto);
-            redis.opsForValue().set(key, json, ttl);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            throw new RuntimeException("MissionReqDto 직렬화 실패", e);
-        }
-    }
-
-    /** 리스트 저장 */
-    public void putList(String key, java.util.List<MissionReqDto> list, java.time.Duration ttl) {
+    /** 리스트 저장 (JSON 배열 통짜) */
+    public void putList(String key, List<Mission> list, Duration ttl) {
         try {
             String json = mapper.writeValueAsString(list);
             redis.opsForValue().set(key, json, ttl);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             throw new RuntimeException("MissionReqDto 리스트 직렬화 실패", e);
         }
     }
 
-    /** 단건 조회 */
-    public MissionReqDto getOne(String key) {
-        String json = redis.opsForValue().get(key);
-        if (json == null) return null;
-        try {
-            return mapper.readValue(json, MissionReqDto.class);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            throw new RuntimeException("MissionReqDto 역직렬화 실패", e);
-        }
-    }
-
     /** 리스트 조회 */
-    public java.util.List<MissionReqDto> getList(String key) {
+    public List<Mission> getList(String key) {
         String json = redis.opsForValue().get(key);
-        if (json == null) return java.util.List.of();
+        if (json == null || json.isBlank()) return List.of();
         try {
-            var type = mapper.getTypeFactory()
-                    .constructCollectionType(java.util.List.class, MissionReqDto.class);
+            JavaType type = mapper.getTypeFactory()
+                    .constructCollectionType(List.class, Mission.class);
             return mapper.readValue(json, type);
-        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            throw new RuntimeException("MissionReqDto 리스트 역직렬화 실패", e);
+        } catch (IOException e) {
+            return List.of();
         }
-    }
-
-    public void evict(String key) {
-        redis.delete(key);
     }
 }

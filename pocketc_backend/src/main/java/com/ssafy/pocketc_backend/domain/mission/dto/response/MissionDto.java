@@ -5,7 +5,7 @@ import com.ssafy.pocketc_backend.domain.mission.entity.Mission;
 public record MissionDto(
         Integer missionId,
         Integer subId,
-        String timeTag,
+        Integer type,
         String mission,
         String status
 ) {
@@ -13,9 +13,9 @@ public record MissionDto(
         return new MissionDto(
                 mission.getMissionId(),
                 mission.getSubId(),
-                java.lang.String.valueOf(mission.getTimeTag()),
+                mission.getType(),
                 mission.getMission(),
-                java.lang.String.valueOf(mission.getSubId())
+                String.valueOf(mission.getStatus())
         );
     }
 }

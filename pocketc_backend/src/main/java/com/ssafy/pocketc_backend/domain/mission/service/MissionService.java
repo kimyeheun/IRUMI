@@ -1,11 +1,19 @@
 package com.ssafy.pocketc_backend.domain.mission.service;
 
 import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionReqDto;
+import com.ssafy.pocketc_backend.domain.mission.dto.response.MissionDto;
 import com.ssafy.pocketc_backend.domain.mission.dto.response.MissionResDto;
+import com.ssafy.pocketc_backend.domain.mission.entity.Mission;
 import com.ssafy.pocketc_backend.domain.mission.repository.MissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.time.LocalDateTime.now;
 
@@ -14,44 +22,40 @@ import static java.time.LocalDateTime.now;
 @RequiredArgsConstructor
 public class MissionService {
 
-    private final MissionRepository missionRepository;
+    private final MissionRepository missionRepository; // 주간/월간용 DB 조회에 사용(예시)
     private final MissionRedisService missionRedisService;
 
     public MissionResDto getMissions(Integer userId) {
-        var today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         String key = missionRedisService.buildKey(userId, today);
-        System.out.println(key);
+
         // 1) 캐시 먼저
-        MissionReqDto one = missionRedisService.getOne(key);
-        System.out.println(one.toString());
-        if (one != null) {
+        List<Mission> cached = missionRedisService.getList(key);
 
-            System.out.println("캐시 히트");
-            return null;
+        if (!cached.isEmpty()) {
+            List<MissionDto> missionDtoList = new ArrayList<>();
+            for (Mission mission : cached) {
+                missionDtoList.add(MissionDto.from(mission));
+            }
+            return new MissionResDto(null, missionDtoList);
         }
 
-        MissionReqDto mission = MissionReqDto.of(1,"제발 되게 해주세요",1,"어려운거 아니잖아요",1,now(),now());
-        missionRedisService.putOne(key, mission, missionRedisService.ttlUntilMidnight());
-        System.out.println(1);
-        one = missionRedisService.getOne(key);
-        System.out.println(2);
-        System.out.println(one.dsl());
-        System.out.println(one.mission());
-        if (one != null) {
+        List<Mission> missions = new ArrayList<>();
+        //
+        //
+        //
+        //
 
-            System.out.println("캐시 히트");
-            return null;
+        List<MissionDto> missionDtoList = new ArrayList<>();
+        for (Mission mission : missions) {
+            missionDtoList.add(MissionDto.from(mission));
         }
-        return new MissionResDto(null, null);
-    }
 
-    public void saveAiResultForToday(Integer userId, java.util.List<MissionReqDto> aiDtos) {
-        var today = java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
-        String key = missionRedisService.buildKey(userId, today);
+        // Weekly, Monthly 미션 추가
+        List<Mission> weekMonth = missionRepository.findAllByUser_UserId(userId);
+        missions.addAll(weekMonth);
+        missionRedisService.putList(key, missions, missionRedisService.ttlUntilNext6am());
 
-        // 필요 시 DB 저장 로직 …
-
-        // 캐시에 그대로 저장
-        missionRedisService.putList(key, aiDtos, missionRedisService.ttlUntilMidnight());
+        return new MissionResDto(null, missionDtoList);
     }
 }

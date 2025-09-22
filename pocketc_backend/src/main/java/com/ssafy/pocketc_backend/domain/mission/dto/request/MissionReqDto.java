@@ -1,7 +1,5 @@
 package com.ssafy.pocketc_backend.domain.mission.dto.request;
 
-import com.ssafy.pocketc_backend.domain.mission.entity.Mission;
-
 import java.time.LocalDateTime;
 
 public record MissionReqDto(
