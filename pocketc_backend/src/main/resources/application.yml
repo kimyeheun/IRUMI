@@ -24,6 +24,8 @@ spring:
       ssl:
         enabled: true
   cloud:
+    s3:
+      enabled: true
     aws:
       s3:
         bucket-name: ${AWS_BUCKET_NAME}

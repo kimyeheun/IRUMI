@@ -37,6 +37,11 @@ services:
     image: redis:7-alpine
     container_name: redis_ai
     command: redis-server --port 6379
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ${REDIS_PASSWORD:+-a ${REDIS_PASSWORD}} ping | grep PONG" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     restart: always
 
   backend:
@@ -66,12 +71,20 @@ services:
     build: { context: ./pocketc_ai, dockerfile: Dockerfile }
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     env_file: .env
-    depends_on: [ redis_ai, mysql ]
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis_ai: { condition: service_healthy }
     healthcheck:
-      test: [ "CMD", "curl", "-fsS", "http://localhost:8000/healthz" ]
+      test: [ "CMD", "curl", "-fsS", "http://localhost:8000/health" ]
       interval: 10s
       timeout: 2s
       retries: 10
+    environment:
+      DB_HOST: mysql
+      DB_PORT: ${DB_PORT}
+      MYSQL_DB: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     expose: ["8000"]
 
   nginx:
@@ -102,23 +115,46 @@ services:
     build: ./pocketc_ai/
     command: celery -A app.celery_app.celery worker -l info --concurrency=4
     env_file: .env
-    depends_on: [redis_ai, mysql]
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis_ai: { condition: service_started }
+    environment:
+      DB_HOST: mysql
+      DB_PORT: ${DB_PORT}
+      MYSQL_DB: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
   beat:
     build: ./pocketc_ai/
     command: celery -A app.celery_app.celery beat -l info
     env_file: .env
-    depends_on: [redis_ai, mysql]
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis_ai: { condition: service_started }
+    environment:
+      DB_HOST: mysql
+      DB_PORT: ${DB_PORT}
+      MYSQL_DB: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
   flower:
     build: ./pocketc_ai/
     command: celery -A app.celery_app.celery flower --port=5555
     env_file: .env
-    environment:
-      - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH}
     ports:
       - "5555:5555"
-    depends_on: [redis_ai]
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis_ai: { condition: service_started }
+    environment:
+      DB_HOST: mysql
+      DB_PORT: ${DB_PORT}
+      MYSQL_DB: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      FLOWER_BASIC_AUTH: ${FLOWER_BASIC_AUTH}
 
 volumes:
   mysql-data:

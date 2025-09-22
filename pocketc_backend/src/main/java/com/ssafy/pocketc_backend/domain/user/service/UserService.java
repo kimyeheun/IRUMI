@@ -6,6 +6,7 @@ import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserProfileResponse;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.exception.UserErrorType;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
@@ -16,6 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import java.time.LocalDate;
 
@@ -26,12 +32,26 @@ import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.*;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    //private final S3UploadService s3UploadService;
+    private final S3UploadService s3UploadService;
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
-
     private final ReportService reportService;
 
+    private static final List<String> DEFAULT_PROFILE_IMAGES = List.of(
+            "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/profile/default1.jpg",
+            "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/profile/default2.jpg",
+            "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/profile/default3.jpg",
+            "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/profile/default4.jpg",
+            "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/profile/default5.jpg",
+            "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/profile/default6.jpg"
+    );
+
+    private String getRandomDefaultProfileImage() {
+        int index = ThreadLocalRandom.current().nextInt(DEFAULT_PROFILE_IMAGES.size());
+        return DEFAULT_PROFILE_IMAGES.get(index);
+    }
+
+    @Transactional
     public void signup(UserSignupRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(UserErrorType.ALREADY_EXISTS);
@@ -42,7 +62,7 @@ public class UserService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .budget(request.getBudget())
-//                .profileImageUrl()
+                .profileImageUrl(getRandomDefaultProfileImage()) // 기본 이미지 미리 설정
                 .build();
 
         userRepository.save(user);
@@ -67,24 +87,65 @@ public class UserService {
 
         return jwtProvider.issueToken(user.getUserId(), user.getEmail());
     }
+
     //로그아웃
     @Transactional
     public void logout(String accessToken) {
-            String token = accessToken.replace("Bearer ", "");
-            Integer userId = jwtProvider.getUserIdFromJwt(token);
-            refreshTokenService.delete(userId.toString());
-        }
-    //회원정보수정
+        String token = accessToken.replace("Bearer ", "");
+        Integer userId = jwtProvider.getUserIdFromJwt(token);
+        refreshTokenService.delete(userId.toString());
+    }
+
+    public UserProfileResponse getProfile(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        return new UserProfileResponse(
+                user.getUserId(),
+                user.getName(),
+                user.getBudget(),
+                user.getProfileImageUrl()
+        );
+    }
     @Transactional
     public void updateUser(Integer userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(UserErrorType.NOT_FOUND_MEMBER_ERROR));
-
-        user.updateProfile(request.name(), request.email(), request.budget());
+        if (request.email() != null && !request.email().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(request.email())) {
+                throw new CustomException(UserErrorType.ALREADY_EXISTS);
+            }
+            user.updateEmail(request.email());
+        }
+        user.updateName(request.name());
+        user.updateBudget(request.budget());
         if (request.password() != null) {
             user.updatePassword(passwordEncoder.encode(request.password()));
         }
     }
-    //토큰 재발급
 
+    //db에 키 저장, 이미지 업로드에 문제가 생겨 이미지가 저장되지 못하고 db에 키만 저장되는 문제 방지
+    @Transactional
+    public void updateProfileImage(Integer userId, MultipartFile file, boolean delete) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        String profileUrl = user.getProfileImageUrl();
+        if (delete) {
+            //삭제 요청이 있으면 기본이미지로 덮어쓴다
+            user.updateProfileImage(getRandomDefaultProfileImage());
+
+        } else if (file != null && !file.isEmpty()) {
+            //삭제요청이 없고 새 파일이 들어와 있다면 덮어쓰기
+            try {
+                profileUrl = s3UploadService.saveFile(file, userId);
+            } catch (Exception e) {
+                throw new CustomException(S3_UPLOAD_FAIL);
+            }
+
+            user.updateProfileImage(profileUrl);
+        }
+
+
+    }
 }
