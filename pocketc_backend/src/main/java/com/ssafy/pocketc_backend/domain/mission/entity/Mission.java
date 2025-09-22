@@ -2,19 +2,14 @@ package com.ssafy.pocketc_backend.domain.mission.entity;
 
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-enum Status {
-    SUCCESS, IN_PROGRESS, FAILURE
-}
-
 @Entity
 @Getter
+@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "missions")
@@ -28,17 +23,22 @@ public class Mission {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    private Integer subId;
+
     @Column(length = 512)
-    private String missionDsl;
+    private String dsl;
 
     @Column(length = 512, nullable = false)
     private String mission;
 
-    private Integer timeTag;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 512, nullable = false)
+    private TimeTag timeTag = TimeTag.DAILY;
+
     private LocalDateTime validFrom;
     private LocalDateTime validTo;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private Status status;
+    private Status status = Status.IN_PROGRESS;
 }
