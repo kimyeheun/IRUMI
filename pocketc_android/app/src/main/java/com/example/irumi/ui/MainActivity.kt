@@ -22,9 +22,9 @@ import com.example.irumi.ui.main.MainNavigator
 import com.example.irumi.ui.main.rememberMainNavigator
 import com.example.irumi.ui.payments.navigation.paymentDetailNavGraph
 import com.example.irumi.ui.payments.navigation.paymentsNavGraph
-import com.example.irumi.ui.screen.events.EventsScreen
-import com.example.irumi.ui.screen.home.HomeScreen
-import com.example.irumi.ui.screen.stats.StatsScreen
+import com.example.irumi.ui.events.EventsScreen
+import com.example.irumi.ui.home.HomeScreen
+import com.example.irumi.ui.stats.StatsScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
