@@ -44,14 +44,13 @@ dependencies {
     testImplementation platform("org.testcontainers:testcontainers-bom:1.20.3")
     testImplementation 'org.testcontainers:junit-jupiter:1.20.3'
     testImplementation 'com.redis:testcontainers-redis'
-//    testImplementation 'org.testcontainers:mysql'
+    implementation 'it.ozimov:embedded-redis:0.7.2'
 
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
-//이미지 리사이즈에 사용될 라이브러리
+
     implementation 'org.imgscalr:imgscalr-lib:4.2'
     implementation 'com.drewnoakes:metadata-extractor:2.18.0'
-
 }
 test {
     useJUnitPlatform()
