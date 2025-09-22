@@ -31,8 +31,8 @@ public class User extends BaseTimeEntity {
     @Column(length = 60)
     private String password;
 
-//    @Column
-//    private String profileImageUrl;
+    @Column
+    private String profileImageUrl;
 
     @Column
     private Long budget;
@@ -40,18 +40,25 @@ public class User extends BaseTimeEntity {
     @Column
     private Integer puzzleAttempts;
 
-//    @Column
+    //    @Column
 //    private String feedback;
-public void updateProfile(String name, String email, Long budget) {
-    if (name != null) this.name = name;
-    if (email != null) this.email = email;
-    if (budget != null) this.budget = budget;
-}
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
+    public void updateName(String name) {
+        if (name != null) this.name = name;
+    }
+
+    public void updateBudget(Long budget) {
+        if (budget != null) this.budget = budget;
+    }
 
     public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;
     }
-//    public void updateProfileImage(String profileImageUrl) {
-//        this.profileImageUrl = profileImageUrl;
-//    }
+
+    public void updateProfileImage(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 }
