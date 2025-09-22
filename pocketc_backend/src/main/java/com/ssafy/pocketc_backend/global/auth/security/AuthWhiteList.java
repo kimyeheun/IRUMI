@@ -10,7 +10,8 @@ public class AuthWhiteList {
         "/swagger-ui/**",
         "/v3/api-docs/**",
         "/swagger-resources/**",
-        "/h2-console/**"
+        "/h2-console/**",
+        "/ai/openapi.json"
     );
 
     public static final List<String> AUTH_WHITELIST_WILDCARD = List.of(
