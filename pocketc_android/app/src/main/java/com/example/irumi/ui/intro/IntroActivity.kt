@@ -53,11 +53,23 @@ fun IntroScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 32.dp)
+                .padding(bottom = 2.dp)
                 .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Bottom
         ) {
+            // 추가된 이룸이 로고
+            Image(
+                painter = painterResource(id = R.drawable.irumi_logo_c),
+                contentDescription = "Irumi Logo",
+                modifier = Modifier
+                    .size(240.dp) // 크기는 필요에 따라 조정
+                    .align(Alignment.CenterHorizontally)
+            )
+
+            Spacer(Modifier.height(2.dp))
+
+            // 기존 friends_all 이미지
             Image(
                 painter = painterResource(id = R.drawable.friends_all),
                 contentDescription = "PocketC Logo",
@@ -72,7 +84,7 @@ fun IntroScreen(
                 modifier = Modifier.fillMaxWidth(0.8f)
             )
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(24.dp))
 
             Text(
                 text = "이룸이 회원이신가요?  로그인",
@@ -85,7 +97,7 @@ fun IntroScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(48.dp))
 
             Text(
                 text = "이룸이에 로그인하면 이용약관에 동의하는 것으로 간주됩니다. " +
