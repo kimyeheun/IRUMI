@@ -49,7 +49,7 @@ public class JwtProvider {
         return new UserLoginResponse(accessToken, refreshToken);
     }
 
-    private String generateJwt(Integer userId, String email, long expirationTime) {
+    public String generateJwt(Integer userId, String email, long expirationTime) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationTime);
 
@@ -64,7 +64,7 @@ public class JwtProvider {
 
     public boolean validateAccessToken(String token) {
         //개발자용 고정 토큰 무조건 허용
-        if (token != null && token.equals(DevTokenHolder.DEV_TOKEN)) {
+        if (DevTokenHolder.DEV_TOKENS.containsValue(token)) {
             return true;
         }
         try {
@@ -100,9 +100,10 @@ public class JwtProvider {
 
 
     public Integer getUserIdFromJwt(String token) {
-        // 개발자용 고정 토큰이면 userId=1 고정 반환
-        if (token.equals(DevTokenHolder.DEV_TOKEN)) {
-            return 1;
+        for (var entry : DevTokenHolder.DEV_TOKENS.entrySet()) {
+            if (entry.getValue().equals(token)) {
+                return entry.getKey();
+            }
         }
         Claims claims = getJwtBody(token);
         return Integer.parseInt(claims.getSubject());
