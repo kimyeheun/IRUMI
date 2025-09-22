@@ -5,13 +5,7 @@ networks:
 services:
   mysql:
     image: mysql:8.4
-    container_name: mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DB}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      TZ: Asia/Seoul
+    env_file: [ .env ]
     command: >
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
@@ -27,7 +21,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: redis
+    env_file: [ .env ]
     command: >
         sh -lc 'exec redis-server --appendonly yes $${REDIS_PASSWORD:+--requirepass $${REDIS_PASSWORD}}'
     volumes: [redis-data:/data]
@@ -41,7 +35,7 @@ services:
 
   redis_ai:
     image: redis:7-alpine
-    container_name: redis_ai
+    env_file: [ .env ]
     command: >
         sh -lc 'exec redis-server --port 6379 $${REDIS_PASSWORD:+--requirepass $${REDIS_PASSWORD}}'
     healthcheck:
@@ -60,19 +54,7 @@ services:
       redis: { condition: service_healthy }
       ai: { condition: service_started }
     expose: ["8080"]
-    environment:
-      SERVER_PORT: 8080
-      TZ: Asia/Seoul
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      MYSQL_DB: ${MYSQL_DB}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      AI_BASE_URL: http://ai:8000
+    env_file: [ .env ]
     restart: unless-stopped
     networks: [appnet]
 
@@ -82,12 +64,7 @@ services:
     depends_on:
       mysql: { condition: service_healthy }
       redis_ai: { condition: service_healthy }
-    environment:
-      DB_HOST: mysql
-      DB_PORT: ${DB_PORT}
-      MYSQL_DB: ${MYSQL_DB}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    env_file: [ .env ]
     expose: ["8000"]
     networks: [appnet]
 
@@ -123,12 +100,7 @@ services:
     depends_on:
       mysql: { condition: service_healthy }
       redis_ai: { condition: service_started }
-    environment:
-      DB_HOST: mysql
-      DB_PORT: ${DB_PORT}
-      MYSQL_DB: ${MYSQL_DB}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    env_file: [ .env ]
     networks: [appnet]
 
   beat:
@@ -137,12 +109,7 @@ services:
     depends_on:
       mysql: { condition: service_healthy }
       redis_ai: { condition: service_started }
-    environment:
-      DB_HOST: mysql
-      DB_PORT: ${DB_PORT}
-      MYSQL_DB: ${MYSQL_DB}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    env_file: [ .env ]
     networks: [appnet]
 
   flower:
@@ -153,13 +120,7 @@ services:
     depends_on:
       mysql: { condition: service_healthy }
       redis_ai: { condition: service_started }
-    environment:
-      DB_HOST: mysql
-      DB_PORT: ${DB_PORT}
-      MYSQL_DB: ${MYSQL_DB}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      FLOWER_BASIC_AUTH: ${FLOWER_BASIC_AUTH}
+    env_file: [ .env ]
     networks: [appnet]
 
 volumes:
