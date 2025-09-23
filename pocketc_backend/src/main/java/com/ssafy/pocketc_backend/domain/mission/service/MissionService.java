@@ -41,7 +41,7 @@ public class MissionService {
 
         if (cached == null) cached = List.of();
 
-        System.out.println("cache  " +  cached.size());
+        System.out.println("cache  " + cached.size());
         if (!cached.isEmpty()) {
             System.out.println(1);
             List<MissionDto> missionDtoList = new ArrayList<>();
@@ -106,6 +106,23 @@ public class MissionService {
                 });
     }
 
+    //스케줄러용 퍼블릭 메서드
+    @Transactional
+    public void assignWeeklyMissions() {
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            getWeeklyMissions(user.getUserId()); // private 메서드 호출
+        }
+    }
+    //스케줄러용 퍼블릭 메서드
+    @Transactional
+    public void assignMonthlyMissions() {
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            getMonthlyMissions(user.getUserId());
+        }
+    }
+
     private void getWeeklyMissions(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
@@ -129,13 +146,13 @@ public class MissionService {
 
         for (MissionItem item : items) {
             missionRepository.save(Mission.builder()
-                            .subId(item.subId())
-                            .dsl(item.dsl())
-                            .user(user)
-                            .validFrom(item.validFrom())
-                            .validTo(item.validTo())
-                            .mission(item.mission())
-                            .type(item.type())
+                    .subId(item.subId())
+                    .dsl(item.dsl())
+                    .user(user)
+                    .validFrom(item.validFrom())
+                    .validTo(item.validTo())
+                    .mission(item.mission())
+                    .type(item.type())
                     .build());
         }
     }
