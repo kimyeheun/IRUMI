@@ -3,7 +3,6 @@ package com.ssafy.pocketc_backend.domain.mission.dto.response;
 import com.ssafy.pocketc_backend.domain.mission.entity.Mission;
 
 public record MissionDto(
-        Integer missionId,
         Integer subId,
         Integer type,
         String mission,
@@ -11,7 +10,6 @@ public record MissionDto(
 ) {
     public static MissionDto from(Mission mission) {
         return new MissionDto(
-                mission.getMissionId(),
                 mission.getSubId(),
                 mission.getType(),
                 mission.getMission(),

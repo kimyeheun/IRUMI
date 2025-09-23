@@ -1,9 +1,10 @@
 package com.ssafy.pocketc_backend.domain.transaction.service;
 
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
-import com.ssafy.pocketc_backend.domain.transaction.dto.request.MonthReqDto;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionAiReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionCreateReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionReqDto;
+import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionAiResDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionCreatedResDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionListResDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionResDto;
@@ -12,10 +13,14 @@ import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionReposi
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
-import java.security.Principal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -32,8 +37,11 @@ import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_
 public class TransactionService {
 
     private final ReportService reportService;
+
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+
+    private final WebClient transactionAiClient;
 
     // 여기서 userId를 사용하고 있지는 않은거 같은데
     public TransactionResDto getTransactionById(int transactionId, Integer userId) {
@@ -61,7 +69,7 @@ public class TransactionService {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
-        LocalDate curMonth = dto.date().toLocalDate().withDayOfMonth(1);
+        LocalDate curMonth = transaction.getTransactedAt().toLocalDate().withDayOfMonth(1);
 
         if (transaction.isFixed() && dto.isFixed()) {
             reportService.updateMonthlyFixedExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
@@ -78,9 +86,8 @@ public class TransactionService {
 
         transaction.setFixed(dto.isFixed());
         transaction.setAmount(dto.amount());
-        transaction.setTransactedAt(dto.date());
-        transaction.setMajorCategory(dto.majorCategory());
-        transaction.setSubCategory(dto.subCategory());
+        transaction.setMajorCategory(dto.majorId());
+        transaction.setSubCategory(dto.subId());
         transaction.setMerchantName(dto.merchantName());
 
         return TransactionResDto.from(transaction);
@@ -98,24 +105,32 @@ public class TransactionService {
 
     public TransactionCreatedResDto createTransaction(Integer userId, TransactionCreateReqDto dto) {
 
-        ////////////////////////// 더미 데이터 //////////////////////////
-        /*TODO AI API 호출 : 카테고리 부여*/
-        Transaction categorizedTransaction = new Transaction();
-        categorizedTransaction.setMajorCategory(1);
-        categorizedTransaction.setSubCategory(1);
-        categorizedTransaction.setFixed(true);
-        ////////////////////////// 더미 데이터 //////////////////////////
+        TransactionAiReqDto transactionAiReqDto = TransactionAiReqDto.of(String.valueOf(dto.date()), dto.amount(), dto.merchantName());
+
+        TransactionAiResDto categorizedTransaction = transactionAiClient.post()
+                .uri("/ai/categories")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .bodyValue(transactionAiReqDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, resp ->
+                        resp.bodyToMono(String.class)
+                                .defaultIfEmpty("AI categorize API error")
+                                .flatMap(msg -> Mono.error(new RuntimeException(msg)))
+                )
+                .bodyToMono(TransactionAiResDto.class)
+                .timeout(Duration.ofSeconds(3)).block();
 
         Transaction transaction = new Transaction();
-        transaction.setTransactedAt(LocalDateTime.now());
+        transaction.setTransactedAt(categorizedTransaction.transactedAt());
         transaction.setUser(userRepository.findById(userId).orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR)));
-        transaction.setAmount(dto.amount());
-        transaction.setMerchantName(dto.merchantName());
-        transaction.setMajorCategory(categorizedTransaction.getMajorCategory());
-        transaction.setSubCategory(categorizedTransaction.getSubCategory());
+        transaction.setAmount(categorizedTransaction.amount());
+        transaction.setMerchantName(categorizedTransaction.merchantName());
+        transaction.setSubCategory(categorizedTransaction.subId());
+        transaction.setMajorCategory(categorizedTransaction.majorId());
         transaction.setFixed(categorizedTransaction.isFixed());
 
-        LocalDate curMonth = dto.date().toLocalDate().withDayOfMonth(1);
+        LocalDate curMonth = categorizedTransaction.transactedAt().toLocalDate().withDayOfMonth(1);
         transactionRepository.save(transaction);
         if (transaction.isFixed()) {
             reportService.updateMonthlyFixedExpense(userId, curMonth, transaction.getAmount());
