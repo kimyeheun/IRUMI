@@ -44,9 +44,9 @@ public class UserController {
 
     @Operation(summary = "토큰 재발급", description = "리프레시토큰 기반으로 토큰 재발급")
     @PostMapping("/reissue")
-    public ResponseEntity<UserLoginResponse> reissue(@RequestBody TokenReissueRequest request) {
+    public ResponseEntity<ApiResponse<UserLoginResponse>> reissue(@RequestBody TokenReissueRequest request) {
         UserLoginResponse response = jwtProvider.reissueToken(request.refreshToken());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(REISSUE_SUCCESS,response));
     }
 
     @Operation(summary = "로그아웃", description = "액세스 토큰 기반으로 리프레시 토큰 삭제")
@@ -57,9 +57,9 @@ public class UserController {
     }
     @Operation(summary = "내 회원정보 조회", description = "회원정보(이름, 이메일, 프로필 이미지 등)를 조회합니다.")
     @GetMapping("/me")
-    public ResponseEntity<UserProfileResponse> getMyProfile(Principal principal) {
+    public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(Principal principal) {
         Integer userId = Integer.valueOf(principal.getName());
-        return ResponseEntity.ok(userService.getProfile(userId));
+        return ResponseEntity.ok(ApiResponse.success(PROCESS_SUCCESS,userService.getProfile(userId)));
     }
 
 
