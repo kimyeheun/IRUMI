@@ -20,6 +20,9 @@ class SubCategoryRepository:
     def get_sub_category_by_id(self, sub_id: int) -> SubCategory | None:
         return self.db.query(SubCategory).filter(SubCategory.sub_id == sub_id).first()
 
+    def get_name_by_id(self, sub_id: int) -> str:
+        return self.db.query(SubCategory).filter(SubCategory.sub_id == sub_id).first().sub_name
+
     def get_names_by_ids(self, sub_ids: list[int]) -> list[str]:
         if not sub_ids: return []
 
