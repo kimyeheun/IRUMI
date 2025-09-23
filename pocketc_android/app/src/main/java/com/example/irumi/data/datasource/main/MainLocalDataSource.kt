@@ -50,7 +50,7 @@ class MainLocalDataSource @Inject constructor() : MainDataSource {
             status = 200,
             message = "팔로우 목록 조회 성공",
             data = FollowListResponse(
-                follows = listOf(
+                follows = listOf( // 여기는 S3 작업 예정
                     FollowDto(101, "절약왕", "https://cdn.example.com/users/101.png"),
                     FollowDto(102, "소비조절러", "https://cdn.example.com/users/102.png")
                 )
