@@ -10,34 +10,30 @@ import reactor.core.publisher.Mono;
 @Component
 @RequiredArgsConstructor
 public class MissionAiClient {
-
     private final WebClient missionWebClient;
 
     public Mono<MissionApiResponse> getDailyMissions(Integer userId) {
+        if (userId == null) return Mono.error(new IllegalArgumentException("userId null"));
         return missionWebClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/ai/missions/{userId}/daily")
-                        .build(userId))
+                .uri("/ai/missions/{userId}/daily", userId)  // 안전한 템플릿
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(MissionApiResponse.class);
     }
 
     public Mono<MissionApiResponse> getWeeklyMissions(Integer userId) {
+        if (userId == null) return Mono.error(new IllegalArgumentException("userId null"));
         return missionWebClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/ai/missions/{userId}/weekly")
-                        .build(userId))
+                .uri("/ai/missions/{userId}/weekly", userId)  // 안전한 템플릿
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(MissionApiResponse.class);
     }
 
     public Mono<MissionApiResponse> getMonthlyMissions(Integer userId) {
+        if (userId == null) return Mono.error(new IllegalArgumentException("userId null"));
         return missionWebClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/ai/missions/{userId}/monthly")
-                        .build(userId))
+                .uri("/ai/missions/{userId}/monthly", userId)  // 안전한 템플릿
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(MissionApiResponse.class);
