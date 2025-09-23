@@ -18,7 +18,6 @@ pipeline {
             string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
           ]) {
             sh '''
-              echo JWT_SECRET=$(JWT_SECRET)
               set -eu
               export SPRING_PROFILES_ACTIVE=test
               ./gradlew --no-daemon clean test
