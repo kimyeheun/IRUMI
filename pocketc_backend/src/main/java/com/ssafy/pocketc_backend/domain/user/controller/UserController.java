@@ -36,9 +36,10 @@ public class UserController {
 
     @Operation(summary = "로그인", description = "아메일,패스워드")
     @PostMapping("/login")
-    public ResponseEntity<UserLoginResponse> login(@RequestBody UserLoginRequest request) {
-        UserLoginResponse response = userService.login(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<UserLoginResponse>> login(@RequestBody UserLoginRequest request) {
+
+        return ResponseEntity.ok(ApiResponse.success(LOGIN_SUCCESS,userService.login(request)
+        ));
     }
 
     @Operation(summary = "토큰 재발급", description = "리프레시토큰 기반으로 토큰 재발급")
