@@ -41,7 +41,6 @@ pipeline {
 
     stage('Prepare env for deploy (root)') {
       steps {
-        // ★ 루트에 .env.ci 생성
         sh '''
           set -eu
           cat > "$WORKSPACE/.env.ci" <<EOF
@@ -55,6 +54,13 @@ JWT_SECRET=${JWT_SECRET}
 BUILD_REVISION=$(git rev-parse --short=12 HEAD)
 BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 EOF
+        '''
+
+        sh '''
+          set -eu
+          test -f "$WORKSPACE/.env.ci" || { echo "no .env.ci" >&2; exit 1; }
+          echo "[.env.ci keys]"
+          awk -F= '/^(AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|JWT_SECRET|MYSQL_USER|MYSQL_PASSWORD|REDIS_PASSWORD)=/ {print $1"=<set>"}' "$WORKSPACE/.env.ci"
         '''
       }
     }
