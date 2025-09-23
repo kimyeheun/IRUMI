@@ -4,8 +4,8 @@ import com.example.irumi.data.dto.request.PaymentEditRequest
 import com.example.irumi.data.dto.response.payments.Payment
 import com.example.irumi.data.dto.response.payments.PaymentDetailResponse
 import com.example.irumi.data.dto.response.payments.PaymentsResponse
-import com.example.irumi.domain.entity.PaymentEntity
-import com.example.irumi.domain.entity.PaymentsHistoryEntity
+import com.example.irumi.domain.entity.payments.PaymentEntity
+import com.example.irumi.domain.entity.payments.PaymentsHistoryEntity
 
 fun PaymentDetailResponse.toPaymentEntity() =
     PaymentEntity(
