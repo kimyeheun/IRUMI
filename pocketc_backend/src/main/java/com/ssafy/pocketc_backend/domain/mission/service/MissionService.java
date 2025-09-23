@@ -101,7 +101,6 @@ public class MissionService {
                                     .validTo(item.validTo())
                                     .build()
                     ).toList();
-
                     sink.next(missions);
                     sink.complete();
                 });
