@@ -54,7 +54,19 @@ services:
       redis: { condition: service_healthy }
       ai: { condition: service_started }
     expose: ["8080"]
-    env_file: [ .env ]
+    environment:
+      SERVER_PORT: 8080
+      TZ: Asia/Seoul
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      MYSQL_DB: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      AI_BASE_URL: http://ai:8000
     restart: unless-stopped
     networks: [appnet]
 
