@@ -150,21 +150,29 @@ class PaymentsViewModel @Inject constructor(
         _selectedMinorCategory.value = category
     }
 
-    fun onEditClick() {
+    fun onEditClick(updatedAmount: Int) {
         viewModelScope.launch {
-            _paymentDetailState.update { currentState ->
-                if (currentState is UiState.Success) {
-                    val updatedData = currentState.data.copy(
-                        majorCategory = majorCategories.indexOf(_selectedMajorCategory.value) + 1,
-                        subCategory = categoryMap[_selectedMajorCategory.value]?.indexOf(_selectedMinorCategory.value)
-                            ?.plus(1) ?: 0
-                    )
-                    // TODO: 서버에 업데이트 요청
-                    // paymentsRepository.putPaymentDetail(updatedData)
-                    UiState.Success(updatedData)
-                } else {
-                    currentState
-                }
+            val currentPaymentDetailState = _paymentDetailState.value
+            if(currentPaymentDetailState is UiState.Success) {
+                val updatedData = currentPaymentDetailState.data.copy(
+                   majorCategory = majorCategories.indexOf(_selectedMajorCategory.value) + 1,
+                   subCategory = categoryMap[_selectedMajorCategory.value]
+                       ?.indexOf(_selectedMinorCategory.value)
+                       ?.plus(1) ?: 0,
+                   amount = updatedAmount
+               )
+               _paymentDetailState.update { UiState.Loading } // 로딩 상태로 변경
+
+               runCatching {
+                   paymentsRepository.putPaymentDetail(updatedData.paymentId, updatedData)
+                       .onSuccess {
+                           Timber.d("!!! EditPaymentDetail: $updatedData")
+                           _paymentDetailState.update { UiState.Success(updatedData) }
+                       }
+                       .onFailure {
+                           _paymentDetailState.update { UiState.Failure("서버 업데이트 실패") }
+                       }
+               }
             }
         }
     }
