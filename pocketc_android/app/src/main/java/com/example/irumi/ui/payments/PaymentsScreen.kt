@@ -30,6 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,11 +42,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.irumi.core.designsystem.component.dialog.TwoButtonDialog
 import com.example.irumi.domain.entity.PaymentEntity
-import androidx.compose.runtime.remember
 import com.example.irumi.ui.payments.model.PaymentsByDay
 import com.example.irumi.ui.payments.model.PaymentsListItem
 import com.example.irumi.ui.payments.model.PaymentsUiState
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun PaymentRoute(
@@ -52,29 +58,46 @@ fun PaymentRoute(
     onNavigateToDetail: (Int) -> Unit
 ) {
     val uiState by viewModel.paymentsUiState.collectAsState()
+    val selectedMonth by viewModel.selectedMonth.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.navigationEffect.collect {
-            when (it) {
-                is PaymentsNavigationEffect.NavigateToDetail -> onNavigateToDetail(it.paymentId)
+        viewModel.getMonthTransactions()
+    }
+
+    LaunchedEffect(viewModel.navigationEffect) {
+        viewModel.navigationEffect.collect { effect ->
+            when (effect) {
+                is PaymentsNavigationEffect.NavigateToDetail -> onNavigateToDetail(effect.paymentId)
             }
         }
     }
 
     PaymentsScreen(
         uiState = uiState,
+        selectedMonth = selectedMonth,
         paddingValues = paddingValues,
-        onPaymentItemClick = viewModel::onPaymentItemClick
+        onPaymentItemClick = viewModel::onPaymentItemClick,
+        onLeftArrowClick = viewModel::selectPreviousMonth,
+        onRightArrowClick = viewModel::selectNextMonth,
+        onPaymentCheckClick = { paymentId, onFailure ->
+            viewModel.onPaymentCheckClick(paymentId, onFailure)
+        }
     )
 }
 
 @Composable
 fun PaymentsScreen(
     uiState: PaymentsUiState,
+    selectedMonth: YearMonth,
     paddingValues: PaddingValues,
-    onPaymentItemClick: (Int) -> Unit
+    onPaymentItemClick: (Int) -> Unit,
+    onLeftArrowClick: () -> Unit,
+    onRightArrowClick: () -> Unit,
+    onPaymentCheckClick: (paymentId: Int, onFailure: () -> Unit) -> Unit
 ) {
-    val currentMonth = "2025년 9월" // TODO: ViewModel에서 관리
+    // TODO util -> UI 표 비용 날짜 포맷터 (예: "YYYY년 M월") - 월이 한 자리일 때 '0' 없이 표시
+    val displayMonthFormatter = DateTimeFormatter.ofPattern("yyyy년 M월", Locale.KOREA)
+    val currentMonthDisplay = selectedMonth.format(displayMonthFormatter)
 
     Scaffold(
         modifier = Modifier.padding(paddingValues),
@@ -93,17 +116,25 @@ fun PaymentsScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                         contentDescription = "이전달",
-                        modifier = Modifier.size(24.dp).clickable { /* TODO */ }
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable {
+                                onLeftArrowClick()
+                            }
                     )
                     Text(
-                        text = "$currentMonth 결제내역",
+                        text = "$currentMonthDisplay 결제내역",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = "다음달",
-                        modifier = Modifier.size(24.dp).clickable { /* TODO */ }
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable {
+                                onRightArrowClick()
+                            }
                     )
                 }
                 Text("당월 지출 : ${uiState.monthlyTotal} 원", modifier = Modifier.padding(top = 8.dp))
@@ -149,7 +180,13 @@ fun PaymentsScreen(
                     ) { item ->
                         when (item) {
                             is PaymentsListItem.Header -> DayHeader(date = item.date, dailyTotal = item.dailyTotal)
-                            is PaymentsListItem.Payment -> PaymentItem(payment = item.payment, onClick = { item.onPaymentItemClick(item.payment.paymentId) })
+                            is PaymentsListItem.Payment -> PaymentItem(
+                                payment = item.payment,
+                                onClick = { item.onPaymentItemClick(item.payment.paymentId) },
+                                onPaymentCheckClick = { paymentId, onFailure ->
+                                    onPaymentCheckClick(paymentId, onFailure)
+                                }
+                            )
                         }
                     }
                 }
@@ -175,8 +212,12 @@ fun DayHeader(date: String, dailyTotal: Int) {
 @Composable
 fun PaymentItem(
     payment: PaymentEntity,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onPaymentCheckClick: (paymentId: Int, onFailure: () -> Unit) -> Unit
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+    var locallyApplied by remember(payment.paymentId, payment.isApplied) { mutableStateOf(payment.isApplied) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -216,12 +257,36 @@ fun PaymentItem(
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
             )
-            if (!payment.isApplied) {
-                Button(onClick = { /* TODO: 반영 버튼 클릭 */ }) {
+            if (!locallyApplied) {
+                Button(onClick = {
+                    showDialog = true
+                }) {
                     Text("반영", fontSize = 12.sp)
                 }
             }
         }
+    }
+
+    if (showDialog) {
+        TwoButtonDialog (
+            title = "결제내역을 반영하시겠어요?",
+            text = "반영하면 결제 내역에 미션에 반영됩니다.",
+            confirmButtonText = "반영",
+            dismissButtonText = "취소",
+            onDismissRequest = {
+                showDialog = false
+            },
+            onConfirmFollow = {
+                //1. 낙관적 업데이트: UI 즉시 변경
+                locallyApplied = true
+                showDialog = false
+
+                onPaymentCheckClick(payment.paymentId) {
+                        locallyApplied = false
+                        // TODO: 사용자에게 오류 메시지 표시 (Snackbar 등 PaymentScreen 레벨에서 처리 가능)
+                    }
+            }
+        )
     }
 }
 
@@ -249,5 +314,5 @@ fun PreviewPaymentsScreen() {
             )
         )
     )
-    PaymentsScreen(uiState = sampleState, paddingValues = PaddingValues(), onPaymentItemClick = {})
+    PaymentsScreen(uiState = sampleState, paddingValues = PaddingValues(), onPaymentItemClick = {}, onLeftArrowClick = {}, selectedMonth = YearMonth.now(), onRightArrowClick = {}, onPaymentCheckClick = { _, _ -> })
 }

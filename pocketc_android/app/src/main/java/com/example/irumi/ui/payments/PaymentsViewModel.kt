@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.time.YearMonth
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -47,7 +49,7 @@ class PaymentsViewModel @Inject constructor(
         "생활" to listOf("마트/편의점", "쇼핑", "세탁")
     )
     val majorCategories = categoryMap.keys.toList()
-
+    //TODO 이 로직이 맞나?
     private val _selectedMajorCategory = MutableStateFlow("식비")
     val selectedMajorCategory = _selectedMajorCategory.asStateFlow()
 
@@ -56,9 +58,13 @@ class PaymentsViewModel @Inject constructor(
     )
     val selectedMinorCategory = _selectedMinorCategory.asStateFlow()
 
-    init {
-        getMonthTransactions("2025-09")
-    }
+
+    // 선택된 월
+    private val _selectedMonth = MutableStateFlow(YearMonth.now())
+    val selectedMonth: StateFlow<YearMonth> = _selectedMonth.asStateFlow()
+
+    // TODO -> util 서버 요청용 날짜 포맷터
+    private val serverDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
     fun onPaymentItemClick(paymentId: Int) {
         viewModelScope.launch {
@@ -66,11 +72,12 @@ class PaymentsViewModel @Inject constructor(
         }
     }
 
-    fun getMonthTransactions(month: String) {
+    fun getMonthTransactions() {
         viewModelScope.launch {
             _paymentsUiState.update { it.copy(isLoading = true) }
-            paymentsRepository.getPayments()
+            paymentsRepository.getPayments(serverDateFormatter.format(_selectedMonth.value))
                 .onSuccess { paymentsHistory ->
+                    Timber.d("!!! getMonthPayments: ${_selectedMonth.value} + $paymentsHistory")
                     val grouped = groupTransactionsByDate(paymentsHistory.payments)
                     _paymentsUiState.update {
                         it.copy(
@@ -89,6 +96,16 @@ class PaymentsViewModel @Inject constructor(
                     }
                 }
         }
+    }
+
+    fun selectPreviousMonth() {
+        _selectedMonth.update { it.minusMonths(1) }
+        getMonthTransactions()
+    }
+
+    fun selectNextMonth() {
+        _selectedMonth.update { it.plusMonths(1) }
+        getMonthTransactions()
     }
 
     private fun groupTransactionsByDate(payments: List<PaymentEntity>): List<PaymentsByDay> {
@@ -133,22 +150,62 @@ class PaymentsViewModel @Inject constructor(
         _selectedMinorCategory.value = category
     }
 
-    fun onEditClick() {
+    fun onEditClick(updatedAmount: Int) {
         viewModelScope.launch {
-            _paymentDetailState.update { currentState ->
-                if (currentState is UiState.Success) {
-                    val updatedData = currentState.data.copy(
-                        majorCategory = majorCategories.indexOf(_selectedMajorCategory.value) + 1,
-                        subCategory = categoryMap[_selectedMajorCategory.value]?.indexOf(_selectedMinorCategory.value)
-                            ?.plus(1) ?: 0
-                    )
-                    // TODO: 서버에 업데이트 요청
-                    // paymentsRepository.putPaymentDetail(updatedData)
-                    UiState.Success(updatedData)
-                } else {
-                    currentState
-                }
+            val currentPaymentDetailState = _paymentDetailState.value
+            if(currentPaymentDetailState is UiState.Success) {
+                val updatedData = currentPaymentDetailState.data.copy(
+                   majorCategory = majorCategories.indexOf(_selectedMajorCategory.value) + 1,
+                   subCategory = categoryMap[_selectedMajorCategory.value]
+                       ?.indexOf(_selectedMinorCategory.value)
+                       ?.plus(1) ?: 0,
+                   amount = updatedAmount
+               )
+               _paymentDetailState.update { UiState.Loading } // 로딩 상태로 변경
+
+               runCatching {
+                   paymentsRepository.putPaymentDetail(updatedData.paymentId, updatedData)
+                       .onSuccess {
+                           Timber.d("!!! EditPaymentDetail: $updatedData")
+                           _paymentDetailState.update { UiState.Success(updatedData) }
+                       }
+                       .onFailure {
+                           _paymentDetailState.update { UiState.Failure("서버 업데이트 실패") }
+                       }
+               }
             }
+        }
+    }
+
+    fun onPaymentCheckClick(
+        paymentId: Int,
+        onFailure: () -> Unit
+    ) {
+        viewModelScope.launch {
+            paymentsRepository.patchPaymentDetail(paymentId)
+                .onSuccess {
+                    Timber.d("!!! patchPaymentDetail: $it")
+                    // 서버 상태와 ViewModel의 주 상태 동기화
+                    _paymentsUiState.update { currentState ->
+                        val updatedGroupedTransactions =
+                            currentState.groupedTransactions.map { paymentsByDay ->
+                                paymentsByDay.copy(
+                                    payments = paymentsByDay.payments.map { payment ->
+                                        if (payment.paymentId == paymentId) {
+                                            payment.copy(isApplied = true)
+                                        } else {
+                                            payment
+                                        }
+                                    }
+                                )
+                            }
+                        currentState.copy(groupedTransactions = updatedGroupedTransactions)
+                    }
+                }
+                .onFailure {
+                    Timber.d("!!! patchPaymentDetail: $it")
+                    onFailure() // UI 되돌리기
+                }
         }
     }
 }
