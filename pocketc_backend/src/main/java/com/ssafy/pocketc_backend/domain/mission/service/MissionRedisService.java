@@ -1,6 +1,7 @@
 package com.ssafy.pocketc_backend.domain.mission.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.pocketc_backend.domain.mission.entity.Mission;
@@ -47,16 +48,19 @@ public class MissionRedisService {
         }
     }
 
-    /** 리스트 조회 */
     public List<Mission> getList(String key) {
         String json = redis.opsForValue().get(key);
         if (json == null || json.isBlank()) return List.of();
         try {
-            JavaType type = mapper.getTypeFactory()
-                    .constructCollectionType(List.class, Mission.class);
-            return mapper.readValue(json, type);
-        } catch (IOException e) {
+            return mapper.readValue(json, new TypeReference<List<Mission>>() {});
+        } catch (JsonProcessingException e) {
+            // 로그 남기고, 안전하게 빈 리스트
+            System.err.println("Redis 역직렬화 실패: " + e.getMessage());
             return List.of();
         }
+    }
+
+    public void deleteAll() {
+
     }
 }
