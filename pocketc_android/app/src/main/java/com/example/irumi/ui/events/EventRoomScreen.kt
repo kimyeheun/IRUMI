@@ -24,12 +24,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import com.example.irumi.core.designsystem.component.dialog.TwoButtonDialog
 import com.example.irumi.data.dto.response.RoomStatus
 import com.example.irumi.domain.entity.EventEntity
 import com.example.irumi.domain.entity.MemberEntity
@@ -206,8 +205,11 @@ fun PuzzleMembers(
 
     selectedMemberForDialog?.let { memberToShow ->
         if (showDialog) {
-            FollowDialog(
-                member = memberToShow,
+            TwoButtonDialog (
+                title = "${memberToShow.name}님을 팔로우하시겠어요?",
+                text = "팔로우하면 해당 멤버의 활동 소식을 받아볼 수 있습니다.",
+                confirmButtonText = "팔로우",
+                dismissButtonText = "취소",
                 onDismissRequest = {
                     showDialog = false
                     selectedMemberForDialog = null
@@ -220,38 +222,6 @@ fun PuzzleMembers(
             )
         }
     }
-}
-
-@Composable
-fun FollowDialog(
-    member: MemberEntity,
-    onDismissRequest: () -> Unit,
-    onConfirmFollow: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = {
-            Text(text = "${member.name}님을 팔로우하시겠어요?")
-        },
-        text = {
-            Text(text = "팔로우하면 해당 멤버의 활동 소식을 받아볼 수 있습니다.")
-        },
-        confirmButton = {
-            Button(
-                onClick = onConfirmFollow
-            ) {
-                Text("팔로우")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = onDismissRequest
-            ) {
-                Text("취소")
-            }
-        },
-        modifier = Modifier.padding(16.dp)
-    )
 }
 
 @Composable

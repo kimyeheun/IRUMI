@@ -27,7 +27,7 @@ class PaymentsLocalDataSource @Inject constructor() : PaymentsDataSource {
             ))
     }
 
-    override suspend fun getPayments(): BaseResponse<PaymentsResponse> {
+    override suspend fun getPayments(month: String): BaseResponse<PaymentsResponse> {
         val dummyPayments = listOf(
             Payment(1, "2025-09-12T10:00:00Z", 25000, 1, 1, "스타벅스", true, false, "", ""),
             Payment(2, "2025-09-12T11:00:00Z", 15000, 1, 2, "메가커피", false, false, "", ""),

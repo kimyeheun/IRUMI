@@ -1,5 +1,6 @@
 package com.example.irumi.ui.payments
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -8,8 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -19,8 +20,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +47,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.core.state.UiState
 import com.example.irumi.domain.entity.PaymentEntity
+import timber.log.Timber
+import java.text.NumberFormat
+import java.util.Locale
 
 
 @Composable
@@ -94,8 +105,9 @@ fun PaymentDetailRoute(
                 selectedMinorCategory = selectedMinorCategory,
                 onMajorCategorySelected = viewModel::onSelectedMajorCategorySelected,
                 onMinorCategorySelected = viewModel::onSelectedMinorCategorySelected,
-                onEditClick = {
-                    viewModel.onEditClick()
+                onEditClick = { updatedAmount ->
+                    Timber.d("!!! onEditClick UI ${updatedAmount}")
+                    viewModel.onEditClick(updatedAmount)
                     navigateUp()
                 }
             )
@@ -112,8 +124,10 @@ fun PaymentDetailScreen(
     selectedMinorCategory: String,
     onMajorCategorySelected: (String) -> Unit,
     onMinorCategorySelected: (String) -> Unit,
-    onEditClick: () -> Unit
+    onEditClick: (updatedAmount: Int) -> Unit
 ) {
+    var editedAmount by remember { mutableStateOf(paymentDetail.amount) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -121,8 +135,13 @@ fun PaymentDetailScreen(
     ) {
         // 상단 사용처, 금액 및 수정 버튼
         HeaderSection(
-            merchantName = paymentDetail.merchantName,
-            amount = paymentDetail.amount
+            merchantName = paymentDetail.merchantName
+        )
+        EditableAmountText(
+            initialAmount = paymentDetail.amount,
+            onAmountChange = { newAmount ->
+                editedAmount = newAmount
+            }
         )
 
         Spacer(Modifier.height(32.dp))
@@ -144,14 +163,14 @@ fun PaymentDetailScreen(
             paymentDetail = paymentDetail
         )
 
-        Button(onClick = onEditClick, Modifier.fillMaxWidth()) {
+        Button(onClick = { onEditClick(editedAmount) }, Modifier.fillMaxWidth()) {
             Text("수정")
         }
     }
 }
 
 @Composable
-fun HeaderSection(merchantName: String, amount: Int) {
+fun HeaderSection(merchantName: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -163,20 +182,78 @@ fun HeaderSection(merchantName: String, amount: Int) {
             fontWeight = FontWeight.Bold,
         )
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        // 금액
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditableAmountText(
+    initialAmount: Int,
+    onAmountChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var amount by remember(initialAmount) { mutableStateOf(initialAmount) }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val numberFormatter = remember { NumberFormat.getNumberInstance(Locale.KOREA) }
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
         Text(
-            text = "${amount} 원", // amount.toFormattedString()
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
+            text = "${numberFormatter.format(amount)} 원",
+            style = MaterialTheme.typography.headlineLarge
         )
-        Spacer(Modifier.width(8.dp))
-        // 수정 아이콘
-        Icon(
-            imageVector = Icons.Default.Edit,
-            contentDescription = "수정",
-            modifier = Modifier.size(24.dp)
-        )
+        Spacer(modifier = Modifier.width(4.dp))
+        IconButton(onClick = { showBottomSheet = true }) {
+            Icon(Icons.Default.Edit, contentDescription = "금액 수정")
+        }
+    }
+
+    if (showBottomSheet) {
+        var inputText by remember { mutableStateOf(amount.toString()) }
+
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("금액 수정", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = inputText,
+                    onValueChange = { inputText = it.filter { ch -> ch.isDigit() } },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    OutlinedButton(onClick = { showBottomSheet = false }) {
+                        Text("취소")
+                    }
+                    Button(onClick = {
+                        val newAmount = inputText.toIntOrNull()
+                        if (newAmount != null) {
+                            amount = newAmount
+                            onAmountChange(newAmount)
+                        }
+                        showBottomSheet = false
+                    }) {
+                        Text("완료")
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -285,7 +362,9 @@ fun CategoryRow(
             modifier = Modifier.weight(0.7f) // 70% 비율로 공간 차지
         ) {
             TextField(
-                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
                 readOnly = true,
                 value = selectedCategory,
                 onValueChange = {},

@@ -10,6 +10,7 @@ import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface PaymentsService {
     @GET("users/transactions/{transactionId}")
@@ -19,6 +20,7 @@ interface PaymentsService {
 
     @GET("users/transactions")
     suspend fun getPayments(
+        @Query("month") month: String,
     ): BaseResponse<PaymentsResponse>
 
     @PUT("users/transactions/{transactionId}")
