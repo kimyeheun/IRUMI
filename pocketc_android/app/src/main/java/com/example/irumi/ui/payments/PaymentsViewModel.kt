@@ -66,11 +66,6 @@ class PaymentsViewModel @Inject constructor(
     // TODO -> util 서버 요청용 날짜 포맷터
     private val serverDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
-
-    init {
-        getMonthTransactions()
-    }
-
     fun onPaymentItemClick(paymentId: Int) {
         viewModelScope.launch {
             _navigationEffect.emit(PaymentsNavigationEffect.NavigateToDetail(paymentId))
@@ -174,10 +169,35 @@ class PaymentsViewModel @Inject constructor(
         }
     }
 
-    fun onCheckClick() {
+    fun onPaymentCheckClick(
+        paymentId: Int,
+        onFailure: () -> Unit
+    ) {
         viewModelScope.launch {
-            Timber.d("!!! onCheckClick ${selectedPaymentId.value}")
-
+            paymentsRepository.patchPaymentDetail(paymentId)
+                .onSuccess {
+                    Timber.d("!!! patchPaymentDetail: $it")
+                    // 서버 상태와 ViewModel의 주 상태 동기화
+                    _paymentsUiState.update { currentState ->
+                        val updatedGroupedTransactions =
+                            currentState.groupedTransactions.map { paymentsByDay ->
+                                paymentsByDay.copy(
+                                    payments = paymentsByDay.payments.map { payment ->
+                                        if (payment.paymentId == paymentId) {
+                                            payment.copy(isApplied = true)
+                                        } else {
+                                            payment
+                                        }
+                                    }
+                                )
+                            }
+                        currentState.copy(groupedTransactions = updatedGroupedTransactions)
+                    }
+                }
+                .onFailure {
+                    Timber.d("!!! patchPaymentDetail: $it")
+                    onFailure() // UI 되돌리기
+                }
         }
     }
 }

@@ -30,6 +30,6 @@ class PaymentsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun patchPaymentDetail(transactionId: Int): Result<PaymentCheckRequest> {
-        TODO("Not yet implemented")
+        return runCatching { paymentsDataSource.patchPaymentDetail(transactionId).data!! }
     }
 }
