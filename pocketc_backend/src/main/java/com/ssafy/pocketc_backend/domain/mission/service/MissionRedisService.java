@@ -49,7 +49,7 @@ public class MissionRedisService {
     }
 
     public List<Mission> getList(String key) {
-        String json = redis.opsForValue().get(key);
+        String json = redis.opsForList().index(key, 1);
         if (json == null || json.isBlank()) return List.of();
         try {
             return mapper.readValue(json, new TypeReference<List<Mission>>() {});

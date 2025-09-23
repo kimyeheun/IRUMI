@@ -66,7 +66,7 @@ public class TransactionController {
     }
 
     @PostMapping("/transactions")
-    public ResponseEntity<ApiResponse<?>> createTransaction(Principal principal, @RequestBody TransactionCreateReqDto dto) {
+    public ResponseEntity<ApiResponse<TransactionCreatedResDto>> createTransaction(Principal principal, @RequestBody TransactionCreateReqDto dto) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_CREATE_TRANSACTIONS,
                 transactionService.createTransaction(userId(principal), dto)
