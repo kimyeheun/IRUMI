@@ -21,17 +21,14 @@ data class Friend(val id: Int, val name: String)
 
 @Composable
 fun HomeScreen(brand: Color = BrandGreen) {
-    // 샘플 데이터(0 == 나)
-    val friends = remember {
-        listOf(Friend(0, "나"), Friend(1, "민수"), Friend(2, "나연"))
-    }
+    val friends = remember { listOf(Friend(0, "나"), Friend(1, "민수"), Friend(2, "나연")) }
     var selectedFriend by remember { mutableStateOf(friends.first()) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.Start
     ) {
         FriendList(
@@ -39,16 +36,15 @@ fun HomeScreen(brand: Color = BrandGreen) {
             selected = selectedFriend,
             brand = brand,
             onSelect = { selectedFriend = it },
-            onAddClick = { /* TODO: 친구 추가 */ }
+            onAddClick = { /* TODO */ }
         )
-
         Spacer(Modifier.height(16.dp))
 
         if (selectedFriend.id == 0) {
             MyScoreSection(score = 81)
             Spacer(Modifier.height(12.dp))
             TodoSection()
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
             StreakSection()
         } else {
             FriendCompareSection(
@@ -56,8 +52,9 @@ fun HomeScreen(brand: Color = BrandGreen) {
                 friendScore = 92,
                 friendName = selectedFriend.name
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
             StreakSection(friendName = selectedFriend.name)
         }
+        Spacer(Modifier.height(24.dp))
     }
 }
