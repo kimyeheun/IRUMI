@@ -55,11 +55,11 @@ public class MissionService {
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
 
         List<Mission> missions = fetchDailyMissionsFromAi(user)
-                .timeout(Duration.ofSeconds(7)) // 현실적인 타임아웃
+                .timeout(Duration.ofSeconds(7))
                 .doOnSubscribe(s -> System.out.println("[Mission] subscribed"))
                 .doOnError(e -> System.out.println("[Mission] error: " + e.getClass() + " - " + e.getMessage()))
-                .onErrorResume(e -> Mono.just(List.of())) // 폴백은 하되 로그는 남김
-                .block(); // 실제 실행
+                .onErrorResume(e -> Mono.just(List.of()))
+                .block();
 
         List<MissionDto> missionDtoList = new ArrayList<>();
         for (Mission mission : missions) {
@@ -71,9 +71,10 @@ public class MissionService {
 //        List<Mission> weekMonth = missionRepository.findAllByUser_UserId(userId);
 //        missions.addAll(weekMonth);
 
-//        if (!missions.isEmpty()) {
-//            missionRedisService.putList(key, missions, Duration.ofSeconds(60));
-//        }
+        if (!missions.isEmpty()) {
+            missionRedisService.putList(key, missions, Duration.ofSeconds(60));
+        }
+        getWeeklyMissions(userId);
         return new MissionResDto(false, missionDtoList);
     }
 
