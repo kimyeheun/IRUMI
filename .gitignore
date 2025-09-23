@@ -18,3 +18,5 @@ local.properties
 
 .env
 *.env
+
+pocketc_ai/mysql_data/
