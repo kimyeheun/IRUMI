@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 
+import static com.ssafy.pocketc_backend.domain.main.exception.MainSuccessType.SUCCESS_GET_DAILY_STAT;
 import static com.ssafy.pocketc_backend.domain.main.exception.MainSuccessType.SUCCESS_GET_STREAKS;
 
 
@@ -24,12 +25,12 @@ public class MainController {
     private final MainService mainService;
     @Operation(summary = "절약점수와 오늘 총 지출 조회")
     @GetMapping("/daily")
-    public ResponseEntity<MainResponse> getDailyStats(
+    public ResponseEntity<ApiResponse<MainResponse>> getDailyStats(
             Principal principal) {
         Integer userId = Integer.valueOf(principal.getName());
         MainResponse dto = mainService.getDailyScoreAndTotal(userId);
 
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ApiResponse.success(SUCCESS_GET_DAILY_STAT,dto));
     }
 
     @Operation(summary = "스트릭 조회")
