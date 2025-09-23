@@ -5,7 +5,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -316,52 +315,36 @@ fun Header() {
 }
 
 @Composable
-fun MonthChart(
-
-) {
-    val scrollState = rememberScrollState()
+fun MonthChart() {
     val dataPointsCount = 7 // lineData.firstOrNull()?.values?.size ?: 0
-
-    // 데이터 포인트당 필요한 너비 (실험을 통해 조정)
-    val widthPerDataPoint = 60.dp // 예시 값
-
-    // 차트의 전체 너비 계산
-    val chartTotalWidth = (widthPerDataPoint * dataPointsCount).coerceAtLeast(200.dp) // 최소 너비 보장
-
     StatsCard(
         title = "절약한 총 금액",
         content = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth() // Box가 화면 너비를 채우도록
-                    .horizontalScroll(scrollState)
-            ) {
-                LineChart(
-                    modifier = Modifier.width(400.dp).height(300.dp),
-                    data = remember {
-                        listOf(
-                            Line(
-                                label = "Windows",
-                                values = listOf(28.0, 41.0, 5.0, 10.0, 35.0, 60.0, 28.0),
-                                color = SolidColor(Color.Blue),
-                                curvedEdges = true,
-                                dotProperties = DotProperties(
-                                    enabled = true,
-                                    color = SolidColor(Color.White),
-                                    strokeWidth = 4.dp,
-                                    radius = 3.dp,
-                                    strokeColor = SolidColor(Color.Gray),
-                                )
+            LineChart(
+                modifier = Modifier.fillMaxWidth().height(300.dp),
+                data = remember {
+                    listOf(
+                        Line(
+                            label = "Windows",
+                            values = listOf(28.0, 41.0, 5.0, 10.0, 35.0, 60.0, 28.0),
+                            color = SolidColor(Color.Blue),
+                            curvedEdges = false,
+                            dotProperties = DotProperties(
+                                enabled = true,
+                                color = SolidColor(Color.White),
+                                strokeWidth = 4.dp,
+                                radius = 3.dp,
+                                strokeColor = SolidColor(Color.Gray),
                             )
                         )
-                    },
-                    labelProperties = LabelProperties(
-                        enabled = true,
-                        labels = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "July")
-                    ),
-                    curvedEdges = false,
-                )
-            }
+                    )
+                },
+                labelProperties = LabelProperties(
+                    enabled = true,
+                    labels = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "July")
+                ),
+                curvedEdges = false,
+            )
 
             AchievementMessage(17)
         }
