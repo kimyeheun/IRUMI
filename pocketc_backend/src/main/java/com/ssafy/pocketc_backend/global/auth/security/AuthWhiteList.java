@@ -5,17 +5,18 @@ import java.util.stream.Stream;
 
 public class AuthWhiteList {
     public static final List<String> AUTH_WHITELIST_DEFAULT = List.of(
-        "/api/v1/users/login",
-        "/api/v1/users", "/api/v1/users/reissue",
-        "/swagger-ui/**",
-        "/v3/api-docs/**",
-        "/swagger-resources/**",
-        "/h2-console/**",
-        "/ai/openapi.json"
+            "/api/v1/users/login",
+            "/api/v1/users", "/api/v1/users/reissue",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/swagger-resources/**",
+            "/h2-console/**",
+            "/ai/openapi.json",
+            "/test/**"
     );
 
     public static final List<String> AUTH_WHITELIST_WILDCARD = List.of(
-        "/api/public/**"
+            "/api/public/**"
     );
     public static final String[] AUTH_WHITELIST = Stream.concat(
             AUTH_WHITELIST_DEFAULT.stream(),
