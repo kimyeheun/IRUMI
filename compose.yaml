@@ -101,8 +101,11 @@ services:
     environment:
       JENKINS_OPTS: --prefix=/jenkins
     volumes:
+      - /opt/pocketc:/opt/pocketc:ro
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      - /usr/libexec/docker/cli-plugins/docker-compose:/usr/libexec/docker/cli-plugins/docker-compose:ro
     networks: [appnet]
 
   worker:
