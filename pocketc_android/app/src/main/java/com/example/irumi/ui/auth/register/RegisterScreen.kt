@@ -118,11 +118,6 @@ fun RegisterRoute(
                         enabled = name.isNotBlank(),
                         onConfirm = { step = RegisterStep.Email }
                     )
-//                    BottomLinks(
-//                        rememberMe = rememberMe,
-//                        onRememberChange = { rememberMe = it },
-//                        onGoLogin = onDone
-//                    )
                 }
 
                 RegisterStep.Email -> {
@@ -136,11 +131,6 @@ fun RegisterRoute(
                         enabled = email.isNotBlank(),
                         onConfirm = { step = RegisterStep.Password }
                     )
-//                    BottomLinks(
-//                        rememberMe = rememberMe,
-//                        onRememberChange = { rememberMe = it },
-//                        onGoLogin = onDone
-//                    )
                 }
 
                 RegisterStep.Password -> {
@@ -162,11 +152,6 @@ fun RegisterRoute(
                             step = RegisterStep.Budget
                         }
                     )
-//                    BottomLinks(
-//                        rememberMe = rememberMe,
-//                        onRememberChange = { rememberMe = it },
-//                        onGoLogin = onDone
-//                    )
                 }
 
                 RegisterStep.Budget -> {
@@ -193,11 +178,6 @@ fun RegisterRoute(
                         },
                         loading = loading
                     )
-//                    BottomLinks(
-//                        rememberMe = rememberMe,
-//                        onRememberChange = { rememberMe = it },
-//                        onGoLogin = onDone
-//                    )
                 }
 
                 RegisterStep.Complete -> {
@@ -207,8 +187,6 @@ fun RegisterRoute(
         }
     }
 }
-
-/* -------------------- 스텝 컴포저블들 -------------------- */
 
 @Composable
 private fun SingleFieldStep(
@@ -224,8 +202,9 @@ private fun SingleFieldStep(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(top = 56.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(title, style = MaterialTheme.typography.titleMedium, color = BrandGreen)
@@ -258,8 +237,9 @@ private fun PasswordStep(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(top = 56.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(title, style = MaterialTheme.typography.titleMedium, color = BrandGreen)
@@ -305,8 +285,9 @@ private fun BudgetDropdownStep(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(top = 56.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(title, style = MaterialTheme.typography.titleMedium, color = BrandGreen)
@@ -350,28 +331,6 @@ private fun BudgetDropdownStep(
     }
 }
 
-//@Composable
-//private fun BottomLinks(
-//    rememberMe: Boolean,
-//    onRememberChange: (Boolean) -> Unit,
-//    onGoLogin: () -> Unit
-//) {
-//    Spacer(Modifier.height(8.dp))
-//    Row(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(horizontal = 20.dp),
-//        verticalAlignment = Alignment.CenterVertically
-//    ) {
-//        Checkbox(checked = rememberMe, onCheckedChange = onRememberChange)
-//        Text("자동 로그인")
-//        Spacer(Modifier.weight(1f))
-//        TextButton(onClick = onGoLogin) {
-//            Text("이미 계정이 있으신가요? 로그인", color = BrandGreen)
-//        }
-//    }
-//}
-
 @Composable
 private fun CompleteStep(onStart: () -> Unit) {
     Column(
@@ -391,7 +350,6 @@ private fun CompleteStep(onStart: () -> Unit) {
     }
 }
 
-/* -------- 프리뷰 (간단) -------- */
 @Preview(showBackground = true)
 @Composable
 private fun RegisterPreview() {
