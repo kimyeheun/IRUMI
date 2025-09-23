@@ -1,6 +1,7 @@
 package com.ssafy.pocketc_backend.domain.transaction.service;
 
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.MonthReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionAiReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionCreateReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionReqDto;
@@ -20,10 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,22 +42,27 @@ public class TransactionService {
     private final WebClient transactionAiClient;
 
     // 여기서 userId를 사용하고 있지는 않은거 같은데
-    public TransactionResDto getTransactionById(int transactionId, Integer userId) {
+    public TransactionResDto getTransactionById(int transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
         return TransactionResDto.from(transaction);
     }
-    // 현재 달과 일치하는 결제내역을 조회한다.
-    public TransactionListResDto getMonthlyTransactionList(LocalDate now, Integer userId) {
-        // 입력된 시간이 현재 시간보다 미래 시간이라면 ERROR를 반환합니다.
-        YearMonth yearMonth = YearMonth.from(now);
-        if (yearMonth.isAfter(YearMonth.now())) throw new CustomException(ERROR_GET_MONTHLY_TRANSACTIONS);
 
-        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndTransactedAtBetween(
+    public TransactionListResDto getMonthlyTransactionList(MonthReqDto dto, Integer userId) {
+        YearMonth yearMonth = YearMonth.of(dto.year(), dto.month());
+
+        if (yearMonth.isAfter(YearMonth.now())) {
+            throw new CustomException(ERROR_GET_MONTHLY_TRANSACTIONS);
+        }
+
+        LocalDate start = yearMonth.atDay(1);
+        LocalDate end = yearMonth.atEndOfMonth();
+
+        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndTransactedAtGreaterThanEqualAndTransactedAtLessThan(
                 userId,
-                now.withDayOfMonth(1),
-                now.withDayOfMonth(now.lengthOfMonth())
+                start.atStartOfDay(),
+                end.plusDays(1).atStartOfDay()
         );
 
         return buildTransactionListDto(transactions);
