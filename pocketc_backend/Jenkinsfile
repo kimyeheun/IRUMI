@@ -5,6 +5,14 @@ pipeline {
   environment {
     WORKDIR  = 'pocketc_backend'
     GRADLE_USER_HOME = '/var/jenkins_home/.gradle'
+    MYSQL_USER = credentials('MYSQL_USER')
+    MYSQL_ROOT_PASSWORD = credentials('MYSQL_ROOT_PASSWORD')
+    MYSQL_PASSWORD = credentials('MYSQL_PASSWORD')
+    REDIS_PASSWORD = credentials('REDIS_PASSWORD')
+    AWS_BUCKET_NAME = credentials('AWS_BUCKET_NAME')
+    AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+    JWT_SECRET = credentials('JWT_SECRET')
   }
 
   stages {
@@ -14,16 +22,11 @@ pipeline {
       steps {
         dir(env.WORKDIR) {
           sh 'chmod +x gradlew || true'
-          withCredentials([
-            string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET')
-          ]) {
-            sh '''
-              echo JWT_SECRET="$JWT_SECRET"
-              set -eu
-              export SPRING_PROFILES_ACTIVE=test
-              ./gradlew --no-daemon clean test
-            '''
-          }
+          sh '''
+            set -eu
+            export SPRING_PROFILES_ACTIVE=test
+            ./gradlew --no-daemon clean test
+          '''
         }
       }
     }
@@ -36,66 +39,46 @@ pipeline {
       }
     }
 
+    stage('Prepare env for deploy (root)') {
+      steps {
+        // ★ 루트에 .env.ci 생성
+        sh '''
+          set -eu
+          cat > "$WORKSPACE/.env.ci" <<EOF
+MYSQL_USER=${MYSQL_USER}
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+MYSQL_PASSWORD=${MYSQL_PASSWORD}
+REDIS_PASSWORD=${REDIS_PASSWORD}
+AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+JWT_SECRET=${JWT_SECRET}
+BUILD_REVISION=$(git rev-parse --short=12 HEAD)
+BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+EOF
+        '''
+      }
+    }
+
     stage('Deploy (Docker Compose)') {
       steps {
         dir(env.WORKDIR) {
-          withCredentials([
-            string(credentialsId: 'MYSQL_ROOT_PASSWORD', variable: 'MYSQL_ROOT_PASSWORD'),
-            string(credentialsId: 'MYSQL_PASSWORD', variable: 'MYSQL_PASSWORD'),
-            string(credentialsId: 'REDIS_PASSWORD', variable: 'REDIS_PASSWORD'),
-            string(credentialsId: 'JWT_SECRET', variable: 'JWT_SECRET'),
-            string(credentialsId: 'AWS_BUCKET_NAME', variable: 'AWS_BUCKET_NAME')
-            string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID')
-            string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
-          ]) {
-            sh '''
-              set -eu
+          sh '''
+            set -eu
+            docker compose -f "$WORKSPACE/compose.yaml" \
+                           --project-directory "$WORKSPACE" \
+                           --env-file "$WORKSPACE/.env.ci" \
+                           -p s13p21a407 config | sed -n '1,120p'
 
-              echo "[BEFORE] app:latest  ->" $(docker image inspect app:latest --format '{{.Id}} {{.Created}}' || echo "none")
-              echo "[BEFORE] backend uses" $(docker inspect backend --format '{{.Image}}' || echo "none")
+            docker compose -f "$WORKSPACE/compose.yaml" \
+                           --project-directory "$WORKSPACE" \
+                           --env-file "$WORKSPACE/.env.ci" \
+                           -p s13p21a407 build --pull backend
 
-              GIT_SHA=$(git rev-parse --short=12 HEAD)
-              BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-              DB_HOST=mysql DB_PORT=3306 MYSQL_DB=pocketcdb MYSQL_USER=hamster \
-              MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" MYSQL_PASSWORD="$MYSQL_PASSWORD" \
-              REDIS_HOST=redis REDIS_PORT=6379 REDIS_PASSWORD="$REDIS_PASSWORD" \
-              SERVER_PORT=8080 TZ=Asia/Seoul \
-              JWT_SECRET="$JWT_SECRET" \
-              AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" AWS_BUCKET_NAME="$AWS_BUCKET_NAME" AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
-              BUILD_REVISION="$GIT_SHA" BUILD_TIME="$BUILD_TIME" \
-              docker compose -p s13p21a407 build --pull \
-              --build-arg BUILD_REVISION="$GIT_SHA" \
-              --build-arg BUILD_TIME="$BUILD_TIME" \
-              backend
-
-              export DB_HOST=mysql
-              export DB_PORT=3306
-              export MYSQL_DB=pocketcdb
-              export MYSQL_USER=hamster
-              export MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD"
-              export MYSQL_PASSWORD="$MYSQL_PASSWORD"
-              export REDIS_HOST=redis
-              export REDIS_PORT=6379
-              export REDIS_PASSWORD="$REDIS_PASSWORD"
-              export SERVER_PORT=8080
-              export TZ=Asia/Seoul
-              export JWT_SECRET="$JWT_SECRET"
-              export BUILD_REVISION="$GIT_SHA"
-              export BUILD_TIME="$BUILD_TIME"
-              export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
-              export AWS_BUCKET_NAME="$AWS_BUCKET_NAME"
-              export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
-              echo "$MYSQL_PASSWORD"
-              echo $MYSQL_PASSWORD
-              docker compose -p s13p21a407 up -d --no-deps --force-recreate backend
-
-              echo "[AFTER ] app:latest  ->" $(docker image inspect app:latest --format '{{.Id}} {{.Created}}')
-              echo "[AFTER ] backend uses" $(docker inspect backend --format '{{.Image}}')
-
-              docker compose ps
-            '''
-          }
+            docker compose -f "$WORKSPACE/compose.yaml" \
+                           --project-directory "$WORKSPACE" \
+                           --env-file "$WORKSPACE/.env.ci" \
+                           -p s13p21a407 up -d --no-deps --force-recreate backend
+          '''
         }
       }
     }
