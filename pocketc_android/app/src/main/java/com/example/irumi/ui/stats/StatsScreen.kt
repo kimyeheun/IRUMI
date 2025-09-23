@@ -57,7 +57,7 @@ import ir.ehsannarmani.compose_charts.models.Pie
 @Composable
 fun StatsRoute(
     brand: Color,
-    onLoggedOut: () -> Unit,            // 로그인 화면으로 이동 등
+    onLoggedOut: () -> Unit, // 인트로 화면으로 이동
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val loading = viewModel.loading
@@ -113,10 +113,6 @@ fun StatsScreen(
         )
 
         CategoryPieChart()
-
-        // TODO AI 멘트
-
-        //ScoreChart()
     }
 }
 

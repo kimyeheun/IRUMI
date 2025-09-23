@@ -75,7 +75,6 @@ fun LoginRoute(
                 loading = loading,
                 onEmailChange = { email = it },
                 onPwChange = { pw = it },
-                onRememberChange = { rememberMe = it },
                 onSubmit = { viewModel.login(email, pw, remember = rememberMe) }
             )
         }
@@ -90,7 +89,6 @@ fun LoginScreen(
     loading: Boolean,
     onEmailChange: (String) -> Unit,
     onPwChange: (String) -> Unit,
-    onRememberChange: (Boolean) -> Unit,
     onSubmit: () -> Unit
 ) {
     Column(
@@ -120,16 +118,6 @@ fun LoginScreen(
                 .defaultMinSize(minHeight = 56.dp)
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(checked = rememberMe, onCheckedChange = onRememberChange)
-            Text("자동 로그인")
-        }
-
         PrimaryButton(
             text = if (loading) "확인 중..." else "로그인",
             onClick = onSubmit,
@@ -150,7 +138,6 @@ private fun LoginScreenPreview() {
         loading = false,
         onEmailChange = {},
         onPwChange = {},
-        onRememberChange = {},
         onSubmit = {}
     )
 }
