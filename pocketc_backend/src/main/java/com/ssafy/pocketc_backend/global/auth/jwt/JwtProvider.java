@@ -33,6 +33,9 @@ public class JwtProvider {
 
     @PostConstruct
     private void initKey() {
+        if (JWT_SECRET == null || JWT_SECRET.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET is not configured!");
+        }
         // JWT_SECRET은 Base64로 인코딩됨, 실제 암호화에 사용되는 키는 디코딩되어야 함.
         byte[] decodedKey = Base64.getDecoder().decode(JWT_SECRET);
         this.signingKey = Keys.hmacShaKeyFor(decodedKey);
@@ -63,6 +66,9 @@ public class JwtProvider {
     }
 
     public boolean validateAccessToken(String token) {
+        if (token == null || token.isBlank()) {
+            throw new CustomException(EMPTY_JWT_TOKEN);
+        }
         //개발자용 고정 토큰 무조건 허용
         if (DevTokenHolder.DEV_TOKENS.containsValue(token)) {
             return true;
@@ -110,6 +116,9 @@ public class JwtProvider {
     }
 
     private Claims getJwtBody(String token) {
+        if (token == null || token.isBlank()) {
+            throw new CustomException(EMPTY_JWT_TOKEN);
+        }
         return Jwts.parserBuilder()
                 .setSigningKey(signingKey)
                 .build()
