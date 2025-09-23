@@ -25,6 +25,7 @@ import com.example.irumi.ui.auth.login.LoginActivity
 import com.example.irumi.ui.component.navBar.BottomNavBar
 import com.example.irumi.ui.events.EventsScreen
 import com.example.irumi.ui.home.HomeScreen
+import com.example.irumi.ui.intro.IntroActivity
 import com.example.irumi.ui.main.MainNavigator
 import com.example.irumi.ui.main.rememberMainNavigator
 import com.example.irumi.ui.payments.navigation.paymentDetailNavGraph
@@ -72,8 +73,11 @@ fun MainScreen(navigator: MainNavigator = rememberMainNavigator()) {
                 StatsRoute(
                     brand = brand,
                     onLoggedOut = {
-                        // 로그아웃 성공 시 로그인 화면으로 이동 + MainActivity 종료
-                        ctx.startActivity(Intent(ctx, LoginActivity::class.java))
+                        val intent = Intent(ctx, IntroActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                        ctx.startActivity(intent)
+
                         (ctx as? Activity)?.finish()
                     }
                 )
