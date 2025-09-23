@@ -37,11 +37,10 @@ class CategoryService:
         category = self.repo.get_category(pred)
 
         return Transaction(
-            transactionId=req.transactionId,
             amount=req.amount,
             merchantName=req.merchantName,
             transactedAt=req.transactedAt,
-            majorCategory=category.major_id,
-            subCategory=category.sub_id,
+            majorId=category.major_id,
+            subId=category.sub_id,
             isFixed=category.is_fixed,
         )
