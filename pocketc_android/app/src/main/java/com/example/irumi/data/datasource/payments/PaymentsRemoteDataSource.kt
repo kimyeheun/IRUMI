@@ -14,8 +14,8 @@ class PaymentsRemoteDataSource @Inject constructor(
     override suspend fun getPaymentDetail(transactionId: Int): BaseResponse<PaymentDetailResponse> =
         paymentsService.getPaymentDetail(transactionId)
 
-    override suspend fun getPayments(): BaseResponse<PaymentsResponse> =
-        paymentsService.getPayments()
+    override suspend fun getPayments(month: String): BaseResponse<PaymentsResponse> =
+        paymentsService.getPayments(month)
 
     override suspend fun putPaymentDetail(
         transactionId: Int,

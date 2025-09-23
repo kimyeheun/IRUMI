@@ -12,6 +12,7 @@ interface PaymentsRepository {
     ): Result<PaymentEntity>
 
     suspend fun getPayments(
+        month: String
     ): Result<PaymentsHistoryEntity>
 
     suspend fun putPaymentDetail(

@@ -18,8 +18,8 @@ class PaymentsRepositoryImpl @Inject constructor(
         return runCatching { paymentsDataSource.getPaymentDetail(transactionId).data!!.toPaymentEntity() }
     }
 
-    override suspend fun getPayments(): Result<PaymentsHistoryEntity> {
-        return runCatching { paymentsDataSource.getPayments().data!!.toPaymentsHistoryEntity() }
+    override suspend fun getPayments(month: String): Result<PaymentsHistoryEntity> {
+        return runCatching { paymentsDataSource.getPayments(month).data!!.toPaymentsHistoryEntity() }
     }
 
     override suspend fun putPaymentDetail(

@@ -12,6 +12,7 @@ interface PaymentsDataSource {
     ): BaseResponse<PaymentDetailResponse>
 
     suspend fun getPayments(
+        month: String
     ): BaseResponse<PaymentsResponse>
 
     suspend fun putPaymentDetail(
