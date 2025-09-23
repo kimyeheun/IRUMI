@@ -37,14 +37,14 @@ class AuthLocalDataSource @Inject constructor() : AuthDataSource {
         BaseResponse(
             status = 201,
             message = "회원가입이 완료되었습니다",
-            data = TokenEnvelope(TokenPair(accessToken = "access_dummy", refreshToken = "refresh_dummy"))
+            data = TokenEnvelope(accessToken = "access_dummy", refreshToken = "refresh_dummy")
         )
 
     override suspend fun login(body: LoginRequest): BaseResponse<LoginEnvelope> =
         BaseResponse(
             status = 201,
             message = "로그인이 완료되었습니다",
-            data = LoginEnvelope(token = "dummy_token")
+            data = LoginEnvelope(accessToken = "access_dummy", refreshToken = "refresh_dummy")
         )
 
     override suspend fun logout(): BaseResponse<Unit?> =
@@ -58,7 +58,7 @@ class AuthLocalDataSource @Inject constructor() : AuthDataSource {
         BaseResponse(
             status = 201,
             message = "토큰 발급이완료되었습니다",
-            data = TokenEnvelope(TokenPair(accessToken = "new_access", refreshToken = "new_refresh"))
+            data = TokenEnvelope(accessToken = "new_access", refreshToken = "new_refresh")
         )
 
     override suspend fun updateMe(body: AuthEditRequest): BaseResponse<MemberProfileResponse> =

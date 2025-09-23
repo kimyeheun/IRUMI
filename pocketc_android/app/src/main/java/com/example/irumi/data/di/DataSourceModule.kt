@@ -5,6 +5,7 @@ import com.example.irumi.data.datasource.DummyLocalDataSource
 import com.example.irumi.data.datasource.events.EventsDataSource
 import com.example.irumi.data.datasource.auth.AuthDataSource
 import com.example.irumi.data.datasource.auth.AuthLocalDataSource
+import com.example.irumi.data.datasource.auth.AuthRemoteDataSource
 import com.example.irumi.data.datasource.payments.PaymentsDataSource
 import com.example.irumi.data.datasource.payments.PaymentsLocalDataSource
 import com.example.irumi.data.datasource.events.EventsLocalDataSource
@@ -23,7 +24,7 @@ abstract class DataSourceModule {
 
     @Binds
     @Singleton
-    abstract fun bindAuthDataSource(authDataSource: AuthLocalDataSource): AuthDataSource
+    abstract fun bindAuthDataSource(authDataSource: AuthRemoteDataSource): AuthDataSource
     // 실서버 붙일 때는 AuthRemoteDataSource 로만 바꾸면 된다.
 
     @Binds

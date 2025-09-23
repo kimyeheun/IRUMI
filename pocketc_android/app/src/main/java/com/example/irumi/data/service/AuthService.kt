@@ -13,7 +13,7 @@ import retrofit2.http.POST
 interface AuthService {
 
     /** 회원가입 */
-    @POST("")
+    @POST("../users")
     suspend fun signUp(
         @Body body: com.example.irumi.data.dto.request.auth.SignUpRequest
     ): BaseResponse<TokenEnvelope>
