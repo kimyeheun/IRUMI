@@ -49,65 +49,82 @@ fun IntroScreen(
     onGoLoginClick: () -> Unit,
     onTempClick: () -> Unit = {}
 ) {
-    Surface(modifier = Modifier.fillMaxSize(), color = androidx.compose.ui.graphics.Color.White) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = androidx.compose.ui.graphics.Color.White
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 2.dp)
+                .padding(bottom = 24.dp)
                 .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Bottom
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // 추가된 이룸이 로고
-            Image(
-                painter = painterResource(id = R.drawable.irumi_logo_c),
-                contentDescription = "Irumi Logo",
-                modifier = Modifier
-                    .size(240.dp) // 크기는 필요에 따라 조정
-                    .align(Alignment.CenterHorizontally)
-            )
-
-            Spacer(Modifier.height(2.dp))
-
-            // 기존 friends_all 이미지
-            Image(
-                painter = painterResource(id = R.drawable.friends_all),
-                contentDescription = "PocketC Logo",
-                modifier = Modifier.size(400.dp)
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            PrimaryButton(
-                text = "시작하기",
-                onClick = onStartClick,
-                modifier = Modifier.fillMaxWidth(0.8f)
-            )
-
             Spacer(Modifier.height(24.dp))
 
-            Text(
-                text = "이룸이 회원이신가요?  로그인",
-                color = BrandGreen,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .clickable { onGoLoginClick() },
-                textAlign = TextAlign.Center
-            )
+            // 로고 + 캐릭터 이미지 묶음
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.irumi_logo_c),
+                    contentDescription = "Irumi Logo",
+                    modifier = Modifier
+                        .size(220.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
 
-            Spacer(Modifier.height(48.dp))
+                // 로고와 붙여서 배치
+                Image(
+                    painter = painterResource(id = R.drawable.friends_all),
+                    contentDescription = "Friends Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(280.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+            }
 
-            Text(
-                text = "이룸이에 로그인하면 이용약관에 동의하는 것으로 간주됩니다. " +
-                        "회원 정보 처리 방식은 개인정보 처리방침 및 쿠키 정책에서 확인하세요.",
-                color = BrandGreen,
-                fontSize = 12.sp,
-                lineHeight = 18.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(0.8f)
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // 시작 버튼
+                PrimaryButton(
+                    text = "시작하기",
+                    onClick = onStartClick,
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                // 로그인 안내
+                Text(
+                    text = "이룸이 회원이신가요?  로그인",
+                    color = BrandGreen,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .clickable { onGoLoginClick() },
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.height(36.dp))
+
+                // 약관 안내
+                Text(
+                    text = "이룸이에 로그인하면 이용약관에 동의하는 것으로 간주됩니다.\n" +
+                            "회원 정보 처리 방식은 개인정보 처리방침 및 쿠키 정책에서 확인하세요.",
+                    color = BrandGreen,
+                    fontSize = 12.sp,
+                    lineHeight = 18.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(0.85f)
+                )
+            }
         }
     }
 }

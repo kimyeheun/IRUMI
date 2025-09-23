@@ -1,3 +1,6 @@
+import java.util.Properties
+import kotlin.apply
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -12,13 +15,19 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.irumi"
+        applicationId = "com.example.pingme"
         minSdk = 34
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // ── local.properties → BuildConfig 주입
+        val localProperties = Properties().apply {
+            load(rootProject.file("local.properties").inputStream())
+        }
+        //buildConfigField("String", "S3_BASE_URL", "\"${localProperties["S3_BASE_URL"]}\"")
+        buildConfigField("String", "BASE_URL", "\"${localProperties["BASE_URL"]}\"")
     }
 
     buildTypes {
@@ -28,12 +37,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // 릴리스 빌드 전용 BASE_URL
-//            buildConfigField("String", "BASE_URL", providers.gradleProperty("BASE_URL").get())
-        }
-        debug {
-            // 디버그 빌드 전용 BASE_URL
-            buildConfigField("String", "BASE_URL", "\"https://jsonplaceholder.typicode.com/\"")
         }
     }
     compileOptions {
