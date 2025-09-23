@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum MissionErrorType implements ErrorType {
-    ERROR_GET_MISSIONS(HttpStatus.BAD_REQUEST, "미션 조회 오류");
+    ERROR_GET_MISSIONS(HttpStatus.BAD_REQUEST, "미션 조회 오류"),
+    ERROR_GET_WEEKLY_MISSIONS(HttpStatus.BAD_REQUEST, "Weekly Mission 조회 오류"),
+    ERROR_GET_MONTHLY_MISSIONS(HttpStatus.BAD_REQUEST, "Monthly Mission 조회 오류");
 
     private final HttpStatus httpStatus;
     private final String message;
