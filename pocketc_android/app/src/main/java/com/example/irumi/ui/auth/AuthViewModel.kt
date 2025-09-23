@@ -13,6 +13,7 @@ import com.example.irumi.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
@@ -32,12 +33,16 @@ class AuthViewModel @Inject constructor(
         launch {
             repo.signUp(SignUpRequest(name, email, pw, budget))
                 .onSuccess {
+                    Timber.d("!!! 회원가입 성공")
                     tokenStore.save(it.token.accessToken, it.token.refreshToken)
                     tokenStore.autoLogin = remember
                     tokenStore.email = email
                     isLoggedIn = true
                 }
-                .onFailure { error = it.message }
+                .onFailure {
+                    Timber.d("!!! 회원가입 실패")
+                    error = it.message
+                }
         }
 
     fun login(email: String, pw: String, remember: Boolean) =

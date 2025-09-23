@@ -13,27 +13,27 @@ import retrofit2.http.POST
 interface AuthService {
 
     /** 회원가입 */
-    @POST("users")
+    @POST("")
     suspend fun signUp(
         @Body body: com.example.irumi.data.dto.request.auth.SignUpRequest
     ): BaseResponse<TokenEnvelope>
 
     /** 로그인 */
-    @POST("users/login")
+    @POST("login")
     suspend fun login(
         @Body body: LoginRequest
     ): BaseResponse<LoginEnvelope>
 
     /** 로그아웃 */
-    @POST("users/logout")
+    @POST("logout")
     suspend fun logout(): BaseResponse<Unit?> // 서버가 data 비워서 내려줘도 OK
 
     /** 토큰 재발급 */
-    @POST("users/reissue")
+    @POST("reissue")
     suspend fun reissue(): BaseResponse<TokenEnvelope>
 
     /** 회원정보 수정 */
-    @PATCH("users/me")
+    @PATCH("me")
     suspend fun updateMe(
         @Body body: AuthEditRequest
     ): BaseResponse<MemberProfileResponse>

@@ -13,23 +13,23 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface PaymentsService {
-    @GET("users/transactions/{transactionId}")
+    @GET("transactions/{transactionId}")
     suspend fun getPaymentDetail(
         @Path("transactionId") transactionId: Int,
     ): BaseResponse<PaymentDetailResponse>
 
-    @GET("users/transactions")
+    @GET("transactions")
     suspend fun getPayments(
         @Query("month") month: String,
     ): BaseResponse<PaymentsResponse>
 
-    @PUT("users/transactions/{transactionId}")
+    @PUT("transactions/{transactionId}")
     suspend fun putPaymentDetail(
         @Path("transactionId") transactionId: Int,
         @Body request: PaymentEditRequest
     ): BaseResponse<PaymentDetailResponse>
 
-    @PATCH("users/transactions/{transactionId}")
+    @PATCH("transactions/{transactionId}")
     suspend fun patchPaymentDetail(
         @Path("transactionId") transactionId: Int,
     ): BaseResponse<PaymentCheckRequest>
