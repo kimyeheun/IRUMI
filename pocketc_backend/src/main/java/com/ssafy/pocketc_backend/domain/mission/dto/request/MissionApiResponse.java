@@ -5,4 +5,3 @@ public record MissionApiResponse(
         String message,
         MissionData data
 ) {}
-
