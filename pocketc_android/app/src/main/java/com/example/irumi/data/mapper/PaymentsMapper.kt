@@ -1,5 +1,6 @@
 package com.example.irumi.data.mapper
 
+import com.example.irumi.data.dto.request.PaymentEditRequest
 import com.example.irumi.data.dto.response.payments.Payment
 import com.example.irumi.data.dto.response.payments.PaymentDetailResponse
 import com.example.irumi.data.dto.response.payments.PaymentsResponse
@@ -43,3 +44,13 @@ fun PaymentsResponse.toPaymentsHistoryEntity(): PaymentsHistoryEntity {
         totalSpending = this.totalSpending
     )
 }
+
+fun PaymentEntity.toPaymentEditRequest() =
+    PaymentEditRequest(
+        date = date,
+        amount = amount,
+        majorCategory = majorCategory,
+        subCategory = subCategory,
+        merchant = merchantName,
+        isFixed = isFixed
+    )
