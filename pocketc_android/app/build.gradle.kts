@@ -107,4 +107,7 @@ dependencies {
 
     // Timber Log
     implementation("com.jakewharton.timber:timber:5.0.1")
+
+    // Chart
+    implementation ("io.github.ehsannarmani:compose-charts:0.1.8")
 }
