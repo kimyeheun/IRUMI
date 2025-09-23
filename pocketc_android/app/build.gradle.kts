@@ -15,7 +15,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.pingme"
+        applicationId = "com.example.irumi"
         minSdk = 34
         targetSdk = 36
         versionCode = 1

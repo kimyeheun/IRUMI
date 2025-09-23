@@ -1,6 +1,8 @@
 package com.example.irumi.data.di
 
+import android.content.SharedPreferences
 import com.example.irumi.BuildConfig
+import com.example.irumi.core.network.AuthInterceptor
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -24,62 +26,60 @@ import javax.inject.Singleton
  * 4. 모든 의존성을 찾고 생성한 후, 최종적으로 Retrofit 객체를 완성하여 필요한 곳에 주입
  */
 
+/**
+ * Hilt 네트워크 모듈
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitModule {
 
-    /**
-     * Kotlinx Serialization을 위한 JSON 객체를 제공
-     */
+    /** Kotlinx Serialization JSON */
     @Provides
     @Singleton
-    fun provideJson(): Json =
-        Json {
-            ignoreUnknownKeys = true // JSON 데이터에 정의되지 않은 키가 있어도 무시하고 파싱
-            prettyPrint = true // JSON 문자열 정렬
-        }
+    fun provideJson(): Json = Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+    }
 
-    /**
-     * JSON 데이터를 코틀린 객체로 변환하는 컨버터 팩토리를 제공
-     */
+    /** Converter.Factory */
     @Provides
     @Singleton
     fun provideJsonConverter(json: Json): Converter.Factory =
         json.asConverterFactory("application/json".toMediaType())
 
-    /**
-     * OkHttp에 HTTP 통신 로그를 출력해주는 인터셉터를 제공
-     */
+    /** Logging Interceptor */
     @Provides
     @Singleton
-    fun provideLoggingInterceptor() =
-        HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
-    /**
-     * OkHttp 클라이언트 인스턴스를 제공
-     */
+    /** AuthInterceptor */
     @Provides
     @Singleton
-    fun provideClient(
-        loggingInterceptor: HttpLoggingInterceptor
-    ) = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
+    fun provideAuthInterceptor(prefs: SharedPreferences): AuthInterceptor =
+        AuthInterceptor(prefs)
+
+    /** 단일 OkHttpClient (중복 제거) */
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        logging: HttpLoggingInterceptor,
+        authInterceptor: AuthInterceptor
+    ): OkHttpClient = OkHttpClient.Builder()
+        // Auth를 먼저 추가하면 Logging에서 Authorization 헤더까지 볼 수 있음
+        .addInterceptor(authInterceptor)
+        .addInterceptor(logging)
         .build()
 
-    /**
-     * Retrofit 인스턴스를 제공
-     */
+    /** Retrofit */
     @Provides
     @Singleton
     fun provideRetrofit(
         client: OkHttpClient,
         factory: Converter.Factory
-    ): Retrofit =
-        Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
-            .client(client) // OkHttp 클라이언트 연결
-            .addConverterFactory(factory) // JSON 컨버터 팩토리 연결
-            .build()
+    ): Retrofit = Retrofit.Builder()
+        .baseUrl(BuildConfig.BASE_URL)
+        .client(client)
+        .addConverterFactory(factory)
+        .build()
 }
