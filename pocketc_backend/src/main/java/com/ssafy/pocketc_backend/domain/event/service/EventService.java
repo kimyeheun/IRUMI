@@ -239,7 +239,7 @@ public class EventService {
             rankDtos.add(new RankDto(A[0], idx++, A[1]));
             prev = A[1];
         }
-        return new PuzzleResDto(puzzleDtos, rankDtos);
+        return new PuzzleResDto(puzzleDtos, rankDtos, user.getPuzzleAttempts());
     }
 
     private void createNewEvent() {
