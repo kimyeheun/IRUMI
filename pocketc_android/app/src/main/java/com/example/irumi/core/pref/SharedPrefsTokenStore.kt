@@ -1,16 +1,15 @@
 package com.example.irumi.core.pref
 
 import android.content.Context
+import android.content.SharedPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SharedPrefsTokenStore @Inject constructor(
-    @ApplicationContext context: Context
+    private val prefs: SharedPreferences
 ) : TokenStore {
-
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     override val accessToken: String?
         get() = prefs.getString(KEY_ACCESS, null)

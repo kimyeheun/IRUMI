@@ -3,6 +3,7 @@ package com.example.irumi.data.di
 import android.content.SharedPreferences
 import com.example.irumi.BuildConfig
 import com.example.irumi.core.network.AuthInterceptor
+import com.example.irumi.core.pref.TokenStore
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -56,8 +57,8 @@ object RetrofitModule {
     /** AuthInterceptor */
     @Provides
     @Singleton
-    fun provideAuthInterceptor(prefs: SharedPreferences): AuthInterceptor =
-        AuthInterceptor(prefs)
+    fun provideAuthInterceptor(tokenStore: TokenStore): AuthInterceptor =
+        AuthInterceptor(tokenStore)
 
     /** 단일 OkHttpClient (중복 제거) */
     @Provides
