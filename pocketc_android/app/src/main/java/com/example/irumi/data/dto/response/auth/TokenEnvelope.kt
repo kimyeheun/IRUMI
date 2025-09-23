@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TokenEnvelope(
-    val token: TokenPair
+    val accessToken: String,
+    val refreshToken: String
 )

@@ -34,13 +34,13 @@ class AuthViewModel @Inject constructor(
             repo.signUp(SignUpRequest(name, email, pw, budget))
                 .onSuccess {
                     Timber.d("!!! 회원가입 성공")
-                    tokenStore.save(it.token.accessToken, it.token.refreshToken)
+                    tokenStore.save(it.accessToken, it.refreshToken)
                     tokenStore.autoLogin = remember
                     tokenStore.email = email
                     isLoggedIn = true
                 }
                 .onFailure {
-                    Timber.d("!!! 회원가입 실패")
+                    Timber.d("!!! 회원가입 실패 ${it.message}")
                     error = it.message
                 }
         }
@@ -50,12 +50,15 @@ class AuthViewModel @Inject constructor(
             repo.login(LoginRequest(email, pw))
                 .onSuccess { env ->
                     // 로그인 응답이 access 단일 토큰인 스펙
-                    tokenStore.save(env.token, tokenStore.refreshToken)
+                    tokenStore.save(env.accessToken, tokenStore.refreshToken)
                     tokenStore.autoLogin = remember
                     tokenStore.email = email
                     isLoggedIn = true
                 }
-                .onFailure { error = it.message }
+                .onFailure {
+                    Timber.d("로그인 실패 ${it.message}")
+                    error = it.message
+                }
         }
 
     fun logout() = launch {
@@ -69,7 +72,7 @@ class AuthViewModel @Inject constructor(
 
     fun reissue() = launch {
         repo.reissue()
-            .onSuccess { tokenStore.save(it.token.accessToken, it.token.refreshToken) }
+            .onSuccess { tokenStore.save(it.accessToken, it.refreshToken) }
             .onFailure { error = it.message }
     }
 
