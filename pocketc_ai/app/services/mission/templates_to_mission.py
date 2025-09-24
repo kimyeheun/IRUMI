@@ -1,103 +1,60 @@
 from __future__ import annotations
 
-import logging
-import random
-from collections import defaultdict
+from datetime import datetime, timedelta
 from typing import Dict, Any, Tuple, List
 
-from app.services.mission.dsl.dsl_templates import _default_caps
 
-TemplateName = str
+DAY_MAP = {"월": 0, "화": 1, "수": 2, "목": 3, "금": 4, "토": 5, "일": 6}
 
-BASE_WEIGHTS: Dict[str, List[Tuple[TemplateName, float]]] = {
-    # 습관성·소액다건
-    "커피": [("COUNT_CAP_DAILY",0.5), ("PER_TXN_DAILY",0.3), ("CATEGORY_BAN_DAILY",0.2)],
-    "간식": [("COUNT_CAP_DAILY",0.5), ("PER_TXN_DAILY",0.3), ("CATEGORY_BAN_DAILY",0.2)],
-    "음료": [("COUNT_CAP_DAILY",0.5), ("PER_TXN_DAILY",0.3), ("CATEGORY_BAN_DAILY",0.2)],
-    "게임/콘텐츠": [("COUNT_CAP_DAILY",0.5), ("PER_TXN_DAILY",0.3), ("CATEGORY_BAN_DAILY",0.2)],
 
-    # 야간충동
-    "배달음식": [("TIME_BAN_DAILY",0.6), ("SPEND_CAP_DAILY",0.25), ("PER_TXN_DAILY",0.15)],
+def _default_caps(stats: Dict[str, float]) -> Dict[str, Any]:
+    mean_cnt = float(stats.get("mean_daily_count", 0)) or 1.0
+    per_std = float(stats.get("per_txn_std", 0.0)) or 0.0
+    max_mean = float(stats.get("max_per_txn_mean", 0.0)) or 10000.0
+    budget = float(stats.get("daily_sum_volatility", 0.0)) or max(20000.0, max_mean * 1.5)
+    return {
+        "count_cap": max(1, int(mean_cnt * 0.6)),
+        "per_txn_ceiling": int(max_mean * 0.8) if max_mean > 0 else 10000,
+        "daily_budget": int(budget),
+    }
 
-    # 변동·중대금액
-    "외식": [("SPEND_CAP_DAILY",0.6), ("PER_TXN_DAILY",0.4), ("COUNT_CAP_DAILY",0.1)],
-    "온라인 쇼핑몰": [("SPEND_CAP_DAILY",0.6), ("PER_TXN_DAILY",0.3), ("COUNT_CAP_DAILY",0.1)],
-    "의류/패션": [("SPEND_CAP_DAILY",0.6), ("PER_TXN_DAILY",0.3), ("COUNT_CAP_DAILY",0.1)],
-    "뷰티/미용": [("SPEND_CAP_DAILY",0.6), ("PER_TXN_DAILY",0.3), ("COUNT_CAP_DAILY",0.1)],
-    "생활용품": [("SPEND_CAP_DAILY",0.6), ("PER_TXN_DAILY",0.3), ("COUNT_CAP_DAILY",0.1)],
-    "영화/공연": [("SPEND_CAP_DAILY",0.6), ("PER_TXN_DAILY",0.3), ("COUNT_CAP_DAILY",0.1)],
-    "여행": [("SPEND_CAP_DAILY",0.6), ("PER_TXN_DAILY",0.3), ("COUNT_CAP_DAILY",0.1)],
+def _get_valid_time(now: datetime, params: Dict[str, Any], scope: str) -> Tuple[datetime, datetime]:
+    if scope == "weekly":
+        start_of_week = now - timedelta(days=now.weekday())
+        end_of_week = start_of_week + timedelta(days=6)
+        valid_from = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+        valid_to = end_of_week.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif scope == "monthly":
+        start_of_month = now.replace(day=1)
+        # 다음 달 1일에서 하루를 빼서 이달의 마지막 날을 구합니다.
+        next_month = (start_of_month.replace(day=28) + timedelta(days=4)).replace(day=1)
+        end_of_month = next_month - timedelta(days=1)
+        valid_from = start_of_month.replace(hour=0, minute=0, second=0, microsecond=0)
+        valid_to = end_of_month.replace(hour=23, minute=59, second=59, microsecond=999999)
+    else:  # daily
+        valid_from = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        valid_to = now.replace(hour=23, minute=59, second=59, microsecond=999999)
 
-    # 이동수단
-    "택시/대리": [("PER_TXN_DAILY",0.5), ("SPEND_CAP_DAILY",0.4), ("COUNT_CAP_DAILY",0.1)],
+    # 시간 제한 미션인 경우 (데일리 미션에만 해당될 수 있음)
+    if 'time_label' in params and 'time_ranges' in params and params['time_ranges']:
+        first_range = params['time_ranges'][0]
+        start_h, start_m = map(int, first_range['start'].split(':'))
+        end_h, end_m = map(int, first_range['end'].split(':'))
+        # 시작 시간과 종료 시간 객체 생성
+        valid_from = now.replace(hour=start_h, minute=start_m, second=0, microsecond=0)
+        valid_to = now.replace(hour=end_h, minute=end_m, second=59, microsecond=999999)
+        # 자정을 넘으면, 종료 날짜를 다음 날로 설정
+        if valid_from > valid_to:
+            valid_to += timedelta(days=1)
 
-    # 기타/충동
-    "취미/오락": [("SPEND_CAP_DAILY",0.45), ("PER_TXN_DAILY",0.35), ("COUNT_CAP_DAILY",0.2)],
-    "충동구매": [("SPEND_CAP_DAILY",0.45), ("PER_TXN_DAILY",0.35), ("COUNT_CAP_DAILY",0.2)],
-    "도서/교재": [("SPEND_CAP_DAILY",0.45), ("PER_TXN_DAILY",0.35), ("COUNT_CAP_DAILY",0.2)],
-    "경조사비": [("SPEND_CAP_DAILY",0.45), ("PER_TXN_DAILY",0.35), ("COUNT_CAP_DAILY",0.2)],
-    "기타": [("SPEND_CAP_DAILY",0.45), ("PER_TXN_DAILY",0.35), ("COUNT_CAP_DAILY",0.2)],
-}
-
-# 고정/재무/필수: 대상 제외(필요 시 따로 월간 템플릿에서 다룸)
-EXCLUDED = {
-    "월세/관리비","전기세","수도세","가스비","세금/보험",
-    "휴대폰 요금","인터넷","대출/이자","저축","투자","송금","병원","대중교통","유류비","약국","학원/수강료","자격증","OTT/구독서비스"
-}
-
-def pick_template_for_category(
-        category: str,
-        user_stats: Dict[str, float] = None,
-        epsilon: float = 0.1,
-        exclude: List[TemplateName] = None,
-) -> TemplateName:
-
-    if category in EXCLUDED:
-        logging.info(f"{category}는 미션의 대상 카테고리가 아닙니다.")
-        raise ValueError(f"카테고리 '{category}'는 일일 절감 미션 대상에서 제외하는 것을 권장합니다.")
-
-    base = BASE_WEIGHTS.get(category)
-    if base is None:
-        base = [("SPEND_CAP_DAILY",0.5), ("PER_TXN_DAILY",0.3), ("COUNT_CAP_DAILY",0.2)]
-
-    if exclude:
-        base = [(name, w) for name, w in base if name not in exclude]
-        if not base:
-             raise ValueError(f"카테고리 '{category}'에 대해 선택할 수 있는 템플릿이 없습니다.")
-
-    weights = defaultdict(float)
-    for name, w in base:
-        weights[name] += w
-
-    us = user_stats or {}
-    mean_daily_count = us.get("mean_daily_count", 0.0)
-    night_ratio = us.get("night_ratio", 0.0)
-    per_txn_std = us.get("per_txn_std", 0.0)
-    daily_sum_vol = us.get("daily_sum_volatility", 0.0)
-
-    # 간단한 선형 보정 (스케일은 경험적으로 조정)
-    weights["COUNT_CAP_DAILY"] += 0.1 * min(1.0, mean_daily_count / 2.0)  # 건수 ↑
-    weights["TIME_BAN_DAILY"]  += 0.3 * min(1.0, night_ratio)             # 야간비중 ↑
-    weights["PER_TXN_DAILY"]   += 0.1 * min(1.0, per_txn_std / 10000.0)   # 금액 분산 ↑
-    weights["SPEND_CAP_DAILY"] += 0.1 * min(1.0, daily_sum_vol / 30000.0) # 일일 총액 변동 ↑
-
-    # 정규화
-    items = list(weights.items())
-    total = sum(w for _, w in items)
-    probs = [w/total for _, w in items]
-
-    # ε-탐색: 소량의 랜덤으로 새로운 전략도 시도
-    if random.random() < epsilon:
-        return random.choice(items)[0]
-
-    # 가중치 샘플링
-    r = random.random()
-    cum = 0.0
-    for (name, _), p in zip(items, probs):
-        cum += p
-        if r <= cum:
-            return name
-    return items[-1][0]
+    if "day_label" in params:
+        start_of_week = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+        target_wd = DAY_MAP.get(params["day_label"], 0)
+        if target_wd is not None:
+            target_date = start_of_week + timedelta(days=target_wd)
+            valid_from = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            valid_to = target_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+    return valid_from, valid_to
 
 
 class _SafeDict(dict):
@@ -113,7 +70,7 @@ def _derive_time_params(stats: Dict[str, float]) -> Tuple[str, List[Dict[str,str
     ranges = [{"start": "18:00", "end": "22:00"}]
     if night >= max(morning, afternoon, 0.33):
         label = "야간"
-        ranges = [{"start": "22:00", "end": "24:00"}, {"start": "00:00", "end": "06:00"}]
+        ranges = [{"start": "22:00", "end": "06:00"}]
     elif morning >= max(afternoon, 0.33):
         label = "오전"
         ranges = [{"start": "06:00", "end": "11:00"}]
@@ -123,6 +80,13 @@ def _compute_params_for_template(tmpl_code: str, sub_id: int, sub_name: str, sta
     caps = _default_caps(stats)
     params: Dict[str, Any] = {"label": sub_name, "sub_id": sub_id}
 
+    # stats에서 주간/월간 데이터 추출
+    weekly_sum = float(stats.get("weekly_sum", caps["daily_budget"] * 5))
+    weekly_count = int(stats.get("weekly_count", caps["count_cap"] * 5))
+    monthly_sum = float(stats.get("monthly_sum", caps["daily_budget"] * 20))
+    monthly_count = int(stats.get("monthly_count", caps["count_cap"] * 20))
+
+    # --- 데일리 ---
     if tmpl_code == "CATEGORY_BAN_DAILY":
         pass
     elif tmpl_code == "SPEND_CAP_DAILY":
@@ -135,17 +99,80 @@ def _compute_params_for_template(tmpl_code: str, sub_id: int, sub_name: str, sta
         time_label, time_ranges = _derive_time_params(stats)
         params["time_label"] = time_label
         params["time_ranges"] = time_ranges
+    # --- 위클리 ---
+    elif tmpl_code == "DAY_BAN_WEEKLY":
+        # TODO: 가장 소비가 잦은 요일 계산 로직 추가 (예: '월')
+        params["day_label"] = "월"
+    elif tmpl_code == "SPEND_CAP_WEEKLY":
+        params["amount"] = int(weekly_sum * 0.8)
+    elif tmpl_code == "COUNT_CAP_WEEKLY":
+        params["N"] = max(1, int(weekly_count * 0.8))
+    # --- 먼슬리 ---
+    elif tmpl_code == "SPEND_CAP_MONTHLY":
+        params["amount"] = int(monthly_sum * 0.8)
+    elif tmpl_code == "SPEND_CAP_MONTHLY":
+        params["N"] = max(1, int(monthly_count * 0.8))
+
     return params
 
-def build_mission_sentence(
-    tmpl_code: str,
-    sub_id: int,
-    sub_name: str,
-    stats: Dict[str, float],
-    repo,
-) -> Tuple[str, Dict[str, Any]]:
+def _build_dsl_for_template(name: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    base = {
+        "template": name,
+        "sub_id": params["sub_id"],
+    }
+    if name in ["COUNT_CAP_DAILY", "COUNT_CAP_WEEKLY", "COUNT_CAP_MONTHLY"]:
+        base["type"] = "count"
+        base["comparator"] = "<="
+        base["value"] = params["N"]
+    elif name == "PER_TXN_DAILY":
+        base["type"] = "per_txn_max"
+        base["comparator"] = "<="
+        base["value"] = params["per_txn"]
+    elif name in ["SPEND_CAP_DAILY", "SPEND_CAP_WEEKLY", "SPEND_CAP_MONTHLY"]:
+        base["type"] = "total_spend"
+        base["comparator"] = "<="
+        base["value"] = params["amount"]
+    elif name == "TIME_BAN_DAILY":
+        base["type"] = "count"
+        base["comparator"] = "=="
+        base["value"] = 0
+        base["time_of_day"] = params["time_ranges"]
+    elif name == "CATEGORY_BAN_DAILY":
+        base["type"] = "count"
+        base["comparator"] = "=="
+        base["value"] = 0
+    elif name == "DAY_BAN_WEEKLY":
+        base["type"] = "count"
+        base["comparator"] = "=="
+        base["value"] = 0
+        base["time_of_day"] = DAY_MAP.get(params["day_label"], 0)
+    else:
+        base["type"] = "total_spend"
+        base["comparator"] = "<="
+        base["value"] = params.get("amount", 20000)
+    return base
+
+def build_mission_details(
+        tmpl_code: str,
+        sub_id: int,
+        sub_name: str,
+        stats: Dict[str, float],
+        now: datetime,
+        repo,
+) -> Tuple[str, Dict[str, Any], Tuple[datetime, datetime]]:
     tmpl = repo.get_by_code(tmpl_code)
+    print(tmpl)
     raw_sentence: str = getattr(tmpl, "mission", "")
+    print(raw_sentence)
+    # 1. 미션 파라미터 설정 (동적 시간대 포함)
     params = _compute_params_for_template(tmpl_code, sub_id, sub_name, stats)
+    # 2. 미션 시간
+    scope = "daily"
+    if tmpl_code.endswith("_WEEKLY"): scope = "weekly"
+    elif tmpl_code.endswith("_MONTHLY"): scope = "monthly"
+    (valid_from, valid_to) = _get_valid_time(now, params, scope)
+    # 3. 미션 문장 생성
     sentence = raw_sentence.format_map(_SafeDict(params))
-    return sentence, params
+    # 4. 동일한 파라미터를 사용해 DSL 생성
+    dsl = _build_dsl_for_template(tmpl_code, params)
+    return sentence, dsl, (valid_from, valid_to)

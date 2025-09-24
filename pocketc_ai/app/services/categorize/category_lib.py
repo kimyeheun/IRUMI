@@ -25,7 +25,7 @@ REGEX_RULES: List[Tuple[re.Pattern, str]] = [
     (re.compile(r"SKT|KT|LGU\+|통신"), "휴대폰 요금"),
 
     # OTT/구독
-    (re.compile(r"넷플릭스|GPT|디즈니|티빙|왓챠|유튜브|웨이브|구글플레이|OPEN|CLAUDE"), "OTT/구독서비스"),
+    (re.compile(r"Netflix|넷플릭스|GPT|디즈니|티빙|왓챠|유튜브|웨이브|구글플레이|OPEN|CLAUDE"), "OTT/구독서비스"),
 
     # 쇼핑
     (re.compile(r"쿠팡|G마켓|11번가|SSG"), "온라인 쇼핑몰"),
@@ -51,7 +51,7 @@ REGEX_RULES: List[Tuple[re.Pattern, str]] = [
     # 금융/저축
     (re.compile(r"(국세청|지방세|세무서|건보공단|국민연금|고용보험|산재보험)"), "세금/보험"),
     (re.compile(r"(장학|대출|원리금|이자 상환|이자납부)"), "대출/이자"),
-    (re.compile(r"(청약|적금|예금|자동이체 저축)"), "저축"),
+    (re.compile(r"(청약|적금|예금|자동이체 저축|박스|플러스)"), "저축"),
     (re.compile(r"(증권|주식|펀드|ETF|코인|암호화폐|가상자산|키움)"), "투자"),
 
     # 기타

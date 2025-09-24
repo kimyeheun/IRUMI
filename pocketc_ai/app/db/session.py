@@ -15,8 +15,8 @@ def get_db_engine() -> Engine:
     url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}?charset=utf8mb4"
     engine = create_engine(url, pool_pre_ping=True)
 
-#     with engine.connect() as conn:
-#         conn.execute(text("SELECT 1"))
+    #with engine.connect() as conn:
+    #    conn.execute(text("SELECT 1"))
     return engine
 
 ENGINE = get_db_engine()

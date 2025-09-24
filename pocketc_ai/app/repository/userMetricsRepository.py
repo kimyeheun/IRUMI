@@ -5,6 +5,7 @@ from typing import Dict
 
 import pandas as pd
 from pandas import DataFrame
+from sqlalchemy import func
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -57,7 +58,6 @@ class UserMetricsRepository:
         start_date = (now.date() - timedelta(days=days))
         end_date = now.date() + timedelta(days=1)  # end-exclusive
 
-        # 1) DB 집계 시도 (MySQL)
         sql = text("""
                    SELECT AVG(day_count)                                           AS mean_daily_count,
                           AVG(max_per_txn)                                         AS max_per_txn_mean,
@@ -88,7 +88,6 @@ class UserMetricsRepository:
                 "daily_sum_volatility": daily_sum_volatility,
             }
 
-        # 2) 폴백: 행을 가져와 파이썬에서 계산 (DB가 STDDEV_SAMP 미지원/설정 문제인 경우)
         rows = self.db.execute(text("""
                                     SELECT day_count, day_sum, max_per_txn
                                     FROM user_metrics
@@ -133,3 +132,36 @@ class UserMetricsRepository:
             "max_per_txn_mean": max_per_txn_mean,
             "daily_sum_volatility": daily_sum_volatility,
         }
+
+# NOTE: 가장 자주 소비한(거래일 기준) 상위 N개 카테고리를 반환합니다.
+    def get_top_frequent_categories(
+            self,
+            user_id: int,
+            now: datetime,
+            days: int = 30,
+            top_n: int = 3
+    ) -> list[dict]:
+
+        start_date = now.date() - timedelta(days=days)
+        end_date = now.date()
+
+        rows = (
+            self.db.query(
+                UserMetrics.sub_id,
+                func.count(UserMetrics.d).label("active_days"),  # 소비한 날짜 수
+                func.sum(UserMetrics.day_count).label("total_tx_count"),  # 총 거래 건수
+                func.sum(UserMetrics.day_sum).label("total_tx_sum")  # 총 거래 금액
+            )
+            .filter(UserMetrics.user_id == user_id)
+            .filter(UserMetrics.d.between(start_date, end_date))
+            .group_by(UserMetrics.sub_id)
+            .order_by(func.count(UserMetrics.d).desc())  # 소비한 날짜 수 기준으로 정렬
+            .limit(top_n)
+            .all()
+        )
+
+        return [
+            {"sub_id": row.sub_id, "active_days": row.active_days,
+             "total_tx_count": float(row.total_tx_count or 0),
+             "total_tx_sum": float(row.total_tx_sum or 0),} for row in rows
+        ]
