@@ -57,6 +57,7 @@ public class ReportService {
         YearMonth yearMonth = YearMonth.from(now);
         if (yearMonth.isAfter(YearMonth.now())) throw new CustomException(ERROR_GET_MONTHLY_TRANSACTIONS);
 
+        // 기본값이 들어있는 Report 생성
         List<Report> reports = new ArrayList();
         for (int i = 6; i >=0; i--) {
             Report report = new Report();
@@ -66,6 +67,7 @@ public class ReportService {
             report.setMonthlyFixedExpense(0L);
             reports.add(report);
         }
+        // 월별 Report 조회
         List<Report> findReports = reportRepository.findAllByUser_UserIdAndReportMonthBetweenOrderByReportMonthAsc(
                 userId,
                 now.minusMonths(6).withDayOfMonth(1),
@@ -76,6 +78,7 @@ public class ReportService {
                         r -> YearMonth.from(r.getReportMonth()),
                         Function.identity()
                 ));
+        // 조회한 Report 매핑
         for (int i = 0; i < reports.size(); i++) {
             YearMonth ym = YearMonth.from(reports.get(i).getReportMonth());
             if (foundedMap.containsKey(ym)) {
