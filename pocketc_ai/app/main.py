@@ -41,4 +41,5 @@ def rebuild_metrics(lookback_days: int = 3):
 @app.post("/admin/rebuild-clusters")
 def rebuild_clusters():
     r = cluster_model_task.apply_async()
+    print(r)
     return {"task_id": r.id}

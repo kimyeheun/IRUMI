@@ -1,4 +1,3 @@
-import StandardScaler
 import pandas as pd
 from celery import shared_task
 from sklearn.cluster import KMeans
@@ -10,6 +9,7 @@ from app.repository.transactionRepository import TransactionRepository
 from app.services.batch_program.clustering.features import build_user_features
 from app.services.batch_program.clustering.get_k import find_optimal_k_with_elbow
 from app.services.batch_program.clustering.scoring import cluster_category_profile, score_categories
+
 
 TRUNCATE_SQL = """
 TRUNCATE TABLE cluster
@@ -41,7 +41,6 @@ def get_cluster_data_from_model(repo: TransactionRepository, sub: SubCategoryRep
         min_cnt=3,
         min_share=0.015
     )
-
     # 1. is_fixed 정보를 DB에서 가져옵니다.
     sub_cat_df = sub.get_all_sub_as_df()
     # 2. 점수 데이터에 is_fixed 정보를 병합합니다.
@@ -63,12 +62,17 @@ def get_cluster_data_from_model(repo: TransactionRepository, sub: SubCategoryRep
 def cluster_model_task():
     db = next(get_db())
     try:
+        import logging
         run_sql(TRUNCATE_SQL)
         repo = TransactionRepository(db)
         sub = SubCategoryRepository(db)
         cluster_data = get_cluster_data_from_model(repo, sub)
+
+        logging.info(f"Prepared rows: {len(cluster_data)}")
+        logging.info(f"Prepared rows: {cluster_data}")
         if cluster_data:
             run_sql(INSERT_SQL, cluster_data)
+        logging.info("Cluster table rebuilt successfully.")
         return {"ok": True, "inserted_rows": len(cluster_data)}
     finally:
         db.close()
