@@ -45,10 +45,8 @@ if __name__ == "__main__":
         rows_coffee = fetch_metrics(1, 2001, 5)
         rows_delivery = fetch_metrics(1, 2002, 5)
         if rows_coffee and rows_delivery:
-            print("[batch_program/coffee]")
             for r in rows_coffee:
                 print(dict(r))
-            print("[batch_program/delivery]")
             for r in rows_delivery:
                 print(dict(r))
             break
