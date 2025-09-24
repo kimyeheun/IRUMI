@@ -18,11 +18,11 @@ public class ApiResponse<T> {
     private final int code;
     private final String message;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     private T data;
 
     public static ApiResponse<?> success(SuccessType successType) {
-        return new ApiResponse<>(successType.getHttpStatusCode(), successType.getMessage());
+        return new ApiResponse<>(successType.getHttpStatusCode(), successType.getMessage(),null);
     }
 
     public static <T> ApiResponse<T> success(SuccessType successType, T data) {
@@ -30,7 +30,7 @@ public class ApiResponse<T> {
     }
 
     public static ApiResponse<?> error(ErrorType errorType) {
-        return new ApiResponse<>(errorType.getHttpStatusCode(), errorType.getMessage());
+        return new ApiResponse<>(errorType.getHttpStatusCode(), errorType.getMessage(),null);
     }
 
     public static <T> ApiResponse<T> error(ErrorType errorType, T data) {
