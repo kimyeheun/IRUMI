@@ -7,10 +7,12 @@ import com.ssafy.pocketc_backend.domain.report.entity.Report;
 import com.ssafy.pocketc_backend.domain.report.repository.ReportRepository;
 import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionRepository;
 import com.ssafy.pocketc_backend.domain.user.entity.Streak;
+import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -99,5 +101,22 @@ public class MainService {
             streakDtos.add(StreakDto.from(streak));
         }
         return new StreakResDto(streakDtos);
+    }
+    //스케줄러용 서비스코드
+    @Transactional
+    public void createEmptyStreak() {
+        LocalDate today = LocalDate.now();
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            Streak streak = Streak.builder()
+                    .user(user)
+                    .date(today)
+                    .missionCompletedCount(0)
+                    .spentAmount(0L)
+                    .status(false)
+                    .build();
+
+            streakRepository.save(streak);
+        }
     }
 }
