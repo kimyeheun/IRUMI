@@ -19,12 +19,12 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
     List<Report> findAllByUser_UserIdAndReportMonthBetweenOrderByReportMonthAsc(Integer userId, LocalDate start, LocalDate end);
 
     @Query("SELECT new com.ssafy.pocketc_backend.domain.report.dto.response.ExpenseByCategoryDto( " +
-            "       t.majorCategory, SUM(t.amount)) " +
+            "       t.majorId, SUM(t.amount)) " +
             "FROM Transaction t " +
             "WHERE t.user.userId = :userId " +
             "AND t.transactedAt >= :start " +
             "AND t.transactedAt < :end " +
-            "GROUP BY t.majorCategory")
+            "GROUP BY t.majorId")
 
     List<ExpenseByCategoryDto> findExpenseByCategoryForMonth(
             @Param("userId") Integer userId,

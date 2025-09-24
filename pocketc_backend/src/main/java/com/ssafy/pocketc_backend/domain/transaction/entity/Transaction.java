@@ -31,8 +31,8 @@ public class Transaction extends BaseTimeEntity {
     @Column(length = 255)
     private String merchantName;
 
-    private Integer majorCategory;
-    private Integer subCategory;
+    private Integer majorId;
+    private Integer subId;
 
     private boolean isApplied;
     private boolean isFixed;

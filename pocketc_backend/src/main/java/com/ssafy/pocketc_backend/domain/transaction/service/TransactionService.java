@@ -1,5 +1,9 @@
 package com.ssafy.pocketc_backend.domain.transaction.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionRedisDto;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.MonthReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionAiReqDto;
@@ -40,6 +44,8 @@ public class TransactionService {
     private final UserRepository userRepository;
 
     private final WebClient transactionAiClient;
+
+    private final ObjectMapper objectMapper;
 
     // 여기서 userId를 사용하고 있지는 않은거 같은데
     public TransactionResDto getTransactionById(int transactionId) {
@@ -89,20 +95,20 @@ public class TransactionService {
 
         transaction.setFixed(dto.isFixed());
         transaction.setAmount(dto.amount());
-        transaction.setMajorCategory(dto.majorId());
-        transaction.setSubCategory(dto.subId());
+        transaction.setMajorId(dto.majorId());
+        transaction.setSubId(dto.subId());
         transaction.setMerchantName(dto.merchantName());
 
         return TransactionResDto.from(transaction);
     }
 
     public TransactionListResDto getMajorCategory(Integer majorCategory, Integer userId) {
-        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndMajorCategory(userId, majorCategory);
+        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndMajorId(userId, majorCategory);
         return buildTransactionListDto(transactions);
     }
 
     public TransactionListResDto getSubCategory(Integer subCategory, Integer userId) {
-        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndSubCategory(userId, subCategory);
+        List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndSubId(userId, subCategory);
         return buildTransactionListDto(transactions);
     }
 
@@ -131,8 +137,8 @@ public class TransactionService {
         transaction.setUser(userRepository.findById(userId).orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR)));
         transaction.setAmount(categorizedTransaction.amount());
         transaction.setMerchantName(categorizedTransaction.merchantName());
-        transaction.setSubCategory(categorizedTransaction.subId());
-        transaction.setMajorCategory(categorizedTransaction.majorId());
+        transaction.setSubId(categorizedTransaction.subId());
+        transaction.setMajorId(categorizedTransaction.majorId());
         transaction.setFixed(categorizedTransaction.isFixed());
 
         LocalDate curMonth = categorizedTransaction.transactedAt().toLocalDate().withDayOfMonth(1);
@@ -155,5 +161,77 @@ public class TransactionService {
             totalSpending += transaction.getAmount();
         }
         return TransactionListResDto.of(transactionResDtoList, totalSpending);
+    }
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+
+    public boolean checkMissionByTransaction(Integer transactionId, MissionRedisDto mission) throws JsonProcessingException {
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
+
+        String json = mission.getDsl();
+
+        JsonNode root = objectMapper.readTree(json);
+
+        String template = root.get("template").toString();
+        int subId = root.get("sub_id").asInt();
+        String type = root.get("type").toString();
+        String comparator = root.get("comparator").toString();
+        int value = root.get("value").asInt();
+
+        LocalDateTime start, end;
+        if (template.equals("TIME_BAN_DAILY")) {
+            JsonNode tod = root.get("time_of_day");
+            JsonNode tr = tod.get(0);
+            String startStr = tr.get("start").asText();
+            String endStr   = tr.get("end").asText();
+
+            LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+            LocalTime st = LocalTime.parse(startStr);
+            LocalTime en = LocalTime.parse(endStr);
+
+            start = LocalDateTime.of(today, st);
+            end   = LocalDateTime.of(today, en);
+
+            if (end.isBefore(start)) {
+                end = end.plusDays(1);
+            }
+        }
+
+        int dayOfWeek;
+        if (template.equals("DAY_BAN_WEEKLY")) {
+            dayOfWeek = root.get("day_of_week").asInt();
+        }
+
+        int progress = mission.getProgress();
+
+        long amount = transaction.getAmount();
+        LocalDateTime transactedAt = transaction.getTransactedAt();
+
+        boolean check = false;
+        switch (template) {
+            case "CATEGORY_BAN_DAILY":
+
+            case "SPEND_CAP_DAILY":
+
+            case "PER_TXN_DAILY":
+
+            case "TIME_BAN_DAILY":
+
+            case "COUNT_CAP_DAILY":
+
+            case "DAY_BAN_WEEKLY":
+
+            case "SPEND_CAP_WEEKLY":
+
+            case "COUNT_CAP_WEEKLY":
+
+            case "SPEND_CAP_MONTHLY":
+
+            case "COUNT_CAP_MONTHLY":
+
+        }
+        return check;
     }
 }
