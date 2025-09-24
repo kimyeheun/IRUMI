@@ -136,7 +136,7 @@ public class TransactionService {
         transaction.setTransactedAt(categorizedTransaction.transactedAt());
         transaction.setUser(userRepository.findById(userId).orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR)));
         transaction.setAmount(categorizedTransaction.amount());
-        transaction.setMerchantName(categorizedTransaction.merchantName());
+        transaction.setMerchantName(dto.merchantName());
         transaction.setSubId(categorizedTransaction.subId());
         transaction.setMajorId(categorizedTransaction.majorId());
         transaction.setFixed(categorizedTransaction.isFixed());
