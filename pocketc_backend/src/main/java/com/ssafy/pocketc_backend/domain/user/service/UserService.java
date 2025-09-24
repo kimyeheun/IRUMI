@@ -69,10 +69,10 @@ public class UserService {
 
         Report report = new Report();
         report.setUser(user);
-        report.setReportMonth(LocalDate.now());
+        report.setReportMonth(LocalDate.now().withDayOfMonth(1));
         report.setMonthlyTotalExpense(0L);
         report.setMonthlyFixedExpense(0L);
-        report.setMonthlyBudget(0L);
+        report.setMonthlyBudget(user.getBudget());
 
         reportService.save(report);
     }
