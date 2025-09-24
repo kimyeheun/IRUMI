@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+import random
 from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy.orm.session import Session
-import random
 
 from app.repository.categoryRepository import SubCategoryRepository
 from app.repository.clusterRepository import ClusterRepository
 from app.repository.missionRepository import MissionRepository
 from app.repository.transactionRepository import TransactionRepository
 from app.repository.userMetricsRepository import UserMetricsRepository
-from app.schemas.mission import Missions, Mission
+from app.schemas.mission import Mission
 from app.services.mission.clustering import cluster_for_user
 from app.services.mission.template.template import pick_template
 from app.services.mission.templates_to_mission import build_mission_details
@@ -51,7 +51,7 @@ class MissionService:
                     generated_templates.append(tmpl_name)
                     # 4. 미션 생성
                     mission_text, dsl, (valid_from, valid_to) = build_mission_details(
-                        tmpl_name, user_id, sub_id, sub_name, stats, now, self.template
+                        tmpl_name, sub_id, sub_name, stats, now, self.template
                     )
                     missions.append(
                         Mission(
@@ -84,12 +84,12 @@ class MissionService:
             stats = {"weekly_sum": weekly_sum, "weekly_count": weekly_count}
 
             # 위클리 템플릿 중 하나를 무작위로 선택
-            weekly_templates = ["SPEND_CAP_WEEKLY", "COUNT_CAP_WEEKLY"]
-            # TODO: DAY_BAN_WEEKLY는 요일 분석이 추가로 필요하므로 우선 간단한 템플릿부터 적용
+            weekly_templates = ["SPEND_CAP_WEEKLY", "COUNT_CAP_WEEKLY", "DAY_BAN_WEEKLY"]
+            # TODO: DAY_BAN_WEEKLY 요일 분석 추가
             tmpl_name = random.choice(weekly_templates)
             # 미션 생성
             mission_text, dsl, (valid_from, valid_to) = build_mission_details(
-                tmpl_name, user_id, sub_id, sub_name, stats, now, self.template
+                tmpl_name, sub_id, sub_name, stats, now, self.template
             )
             missions.append(
                 Mission(
@@ -122,7 +122,7 @@ class MissionService:
             tmpl_name = random.choice(["SPEND_CAP_MONTHLY", "COUNT_CAP_MONTHLY"])
             # 미션 생성
             mission_text, dsl, (valid_from, valid_to) = build_mission_details(
-                tmpl_name, user_id, sub_id, sub_name, stats, now, self.template
+                tmpl_name, sub_id, sub_name, stats, now, self.template
             )
             missions.append(
                 Mission(

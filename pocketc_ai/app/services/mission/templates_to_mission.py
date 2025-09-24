@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Tuple, List
 
 
+DAY_MAP = {"월": 0, "화": 1, "수": 2, "목": 3, "금": 4, "토": 5, "일": 6}
+
+
 def _default_caps(stats: Dict[str, float]) -> Dict[str, Any]:
     mean_cnt = float(stats.get("mean_daily_count", 0)) or 1.0
     per_std = float(stats.get("per_txn_std", 0.0)) or 0.0
@@ -44,6 +47,13 @@ def _get_valid_time(now: datetime, params: Dict[str, Any], scope: str) -> Tuple[
         if valid_from > valid_to:
             valid_to += timedelta(days=1)
 
+    if "day_label" in params:
+        start_of_week = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+        target_wd = DAY_MAP.get(params["day_label"], 0)
+        if target_wd is not None:
+            target_date = start_of_week + timedelta(days=target_wd)
+            valid_from = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            valid_to = target_date.replace(hour=23, minute=59, second=59, microsecond=999999)
     return valid_from, valid_to
 
 
@@ -105,34 +115,45 @@ def _compute_params_for_template(tmpl_code: str, sub_id: int, sub_name: str, sta
 
     return params
 
-def _build_dsl_for_template(name: str, user_id: int, params: Dict[str, Any], scope:str) -> Dict[str, Any]:
+def _build_dsl_for_template(name: str, params: Dict[str, Any]) -> Dict[str, Any]:
     base = {
-        "window": {"scope": scope, "tz": "Asia/Seoul"},
-        "target": {"user_id": user_id, "sub_id": params["sub_id"]}
+        "template": name,
+        "sub_id": params["sub_id"],
     }
     if name in ["COUNT_CAP_DAILY", "COUNT_CAP_WEEKLY", "COUNT_CAP_MONTHLY"]:
-        base["conditions"] = [{"type": "count", "comparator": "<=", "value": params["N"]}]
+        base["type"] = "count"
+        base["comparator"] = "<="
+        base["value"] = params["N"]
     elif name == "PER_TXN_DAILY":
-        base["conditions"] = [{"type": "per_txn_max", "comparator": "<=", "value": params["per_txn"]}]
+        base["type"] = "per_txn_max"
+        base["comparator"] = "<="
+        base["value"] = params["per_txn"]
     elif name in ["SPEND_CAP_DAILY", "SPEND_CAP_WEEKLY", "SPEND_CAP_MONTHLY"]:
-        base["conditions"] = [{"type": "total_spend", "comparator": "<=", "value": params["amount"]}]
+        base["type"] = "total_spend"
+        base["comparator"] = "<="
+        base["value"] = params["amount"]
     elif name == "TIME_BAN_DAILY":
-        base["window"]["time_of_day"] = params["time_ranges"]
-        base["conditions"] = [{"type": "count", "comparator": "==", "value": 0}]
+        base["type"] = "count"
+        base["comparator"] = "=="
+        base["value"] = 0
+        base["time_of_day"] = params["time_ranges"]
     elif name == "CATEGORY_BAN_DAILY":
-        base["conditions"] = [{"type": "count", "comparator": "==", "value": 0}]
+        base["type"] = "count"
+        base["comparator"] = "=="
+        base["value"] = 0
     elif name == "DAY_BAN_WEEKLY":
-        # 예: 월요일은 0, 일요일은 6
-        day_map = {"월": 0, "화": 1, "수": 2, "목": 3, "금": 4, "토": 5, "일": 6}
-        base["window"]["day_of_week"] = [day_map.get(params["day_label"], 0)]
-        base["conditions"] = [{"type": "count", "comparator": "==", "value": 0}]
+        base["type"] = "count"
+        base["comparator"] = "=="
+        base["value"] = 0
+        base["time_of_day"] = DAY_MAP.get(params["day_label"], 0)
     else:
-        base["conditions"] = [{"type": "total_spend", "comparator": "<=", "value": params.get("amount", 20000)}]
+        base["type"] = "total_spend"
+        base["comparator"] = "<="
+        base["value"] = params.get("amount", 20000)
     return base
 
 def build_mission_details(
         tmpl_code: str,
-        user_id: int,
         sub_id: int,
         sub_name: str,
         stats: Dict[str, float],
@@ -153,5 +174,5 @@ def build_mission_details(
     # 3. 미션 문장 생성
     sentence = raw_sentence.format_map(_SafeDict(params))
     # 4. 동일한 파라미터를 사용해 DSL 생성
-    dsl = _build_dsl_for_template(tmpl_code, user_id, params, scope)
+    dsl = _build_dsl_for_template(tmpl_code, params)
     return sentence, dsl, (valid_from, valid_to)
