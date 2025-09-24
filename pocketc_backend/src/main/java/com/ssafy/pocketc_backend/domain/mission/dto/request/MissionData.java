@@ -4,7 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record MissionData(
-      Integer userId,
-      LocalDate date,
-      List<MissionItem> missions
-) {}
+        Integer userId,
+        LocalDate date,
+        List<MissionItem> missions
+) {
+}
