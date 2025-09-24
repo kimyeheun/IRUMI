@@ -5,7 +5,7 @@ import com.example.irumi.data.dto.response.events.Event
 import com.example.irumi.data.dto.response.events.EventsRoomResponse
 import com.example.irumi.data.dto.response.events.Member
 import com.example.irumi.data.dto.response.events.Puzzle
-import com.example.irumi.data.dto.response.PuzzlesResponse
+import com.example.irumi.data.dto.response.events.PuzzlesResponse
 import com.example.irumi.data.dto.response.events.EventResponse
 import com.example.irumi.data.dto.response.events.Rank
 import com.example.irumi.data.dto.response.events.Room
