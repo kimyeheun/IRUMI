@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class EventsRoomResponse(
     @SerialName("room")
-    val room: Room,
+    val room: Room?,
     @SerialName("event")
     val event: Event
 )

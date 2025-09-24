@@ -1,6 +1,5 @@
 package com.example.irumi.data.mapper
 
-import com.example.irumi.data.dto.response.EventsRoomResponse
 import com.example.irumi.data.dto.response.Event
 import com.example.irumi.data.dto.response.Member
 import com.example.irumi.data.dto.response.Puzzle
@@ -12,13 +11,6 @@ import com.example.irumi.domain.entity.PuzzleEntity
 import com.example.irumi.domain.entity.RankEntity
 import com.example.irumi.domain.entity.RoomEntity
 
-fun EventsRoomResponse.toRoomEntity(): RoomEntity {
-    return this.room.toRoomEntity(this.room.puzzles.map { it.toPuzzleEntity() }, this.room.ranks.map { it.toRankEntity() }, this.room.members.map { it.toMemberEntity() })
-}
-
-fun EventsRoomResponse.toEventEntity(): EventEntity {
-    return this.event.toEventEntity()
-}
 
 fun Room.toRoomEntity(puzzles: List<PuzzleEntity>, ranks: List<RankEntity>, members: List<MemberEntity>): RoomEntity {
     return RoomEntity(

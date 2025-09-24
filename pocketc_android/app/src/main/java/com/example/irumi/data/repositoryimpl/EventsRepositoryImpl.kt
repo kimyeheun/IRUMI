@@ -15,10 +15,10 @@ import javax.inject.Inject
 class EventsRepositoryImpl @Inject constructor(
     private val eventDataSource: EventsDataSource
 ) : EventsRepository {
-    override suspend fun getEventsRoom(): Result<Pair<RoomEntity, EventEntity>> {
+    override suspend fun getEventsRoom(): Result<Pair<RoomEntity?, EventEntity>> {
         return runCatching {
             val response = eventDataSource.getEventsRoom().data!!
-            val roomEntity = response.room.toRoomEntity(
+            val roomEntity = response.room?.toRoomEntity(
                 response.room.puzzles.map { it.toPuzzleEntity() },
                 response.room.ranks.map { it.toRankEntity() },
                 response.room.members.map { it.toMemberEntity() }
@@ -31,7 +31,7 @@ class EventsRepositoryImpl @Inject constructor(
     override suspend fun enterEventsRoom(roomCode: String): Result<Pair<RoomEntity, EventEntity>> {
         return runCatching {
             val response = eventDataSource.enterEventsRoom(roomCode).data!!
-            val roomEntity = response.room.toRoomEntity(
+            val roomEntity = response.room!!.toRoomEntity(
                 response.room.puzzles.map { it.toPuzzleEntity() },
                 response.room.ranks.map { it.toRankEntity() },
                 response.room.members.map { it.toMemberEntity() }
@@ -44,7 +44,7 @@ class EventsRepositoryImpl @Inject constructor(
     override suspend fun createEventsRoom(maxMembers: Int): Result<Pair<RoomEntity, EventEntity>> {
         return runCatching {
             val response = eventDataSource.createEventsRoom(maxMembers).data!!
-            val roomEntity = response.room.toRoomEntity(
+            val roomEntity = response.room!!.toRoomEntity(
                 response.room.puzzles.map { it.toPuzzleEntity() },
                 response.room.ranks.map { it.toRankEntity() },
                 response.room.members.map { it.toMemberEntity() }

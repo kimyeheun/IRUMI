@@ -13,14 +13,14 @@ interface EventsService {
     /**
      * 이벤트 방 정보 조회 API
      */
-    @GET("/room")
+    @GET("/api/v1/event/room")
     suspend fun getEventsRoom(
     ): BaseResponse<EventsRoomResponse>
 
     /**
      * 이벤트 방 입장 API
      */
-    @POST("/event/room/join?roomCode={roomCode}")
+    @POST("/api/v1/event/room/join?roomCode={roomCode}")
     suspend fun enterEventsRoom(
         @Path("roomCode") roomCode: String
     ): BaseResponse<EventsRoomResponse>
@@ -28,7 +28,7 @@ interface EventsService {
     /**
      * 이벤트 방 생성 API
      */
-    @POST("/event/room")
+    @POST("/api/v1/event/room")
     suspend fun createEventsRoom(
         @Query("maxMembers") maxMembers: Int
     ): BaseResponse<EventsRoomResponse>
@@ -36,14 +36,14 @@ interface EventsService {
     /**
      * 이벤트 방 나가기 API
      */
-    @POST("event/room")
+    @POST("/api/v1/event/room")
     suspend fun leaveEventsRoom(
     ): BaseResponse<Event>
 
     /**
      * 퍼즐 채우기 API
      */
-    @POST("event/fill")
+    @POST("/api/v1/event/fill")
     suspend fun fillPuzzle(
     ): BaseResponse<PuzzlesResponse>
 
