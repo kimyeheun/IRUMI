@@ -1,10 +1,14 @@
 package com.example.irumi.data.dto.response.payments
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class PaymentsResponse(
     val payments: List<Payment>,
     val totalSpending: Int
 )
 
+@Serializable
 data class Payment(
     val transactionId: Int,
     val date: String,

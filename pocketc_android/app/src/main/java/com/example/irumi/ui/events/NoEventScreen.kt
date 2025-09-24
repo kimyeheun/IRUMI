@@ -1,7 +1,6 @@
 package com.example.irumi.ui.events
 
 import android.R
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,34 +39,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.irumi.domain.entity.EventEntity
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun NoEventScreen(viewModel: EventViewModel = hiltViewModel()) {
+fun NoEventScreen(viewModel: EventViewModel = hiltViewModel(), eventEntity: EventEntity) {
     // TODO 뷰모델 연결
     var showDialog by remember { mutableStateOf(false) }
     var dialogType by remember { mutableStateOf<DialogType?>(null) }
-
-    // todo 뷰모델 연결
-    val event = EventEntity(
-        eventId = 1,
-        eventName = "맹구 퍼즐 미션",
-        eventDescription = "참여자들이 퍼즐을 맞추는 협동 이벤트입니다. 친구들과 함께 보상을 획득하세요!",
-        eventImageUrl = "https://mblogthumb-phinf.pstatic.net/MjAyMzEwMDhfMjMz/MDAxNjk2NzMyNTA3NzM1.O5iVGUwOEGFbxoqzH9H5H2qwFmbLNdOR7PmuuNE2PMAg.eY7eLpHanrC_AWz-9T2VCZamarnMq_5i6MBHboR2Z1Ug.JPEG.qmfosej/IMG_7989.JPG?type=w800",
-        badgeName = "퍼즐왕",
-        badgeDescription = "퍼즐을 모두 완성하면 지급되는 배지입니다.",
-        startAt = "2025-08-31T00:00:00Z",
-        endAt = "2025-09-10T23:59:59Z"
-    )
 
     Column(
         modifier = Modifier
@@ -76,13 +65,16 @@ fun NoEventScreen(viewModel: EventViewModel = hiltViewModel()) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_menu_gallery), // TODO 실제 이미지로 교체 필요
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(eventEntity.eventImageUrl)
+                .crossfade(true) // 부드러운 이미지 로딩 효과 (선택 사항)
+                .placeholder(R.drawable.ic_menu_gallery) // TODO 로딩 중 보여줄 플레이스홀더 이미지 (선택 사항)
+                .build(),
             contentDescription = "Event Image",
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
                 .clip(RoundedCornerShape(8.dp))
         )
 
@@ -93,20 +85,20 @@ fun NoEventScreen(viewModel: EventViewModel = hiltViewModel()) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = event.eventName,
+                text = eventEntity.eventName,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "기간: ${formatDate(event.startAt)} ~ ${formatDate(event.endAt)}",
+                text = "기간: ${formatDate(eventEntity.startAt)} ~ ${formatDate(eventEntity.endAt)}",
                 fontSize = 14.sp,
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = event.eventDescription,
+                text = eventEntity.eventDescription,
                 fontSize = 16.sp,
                 color = Color.Black
             )
@@ -119,14 +111,14 @@ fun NoEventScreen(viewModel: EventViewModel = hiltViewModel()) {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "🏆 보상: ${event.badgeName}",
+                        text = "🏆 보상: ${eventEntity.badgeName}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.Black
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = event.badgeDescription,
+                        text = eventEntity.badgeDescription,
                         fontSize = 14.sp,
                         color = Color.DarkGray
                     )
@@ -343,7 +335,7 @@ fun RoomCreationDialog(
 
 // TODO Util
 private fun formatDate(dateString: String): String {
-    val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+    val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
     val formatter = SimpleDateFormat("MM.dd", Locale.getDefault())
     val date = parser.parse(dateString) ?: return ""
     return formatter.format(date)

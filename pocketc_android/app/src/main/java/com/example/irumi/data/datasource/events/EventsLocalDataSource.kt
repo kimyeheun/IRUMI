@@ -1,14 +1,15 @@
 package com.example.irumi.data.datasource.events
 
 import com.example.irumi.core.network.BaseResponse
-import com.example.irumi.data.dto.response.Event
-import com.example.irumi.data.dto.response.EventsRoomResponse
-import com.example.irumi.data.dto.response.Member
-import com.example.irumi.data.dto.response.Puzzle
+import com.example.irumi.data.dto.response.events.Event
+import com.example.irumi.data.dto.response.events.EventsRoomResponse
+import com.example.irumi.data.dto.response.events.Member
+import com.example.irumi.data.dto.response.events.Puzzle
 import com.example.irumi.data.dto.response.PuzzlesResponse
-import com.example.irumi.data.dto.response.Rank
-import com.example.irumi.data.dto.response.Room
-import com.example.irumi.data.dto.response.RoomStatus
+import com.example.irumi.data.dto.response.events.EventResponse
+import com.example.irumi.data.dto.response.events.Rank
+import com.example.irumi.data.dto.response.events.Room
+import com.example.irumi.data.dto.response.events.RoomStatus
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -146,11 +147,11 @@ class EventsLocalDataSource @Inject constructor() : EventsDataSource {
         )
     }
 
-    override suspend fun leaveEventsRoom(): BaseResponse<Event> {
+    override suspend fun leaveEventsRoom(): BaseResponse<EventResponse> {
         return BaseResponse(
             status = 200,
             message = "success",
-            data =
+            data = EventResponse(
                 Event(
                         eventId = 101,
                         eventName = "가을맞이 절약 챌린지",
@@ -162,6 +163,7 @@ class EventsLocalDataSource @Inject constructor() : EventsDataSource {
                         endAt = "2025-09-30T23:59:59Z"
 
                 )
+            )
         )
     }
 

@@ -1,6 +1,7 @@
 package com.example.irumi.ui.events
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
@@ -12,10 +13,21 @@ fun EventsScreen(brand: Color, viewModel: EventViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
 
     // TODO viewmodel 을 안넘기고,, 데이터만 넘기는건?
+    LaunchedEffect(Unit) {
+        Timber.d("!!! EventsScreen LaunchedEffect")
+        viewModel.getEventsRoomData()
+    }
+
+
     Timber.d("EventScreen -> uiState: $uiState")
     when (uiState) {
+        is EventUiState.Loading -> {
+            // TODO
+            Timber.d("!!! EventsScreen Loading ->  로딩 구현")
+        }
         is EventUiState.NoRoom -> {
-            NoEventScreen()
+            val eventEntity = (uiState as EventUiState.NoRoom).eventEntity
+            NoEventScreen(eventEntity = eventEntity)
         }
         is EventUiState.InRoom -> {
             val (roomEntity, eventEntity) = uiState as EventUiState.InRoom
@@ -24,6 +36,9 @@ fun EventsScreen(brand: Color, viewModel: EventViewModel = hiltViewModel()) {
         is EventUiState.GameEnd -> {
             val (isSuccess, roomEntity, eventEntity) = uiState as EventUiState.GameEnd
             EventRoomScreen(roomEntity = roomEntity, eventEntity = eventEntity, isSuccess = isSuccess)
+        }
+        is EventUiState.Error -> {
+            TODO()
         }
     }
 }

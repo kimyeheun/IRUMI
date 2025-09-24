@@ -1,4 +1,4 @@
-package com.example.irumi.data.dto.response
+package com.example.irumi.data.dto.response.events
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class EventsRoomResponse(
     @SerialName("room")
-    val room: Room,
+    val room: Room?,
     @SerialName("event")
     val event: Event
 )

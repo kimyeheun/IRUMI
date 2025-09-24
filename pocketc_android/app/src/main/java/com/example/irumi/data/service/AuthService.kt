@@ -16,7 +16,7 @@ interface AuthService {
     @POST("../users")
     suspend fun signUp(
         @Body body: com.example.irumi.data.dto.request.auth.SignUpRequest
-    ): BaseResponse<TokenEnvelope>
+    ): BaseResponse<Void>
 
     /** 로그인 */
     @POST("login")

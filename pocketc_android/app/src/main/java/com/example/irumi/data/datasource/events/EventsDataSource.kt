@@ -1,9 +1,9 @@
 package com.example.irumi.data.datasource.events
 
 import com.example.irumi.core.network.BaseResponse
-import com.example.irumi.data.dto.response.Event
-import com.example.irumi.data.dto.response.EventsRoomResponse
 import com.example.irumi.data.dto.response.PuzzlesResponse
+import com.example.irumi.data.dto.response.events.EventResponse
+import com.example.irumi.data.dto.response.events.EventsRoomResponse
 
 interface EventsDataSource {
     suspend fun getEventsRoom(
@@ -18,7 +18,7 @@ interface EventsDataSource {
 
 
     suspend fun leaveEventsRoom(
-    ): BaseResponse<Event>
+    ): BaseResponse<EventResponse>
 
     suspend fun fillPuzzle(
     ): BaseResponse<PuzzlesResponse>

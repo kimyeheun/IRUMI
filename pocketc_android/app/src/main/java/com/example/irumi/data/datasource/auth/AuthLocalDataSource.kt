@@ -7,7 +7,6 @@ import com.example.irumi.data.dto.request.auth.SignUpRequest
 import com.example.irumi.data.dto.response.auth.LoginEnvelope
 import com.example.irumi.data.dto.response.auth.MemberProfileResponse
 import com.example.irumi.data.dto.response.auth.TokenEnvelope
-import com.example.irumi.data.dto.response.auth.TokenPair
 import javax.inject.Inject
 
 private val AuthEditRequest.budget: Int
@@ -33,11 +32,11 @@ private val AuthEditRequest.profileImage: String?
 
 class AuthLocalDataSource @Inject constructor() : AuthDataSource {
 
-    override suspend fun signUp(body: SignUpRequest): BaseResponse<TokenEnvelope> =
+    override suspend fun signUp(body: SignUpRequest): BaseResponse<Void> =
         BaseResponse(
             status = 201,
             message = "회원가입이 완료되었습니다",
-            data = TokenEnvelope(accessToken = "access_dummy", refreshToken = "refresh_dummy")
+            data = null
         )
 
     override suspend fun login(body: LoginRequest): BaseResponse<LoginEnvelope> =
