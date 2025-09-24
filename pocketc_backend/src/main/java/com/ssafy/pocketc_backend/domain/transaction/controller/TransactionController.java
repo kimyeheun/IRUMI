@@ -1,6 +1,6 @@
 package com.ssafy.pocketc_backend.domain.transaction.controller;
 
-import com.ssafy.pocketc_backend.domain.transaction.dto.request.MonthReqDto;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionCreateReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionCreatedResDto;
@@ -34,10 +34,10 @@ public class TransactionController {
     }
 
     @GetMapping("/users/transactions")
-    public ResponseEntity<ApiResponse<TransactionListResDto>> getTransactions(@RequestBody MonthReqDto dto, Principal principal) {
+    public ResponseEntity<ApiResponse<TransactionListResDto>> getTransactions(@RequestParam("year") Integer year, @RequestParam("month") Integer month, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_MONTHLY_TRANSACTIONS,
-                transactionService.getMonthlyTransactionList(dto, userId(principal))
+                transactionService.getMonthlyTransactionList(year, month, userId(principal))
         ));
     }
 
@@ -70,6 +70,14 @@ public class TransactionController {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_CREATE_TRANSACTIONS,
                 transactionService.createTransaction(dto)
+        ));
+    }
+
+    @PostMapping("/users/transactions/{transactionId}")
+    public ResponseEntity<ApiResponse<?>> appliedTransaction(@PathVariable("transactionId") Integer transactionId, Principal principal) throws JsonProcessingException {
+        transactionService.appliedTransaction(transactionId, userId(principal));
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_APPLIED_TRANSACTION
         ));
     }
 }
