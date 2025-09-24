@@ -34,8 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.ERROR_GET_MONTHLY_TRANSACTIONS;
-import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.ERROR_GET_TRANSACTION;
+import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.*;
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
 
 @Service
@@ -63,8 +62,8 @@ public class TransactionService {
         return TransactionResDto.from(transaction);
     }
 
-    public TransactionListResDto getMonthlyTransactionList(MonthReqDto dto, Integer userId) {
-        YearMonth yearMonth = YearMonth.of(dto.year(), dto.month());
+    public TransactionListResDto getMonthlyTransactionList(Integer year, Integer month, Integer userId) {
+        YearMonth yearMonth = YearMonth.of(year, month);
 
         if (yearMonth.isAfter(YearMonth.now())) {
             throw new CustomException(ERROR_GET_MONTHLY_TRANSACTIONS);
@@ -165,27 +164,28 @@ public class TransactionService {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
+        if (transaction.isApplied()) throw new CustomException(ERROR_ALREADY_APPLIED);
+        transaction.setApplied(true);
+
         LocalDate date = LocalDate.from(transaction.getTransactedAt());
+        if (transaction.getTransactedAt().toLocalTime().isBefore(LocalTime.of(6, 0))) {
+            date = date.minusDays(1);
+        }
 
         String key = missionRedisService.buildKey(userId, date);
 
         List<MissionRedisDto> cached = Optional.ofNullable(missionRedisService.getList(key))
                 .orElse(List.of());
 
-        Streak streak = streakRepository.findByUser_userIdAndDate(userId, date);
-
         for (MissionRedisDto missionRedisDto : cached) {
             if (missionRedisDto.getStatus() != Status.IN_PROGRESS) continue;
             boolean check = checkMissionByTransaction(transaction, missionRedisDto);
             if (!check) {
                 missionRedisDto.setStatus(Status.FAILURE);
-            } else {
-
             }
         }
-
+        missionRedisService.putList(key, cached, missionRedisService.ttlUntilNext6am());
     }
-
 
     private TransactionListResDto buildTransactionListDto(List<Transaction> transactions) {
         List<TransactionResDto> transactionResDtoList = new ArrayList<>();
