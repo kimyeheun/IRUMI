@@ -24,7 +24,7 @@ def create_daily_mission(
     try:
         missions = service.create_daily_mission(user_id=userId, now=today)
         data = {"userId": userId, "date": today.date(), "missions": missions}
-
+        print(data)
         payload: Dict[str, Any] = {
             "status": 201,
             "message": "데일리 미션 생성 완료",

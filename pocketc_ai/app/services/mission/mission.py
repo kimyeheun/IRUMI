@@ -31,13 +31,16 @@ class MissionService:
     def create_daily_mission(self, user_id: int, now: datetime) -> list[Mission]:
         # 1. 클러스터 예측
         cluster_id = cluster_for_user(self.cluster_path, self.trans, user_id, now)
+        print(cluster_id)
         # 2.1. 클러스터 → 소분류 top-3
         sub_ids = self.cluster.get_sub_by_id(cluster_id)
+        print(sub_ids)
         # 2.2. id → 이름 변환
         subs = self.sub.get_names_by_ids(sub_ids)
 
         missions = []
         mission_counts = [2, 2, 1]
+
 
         for i, (sub_id, sub_name) in enumerate(zip(sub_ids, subs)):
             if len(missions) >= 5: break
