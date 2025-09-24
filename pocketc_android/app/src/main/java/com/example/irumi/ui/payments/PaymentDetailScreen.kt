@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.irumi.core.mapper.CategoryMapper
 import com.example.irumi.core.state.UiState
 import com.example.irumi.domain.entity.payments.PaymentEntity
 import timber.log.Timber
@@ -55,41 +56,21 @@ import java.util.Locale
 @Composable
 fun PaymentDetailRoute(
     paddingValues: PaddingValues,
+    paymentId: Int?,
     viewModel: PaymentsViewModel = hiltViewModel(),
     navigateUp: () -> Unit
     ) {
-//    val coroutineScope = rememberCoroutineScope()
-//    val snackBarHostState = remember { SnackbarHostState() }
-//    var scoopDialogVisibility by remember { mutableStateOf(false) }
-//    var deleteReviewDialogVisibility by remember { mutableStateOf(false) }
-
-//    LaunchedEffect(viewModel.sideEffect, lifecycleOwner) {
-//        viewModel.sideEffect.flowWithLifecycle(lifecycleOwner.lifecycle).collect { effect ->
-//            when (effect) {
-//                is PlaceDetailSideEffect.ShowSnackbar -> {
-//                    onShowSnackBar(effect.message)
-//                }
-//                is PlaceDetailSideEffect.NavigateUp -> navigateUp()
-//            }
-//        }
-//    }
-
-//    val lifecycle = lifecycleOwner.lifecycle
-//    LaunchedEffect(lifecycle) {
-//        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//            viewModel.refresh()
-//        }
-//    }
 
     // 1. 대분류 관련 상태 변수
     val lifecycleOwner = LocalLifecycleOwner.current
 
     val state by viewModel.paymentDetailState.collectAsStateWithLifecycle(lifecycleOwner = lifecycleOwner)
-    val selectedMajorCategory by viewModel.selectedMajorCategory.collectAsStateWithLifecycle(lifecycleOwner = lifecycleOwner)
-    val selectedMinorCategory by viewModel.selectedMinorCategory.collectAsStateWithLifecycle(lifecycleOwner = lifecycleOwner)
+    val selectedMajorCategoryName by viewModel.selectedMajorCategoryName.collectAsStateWithLifecycle()
+    val minorCategoryNameOptions by viewModel.minorCategoryNameOptions.collectAsStateWithLifecycle()
+    val selectedMinorCategoryName by viewModel.selectedMinorCategoryName.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.getPaymentDetail()
+        viewModel.getPaymentDetail(paymentId)
     }
 
     when (state) {
@@ -98,13 +79,14 @@ fun PaymentDetailRoute(
         is UiState.Failure -> {}
         is UiState.Success -> {
             PaymentDetailScreen(
+                modifier = Modifier.padding(paddingValues),
                 paymentDetail = (state as UiState.Success<PaymentEntity>).data,
-                majorCategories = viewModel.majorCategories,
-                categoryMap = viewModel.categoryMap,
-                selectedMajorCategory = selectedMajorCategory,
-                selectedMinorCategory = selectedMinorCategory,
-                onMajorCategorySelected = viewModel::onSelectedMajorCategorySelected,
-                onMinorCategorySelected = viewModel::onSelectedMinorCategorySelected,
+                majorCategoryNames = viewModel.majorCategoryNames, // ViewModel에서 대분류 이름 목록 가져오기
+                minorCategoryNameOptions = minorCategoryNameOptions,
+                selectedMajorCategoryName = selectedMajorCategoryName,
+                selectedMinorCategoryName = selectedMinorCategoryName,
+                onMajorCategoryNameSelected = viewModel::onMajorCategoryNameSelected,
+                onMinorCategoryNameSelected = viewModel::onMinorCategoryNameSelected,
                 onEditClick = { updatedAmount ->
                     Timber.d("!!! onEditClick UI ${updatedAmount}")
                     viewModel.onEditClick(updatedAmount)
@@ -117,16 +99,17 @@ fun PaymentDetailRoute(
 
 @Composable
 fun PaymentDetailScreen(
+    modifier: Modifier = Modifier, // Scaffold 패딩 등을 적용하기 위한 Modifier
     paymentDetail: PaymentEntity,
-    majorCategories: List<String>,
-    categoryMap: Map<String, List<String>>,
-    selectedMajorCategory: String,
-    selectedMinorCategory: String,
-    onMajorCategorySelected: (String) -> Unit,
-    onMinorCategorySelected: (String) -> Unit,
+    majorCategoryNames: List<String>,
+    minorCategoryNameOptions: List<String>,
+    selectedMajorCategoryName: String,
+    selectedMinorCategoryName: String,
+    onMajorCategoryNameSelected: (String) -> Unit,
+    onMinorCategoryNameSelected: (String) -> Unit,
     onEditClick: (updatedAmount: Int) -> Unit
 ) {
-    var editedAmount by remember { mutableStateOf(paymentDetail.amount) }
+    var currentAmountForEditButton by remember(paymentDetail.amount) { mutableStateOf(paymentDetail.amount) }
 
     Column(
         modifier = Modifier
@@ -140,7 +123,7 @@ fun PaymentDetailScreen(
         EditableAmountText(
             initialAmount = paymentDetail.amount,
             onAmountChange = { newAmount ->
-                editedAmount = newAmount
+                currentAmountForEditButton = newAmount
             }
         )
 
@@ -148,12 +131,12 @@ fun PaymentDetailScreen(
 
         // 카테고리 설정
         CategorySection(
-            majorCategories = majorCategories,
-            categoryMap = categoryMap,
-            selectedMajorCategory = selectedMajorCategory,
-            selectedMinorCategory = selectedMinorCategory,
-            onMajorCategorySelected = onMajorCategorySelected,
-            onMinorCategorySelected = onMinorCategorySelected,
+            majorCategoryNames = majorCategoryNames,
+            minorCategoryNameOptions = minorCategoryNameOptions,
+            selectedMajorCategoryName = selectedMajorCategoryName,
+            selectedMinorCategoryName = selectedMinorCategoryName,
+            onMajorCategoryNameSelected = onMajorCategoryNameSelected,
+            onMinorCategoryNameSelected = onMinorCategoryNameSelected
         )
 
         Spacer(Modifier.height(32.dp))
@@ -163,8 +146,10 @@ fun PaymentDetailScreen(
             paymentDetail = paymentDetail
         )
 
-        Button(onClick = { onEditClick(editedAmount) }, Modifier.fillMaxWidth()) {
-            Text("수정")
+        Spacer(Modifier.weight(1f)) // 버튼을 하단에 위치시키기 위한 Spacer
+
+        Button(onClick = { onEditClick(currentAmountForEditButton) }, Modifier.fillMaxWidth()) {
+            Text("수정 완료")
         }
     }
 }
@@ -259,12 +244,12 @@ fun EditableAmountText(
 
 @Composable
 fun CategorySection(
-    majorCategories: List<String>,
-    categoryMap: Map<String, List<String>>,
-    selectedMajorCategory: String,
-    selectedMinorCategory: String,
-    onMajorCategorySelected: (String) -> Unit,
-    onMinorCategorySelected: (String) -> Unit,
+    majorCategoryNames: List<String>,
+    minorCategoryNameOptions: List<String>,
+    selectedMajorCategoryName: String,
+    selectedMinorCategoryName: String,
+    onMajorCategoryNameSelected: (String) -> Unit,
+    onMinorCategoryNameSelected: (String) -> Unit,
 ) {
     Column {
         Text(
@@ -275,15 +260,16 @@ fun CategorySection(
         Spacer(Modifier.height(16.dp))
         CategoryRow(
             label = "대분류",
-            selectedCategory = selectedMajorCategory,
-            onCategorySelected = onMajorCategorySelected,
-            categoryList = majorCategories
+            selectedCategoryName = selectedMajorCategoryName,
+            onCategoryNameSelected = onMajorCategoryNameSelected,
+            categoryNameList = majorCategoryNames
         )
         CategoryRow(
             label = "소분류",
-            selectedCategory = selectedMinorCategory,
-            onCategorySelected = onMinorCategorySelected,
-            categoryList = categoryMap[selectedMajorCategory] ?: emptyList()
+            selectedCategoryName = selectedMinorCategoryName,
+            onCategoryNameSelected = onMinorCategoryNameSelected,
+            categoryNameList = minorCategoryNameOptions, // ViewModel에서 전달된 소분류 옵션 사용
+            enabled = minorCategoryNameOptions.isNotEmpty() // 소분류 옵션이 있을 때만 활성화
         )
     }
 }
@@ -335,9 +321,10 @@ fun DetailItem(label: String, value: String, showArrow: Boolean = true) {
 @Composable
 fun CategoryRow(
     label: String,
-    selectedCategory: String,
-    onCategorySelected: (String) -> Unit,
-    categoryList: List<String>
+    selectedCategoryName: String,
+    onCategoryNameSelected: (String) -> Unit,
+    categoryNameList: List<String>,
+    enabled: Boolean = true // 드롭다운 활성화 여부
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
@@ -352,42 +339,58 @@ fun CategoryRow(
             text = label,
             modifier = Modifier.weight(0.3f), // 30% 비율로 공간 차지
             fontSize = 16.sp,
-            color = Color.Gray
+            color = if (enabled) Color.Gray else Color.LightGray
         )
 
         // 드롭다운 메뉴 박스 (식비, 아래 화살표)
         ExposedDropdownMenuBox(
-            expanded = isExpanded,
-            onExpandedChange = { isExpanded = !isExpanded },
-            modifier = Modifier.weight(0.7f) // 70% 비율로 공간 차지
+            expanded = isExpanded && enabled, // 활성화 상태일 때만 확장 가능
+            onExpandedChange = { if (enabled) isExpanded = !isExpanded },
+            modifier = Modifier.weight(0.7f)
         ) {
             TextField(
                 modifier = Modifier
                     .menuAnchor()
                     .fillMaxWidth(),
                 readOnly = true,
-                value = selectedCategory,
+                value = selectedCategoryName,
                 onValueChange = {},
+                placeholder = { if (categoryNameList.isEmpty()) Text("항목 없음") else Text("") },
+                enabled = enabled, // TextField 자체도 활성화 상태에 따라 변경
                 colors = ExposedDropdownMenuDefaults.textFieldColors(
+                    // 포커스/언포커스 시 하단 라인 투명하게 (선택적)
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
+                    disabledIndicatorColor = Color.Transparent,
+                    // 비활성화 시 텍스트 및 아이콘 색상 (선택적)
+                    disabledTextColor = Color.LightGray,
+                    disabledTrailingIconColor = Color.LightGray
                 ),
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded && enabled) },
             )
 
-            ExposedDropdownMenu(
-                expanded = isExpanded,
-                onDismissRequest = { isExpanded = false }
-            ) {
-                categoryList.forEach { item ->
-                    DropdownMenuItem(
-                        text = { Text(text = item) },
-                        onClick = {
-                            onCategorySelected(item)
-                            isExpanded = false
+            if (enabled) { // 활성화 상태일 때만 드롭다운 메뉴 표시
+                ExposedDropdownMenu(
+                    expanded = isExpanded,
+                    onDismissRequest = { isExpanded = false }
+                ) {
+                    if (categoryNameList.isEmpty()) {
+                        DropdownMenuItem(
+                            text = { Text(text = "선택 가능한 항목이 없습니다.") },
+                            onClick = { isExpanded = false },
+                            enabled = false
+                        )
+                    } else {
+                        categoryNameList.forEach { item ->
+                            DropdownMenuItem(
+                                text = { Text(text = item) },
+                                onClick = {
+                                    onCategoryNameSelected(item)
+                                    isExpanded = false
+                                }
+                            )
                         }
-                    )
+                    }
                 }
             }
         }
@@ -410,18 +413,19 @@ fun PreviewPaymentDetailScreen() {
         createdAt = "2025-09-11T14:25:30Z",
         updatedAt = "2025-09-11T14:25:30Z"
     )
+    // CategoryMapper에서 실제 이름 가져오기
+    val majorName = CategoryMapper.getMajorName(samplePaymentDetail.majorCategory) ?: "식비"
+    val subName = CategoryMapper.getSubName(samplePaymentDetail.subCategory) ?: "간식"
+    val subOptions = CategoryMapper.getSubListByMajorId(samplePaymentDetail.majorCategory)
+
     PaymentDetailScreen(
         paymentDetail = samplePaymentDetail,
-        majorCategories = listOf("식비", "교통비", "생활"),
-        categoryMap = mapOf(
-            "식비" to listOf("점심", "저녁", "간식", "음료"),
-    "교통비" to listOf("대중교통", "택시", "주유"),
-    "생활" to listOf("마트/편의점", "쇼핑", "세탁")
-    ),
-        selectedMajorCategory = "식비",
-        selectedMinorCategory = "간식",
-        onMajorCategorySelected = {},
-        onMinorCategorySelected = {},
+        majorCategoryNames = CategoryMapper.majorNameToId.keys.toList(),
+        minorCategoryNameOptions = subOptions,
+        selectedMajorCategoryName = majorName,
+        selectedMinorCategoryName = subName,
+        onMajorCategoryNameSelected = {},
+        onMinorCategoryNameSelected = {},
         onEditClick = {}
     )
 }

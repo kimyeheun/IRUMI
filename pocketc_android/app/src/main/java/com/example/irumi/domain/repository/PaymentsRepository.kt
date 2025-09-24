@@ -1,6 +1,6 @@
 package com.example.irumi.domain.repository
 
-import com.example.irumi.data.dto.response.payments.PaymentCheckRequest
+import com.example.irumi.domain.entity.BaseEntity
 import com.example.irumi.domain.entity.payments.PaymentEntity
 import com.example.irumi.domain.entity.payments.PaymentsHistoryEntity
 
@@ -10,7 +10,8 @@ interface PaymentsRepository {
     ): Result<PaymentEntity>
 
     suspend fun getPayments(
-        month: String
+        year: Int,
+        month: Int
     ): Result<PaymentsHistoryEntity>
 
     suspend fun putPaymentDetail(
@@ -18,7 +19,7 @@ interface PaymentsRepository {
         request: PaymentEntity
     ): Result<PaymentEntity>
 
-    suspend fun patchPaymentDetail(
+    suspend fun checkPaymentDetail(
         transactionId: Int,
-    ): Result<PaymentCheckRequest>
+    ): Result<BaseEntity<Void>>
 }

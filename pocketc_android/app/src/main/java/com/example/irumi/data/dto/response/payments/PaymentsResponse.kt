@@ -4,17 +4,17 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PaymentsResponse(
-    val payments: List<Payment>,
+    val transactions: List<Payment>,
     val totalSpending: Int
 )
 
 @Serializable
 data class Payment(
     val transactionId: Int,
-    val date: String,
+    val transactedAt: String,
     val amount: Int,
-    val majorCategory: Int,
-    val subCategory: Int,
+    val majorId: Int,
+    val subId: Int,
     val merchantName: String,
     val isApplied: Boolean,
     val isFixed: Boolean,

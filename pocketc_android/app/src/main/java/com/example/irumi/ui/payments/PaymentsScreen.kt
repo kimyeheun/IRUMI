@@ -64,10 +64,12 @@ fun PaymentRoute(
         viewModel.getMonthTransactions()
     }
 
-    LaunchedEffect(viewModel.navigationEffect) {
+    LaunchedEffect(viewModel) {
         viewModel.navigationEffect.collect { effect ->
             when (effect) {
-                is PaymentsNavigationEffect.NavigateToDetail -> onNavigateToDetail(effect.paymentId)
+                is PaymentsNavigationEffect.NavigateToDetail -> {
+                    onNavigateToDetail(effect.paymentId)
+                }
             }
         }
     }
