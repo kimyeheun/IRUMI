@@ -43,6 +43,9 @@ public class ReportService {
      * 월별 고정비 지출액 수정
      */
     public void updateMonthlyFixedExpense(Integer userId, LocalDate month, Long expense) {
+
+        System.out.println(String.format("userId: %d, month: %s, expense: %d", userId, month, expense));
+
         Report report = reportRepository.findByUser_UserIdAndReportMonth(userId, month)
                 .orElseThrow(() -> new CustomException(ERROR_GET_MONTHLY_TOTAL_EXPENSE));
         Long total = report.getMonthlyFixedExpense();
