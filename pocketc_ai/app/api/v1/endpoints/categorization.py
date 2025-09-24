@@ -1,10 +1,7 @@
 import logging
-from typing import Any
-from typing import Dict
 
 from fastapi import APIRouter, Depends
 
-from app.schemas.mission import Missions
 from app.schemas.transaction import CategoryRequest, CategoryResponse
 from app.services.categorize.category_service import CategoryService, get_category_service
 
@@ -22,11 +19,12 @@ def create_category(
         return service.create_category(req)
     except Exception as e:
         logging.warning(f"An error occurred: {e}")
+        from datetime import datetime
         return CategoryResponse(
             amount=req.amount,
             merchantName=req.merchantName,
-            transactedAt=transactedAt,
-            majorId=category.major_id,
-            subId=category.sub_id,
-            isFixed=category.is_fixed,
+            transactedAt=datetime.fromisoformat(req.transactedAt),
+            majorId=10,
+            subId=39,
+            isFixed=False,
         )
