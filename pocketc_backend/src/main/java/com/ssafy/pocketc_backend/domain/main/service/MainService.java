@@ -1,19 +1,23 @@
 package com.ssafy.pocketc_backend.domain.main.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssafy.pocketc_backend.domain.main.dto.MainResponse;
 import com.ssafy.pocketc_backend.domain.main.dto.StreakDto;
 import com.ssafy.pocketc_backend.domain.main.dto.StreakResDto;
+import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionItem;
 import com.ssafy.pocketc_backend.domain.report.entity.Report;
 import com.ssafy.pocketc_backend.domain.report.repository.ReportRepository;
+import com.ssafy.pocketc_backend.domain.transaction.entity.Transaction;
 import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionRepository;
+import com.ssafy.pocketc_backend.domain.transaction.service.TransactionService;
 import com.ssafy.pocketc_backend.domain.user.entity.Streak;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -28,6 +32,7 @@ public class MainService {
     private final UserRepository userRepository;
     private final ReportRepository reportRepository;
     private final StreakRepository streakRepository;
+    private final TransactionService transactionService;
 
     public MainResponse getDailyScoreAndTotal(Integer userId) {
         LocalDate today = LocalDate.now();
@@ -55,9 +60,7 @@ public class MainService {
         double w1 = 0.7, w2 = 0.3;
         long savingScore = (long) (w1 * budgetScore + w2 * efficiencyScore);
 
-
         return new MainResponse(savingScore, total);
-
     }
 
     //하루 평균 예산
@@ -94,42 +97,71 @@ public class MainService {
         return (long) score;
     }
 
+    // 최장 스트릭 반환
+    public Integer getLongestStreak(Integer userId) {
+        List<Streak> streaks = streakRepository.findAllByUser_UserId(userId);
+        Integer longestStreak = 0;
+        Integer temp = 0;
+        for (Streak streak: streaks) {
+            if (streak.getMissionCompletedCount() > 0) {
+                temp++;
+                longestStreak = Math.max(longestStreak, temp);
+            } else {
+                temp = 0;
+            }
+        }
+
+        return longestStreak;
+    }
+
     public StreakResDto getStreaks(Integer userId) {
         List<Streak> streaks = streakRepository.findAllByUser_UserId(userId);
         List<StreakDto> streakDtos = new ArrayList<>();
-
-        /**
-         * 1. 최장 스트릭 조회
-         * 2. 반환할 streakDto에 추가
-         */
-        Integer longestStreak = 0;
-        Integer temp = 0;
         for (Streak streak : streaks) {
-            if (streak.getMissionCompletedCount() > 0) { // 수행한 미션의 개수가 0보다 크다면, temp, 최장스트릭 갱신
-                temp++;
-                longestStreak = Math.max(longestStreak, temp);
-            } else { // 없다면 temp 초기화
-                temp = 0;
-            }
             streakDtos.add(StreakDto.from(streak));
         }
         return new StreakResDto(streakDtos);
     }
-    //스케줄러용 서비스코드
-    @Transactional
-    public void createEmptyStreak() {
-        LocalDate today = LocalDate.now();
-        List<User> users = userRepository.findAll();
-        for (User user : users) {
-            Streak streak = Streak.builder()
-                    .user(user)
-                    .date(today)
-                    .missionCompletedCount(0)
-                    .spentAmount(0L)
-                    .status(false)
-                    .build();
 
+    /**
+     * 새벽 6시에 모든 유저의 당일 결제내역을 반영합니다.
+     * 반영하는 결제일 : 현재 일자 기준 전날 0600i ~ 오늘일자 0600i
+     *
+     * 결제내역 반영 후 스트릭 추가
+     *
+     */
+    public void applyDailyTransaction() throws JsonProcessingException {
+        LocalDateTime now = LocalDateTime.now();
+
+        List<User> users = userRepository.findAll();
+
+        for (User user : users) {
+            // 유저의 당일 결제내역 조회
+            List<Transaction> transactions = transactionRepository.findAllByUser_UserIdAndTransactedAtGreaterThanEqualAndTransactedAtLessThan(
+                    user.getUserId(),
+                    now.minusDays(1).withHour(6).withMinute(0).withSecond(0).withNano(0),
+                    now.withHour(6).withMinute(0).withSecond(0).withNano(0)
+            );
+
+            // 결제내역 반영 및 당일 지출 금액, 성공한 미션 갯수 count
+            Integer successCount = 0;
+            Long spendAmount = 0L;
+            for (Transaction transaction : transactions) {
+                transactionService.appliedTransaction(transaction.getTransactionId(), user.getUserId());
+                spendAmount += transaction.getAmount();
+            }
+
+            // 스트릭 생성
+            Streak streak = new Streak();
+            streak.setDate(now.toLocalDate());
+            streak.setUser(user);
+            streak.setMissionCompletedCount(successCount);
+            streak.setSpentAmount(spendAmount);
+            streak.setStatus(successCount > 0);
             streakRepository.save(streak);
+
+            // 성공한 미션 갯수만큼 퍼즐 부여
+            user.setPuzzleAttempts(successCount);
         }
     }
 }

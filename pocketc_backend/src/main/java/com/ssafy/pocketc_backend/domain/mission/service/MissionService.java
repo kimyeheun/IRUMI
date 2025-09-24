@@ -81,14 +81,14 @@ public class MissionService {
                     0
             ));
             missionRedisDtos.add(MissionRedisDto.builder()
-                            .mission(m.getMission())
-                            .subId(m.getSubId())
-                            .dsl(m.getDsl())
-                            .validFrom(m.getValidFrom())
-                            .validTo(m.getValidTo())
-                            .status(m.getStatus())
-                            .type(m.getType())
-                            .progress(0)
+                    .mission(m.getMission())
+                    .subId(m.getSubId())
+                    .dsl(m.getDsl())
+                    .validFrom(m.getValidFrom())
+                    .validTo(m.getValidTo())
+                    .status(m.getStatus())
+                    .type(m.getType())
+                    .progress(0)
                     .build());
         }
 
@@ -116,7 +116,7 @@ public class MissionService {
                 .handle((res, sink) -> {
                     // 방어적 null 체크
                     if (res == null || res.data() == null || res.data().missions() == null) {
-                        sink.next(List.<Mission>of());
+                        sink.next(List.of());
                         sink.complete();
                         return;
                     }
@@ -148,6 +148,7 @@ public class MissionService {
             getWeeklyMissions(user.getUserId()); // private 메서드 호출
         }
     }
+
     //스케줄러용 퍼블릭 메서드
     @Transactional
     public void assignMonthlyMissions() {
@@ -172,7 +173,7 @@ public class MissionService {
                 })
                 .timeout(Duration.ofSeconds(7))
                 .doOnError(e -> System.out.println("[Weekly] error: " + e.getMessage()))
-                .onErrorReturn(List.<MissionItem>of())
+                .onErrorReturn(List.of())
                 .blockOptional()
                 .orElse(List.of());
 
@@ -206,7 +207,7 @@ public class MissionService {
                 })
                 .timeout(Duration.ofSeconds(7))
                 .doOnError(e -> System.out.println("[Weekly] error: " + e.getMessage()))
-                .onErrorReturn(List.<MissionItem>of())
+                .onErrorReturn(List.of())
                 .blockOptional()
                 .orElse(List.of());
 

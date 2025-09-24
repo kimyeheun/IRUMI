@@ -20,6 +20,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MissionRedisService {
 
+    private static final ObjectMapper OM = JsonMapper.builder()
+            .addModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .build();
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper mapper;
 
@@ -44,14 +48,17 @@ public class MissionRedisService {
         try {
             // 1) JSON 문자열로 저장되어 있던 경우
             if (val instanceof String s) {
-                return OM.readValue(s, new TypeReference<List<MissionRedisDto>>() {});
+                return OM.readValue(s, new TypeReference<List<MissionRedisDto>>() {
+                });
             }
             // 2) 바이트 배열로 저장되어 있던 경우
             if (val instanceof byte[] b) {
-                return OM.readValue(b, new TypeReference<List<MissionRedisDto>>() {});
+                return OM.readValue(b, new TypeReference<List<MissionRedisDto>>() {
+                });
             }
             // 3) 이미 메모리 객체(List<LinkedHashMap> 등)로 역직렬화된 경우
-            return OM.convertValue(val, new TypeReference<List<MissionRedisDto>>() {});
+            return OM.convertValue(val, new TypeReference<List<MissionRedisDto>>() {
+            });
         } catch (Exception e) {
             throw new IllegalStateException("Redis 리스트 역직렬화 실패: " + val.getClass(), e);
         }
@@ -61,9 +68,4 @@ public class MissionRedisService {
         var ops = redisTemplate.opsForValue();
         ops.set(key, list, ttl);
     }
-
-    private static final ObjectMapper OM = JsonMapper.builder()
-            .addModule(new JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .build();
 }

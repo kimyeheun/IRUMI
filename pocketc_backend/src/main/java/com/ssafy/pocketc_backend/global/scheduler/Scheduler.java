@@ -1,10 +1,13 @@
 package com.ssafy.pocketc_backend.global.scheduler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssafy.pocketc_backend.domain.main.service.MainService;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.security.Principal;
 
 @Component
 @RequiredArgsConstructor
@@ -12,6 +15,7 @@ public class Scheduler {
 
     private final MissionService missionService;
     private final MainService mainService;
+
     //매주 월요일 00시 실행
     @Scheduled(cron = "0 0 0 * * MON", zone = "Asia/Seoul")
     public void doWeeklyJobs() {
@@ -24,9 +28,9 @@ public class Scheduler {
         missionService.assignMonthlyMissions();
     }
 
-    //매일 00시 빈 스트릭 생성
-    @Scheduled(cron = "0 0 0 * * ?", zone = "Asia/Seoul")
-    public void createNewStreak() {
-        mainService.createEmptyStreak();
+    //매일 06시 빈 스트릭 생성
+    @Scheduled(cron = "0 0 6 * * ?", zone = "Asia/Seoul")
+    public void createNewStreak() throws JsonProcessingException {
+        mainService.applyDailyTransaction();
     }
 }
