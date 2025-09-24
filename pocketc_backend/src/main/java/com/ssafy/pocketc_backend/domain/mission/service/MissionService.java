@@ -78,7 +78,7 @@ public class MissionService {
                     m.getType(),
                     m.getMission(),
                     String.valueOf(m.getStatus()),
-                    0
+                    0L
             ));
             missionRedisDtos.add(MissionRedisDto.builder()
                             .mission(m.getMission())
@@ -88,7 +88,7 @@ public class MissionService {
                             .validTo(m.getValidTo())
                             .status(m.getStatus())
                             .type(m.getType())
-                            .progress(0)
+                            .progress(0L)
                     .build());
         }
 
