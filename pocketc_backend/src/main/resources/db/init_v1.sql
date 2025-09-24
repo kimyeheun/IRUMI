@@ -107,7 +107,7 @@ VALUES (11, 3, '2025-09-01', 710000, 240000, 900000);
 
 INSERT INTO transactions (
     user_id, transacted_at, amount, merchant_name,
-    major_category, sub_category, is_applied, is_fixed,
+    major_id, sub_id, is_applied, is_fixed,
     created_at, updated_at
 ) VALUES
       (1, TIMESTAMP '2025-09-01 10:25:00', 5500,  '스타벅스',     1, 11, TRUE,  TRUE,  CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
