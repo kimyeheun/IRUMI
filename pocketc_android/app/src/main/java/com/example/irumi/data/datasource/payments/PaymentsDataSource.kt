@@ -1,26 +1,26 @@
 package com.example.irumi.data.datasource.payments
 
 import com.example.irumi.core.network.BaseResponse
-import com.example.irumi.data.dto.request.PaymentEditRequest
-import com.example.irumi.data.dto.response.payments.PaymentCheckRequest
-import com.example.irumi.data.dto.response.payments.PaymentDetailResponse
+import com.example.irumi.data.dto.request.payments.PaymentEditRequest
+import com.example.irumi.data.dto.response.payments.Payment
 import com.example.irumi.data.dto.response.payments.PaymentsResponse
 
 interface PaymentsDataSource {
     suspend fun getPaymentDetail(
         transactionId: Int,
-    ): BaseResponse<PaymentDetailResponse>
+    ): BaseResponse<Payment>
 
     suspend fun getPayments(
-        month: String
+        year: Int,
+        month: Int
     ): BaseResponse<PaymentsResponse>
 
     suspend fun putPaymentDetail(
         transactionId: Int,
         request: PaymentEditRequest
-    ): BaseResponse<PaymentDetailResponse>
+    ): BaseResponse<Payment>
 
-   suspend fun patchPaymentDetail(
+   suspend fun checkPaymentDetail(
         transactionId: Int,
-    ): BaseResponse<PaymentCheckRequest>
+    ): BaseResponse<Void>
 }

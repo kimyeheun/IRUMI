@@ -21,7 +21,6 @@ import androidx.navigation.compose.composable
 import com.example.irumi.core.navigation.Events
 import com.example.irumi.core.navigation.Home
 import com.example.irumi.core.navigation.Stats
-import com.example.irumi.ui.auth.login.LoginActivity
 import com.example.irumi.ui.component.navBar.BottomNavBar
 import com.example.irumi.ui.events.EventsScreen
 import com.example.irumi.ui.home.HomeScreen
@@ -87,7 +86,9 @@ fun MainScreen(navigator: MainNavigator = rememberMainNavigator()) {
             }
 
             paymentsNavGraph(
-                onNavigateToDetail = navigator::navigateToPaymentDetail,
+                onNavigateToDetail = {
+                    navigator.navigateToPaymentDetail(it)
+                },
                 paddingValues = inner
             )
 
