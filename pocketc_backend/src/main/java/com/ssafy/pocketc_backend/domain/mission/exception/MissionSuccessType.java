@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public enum MissionSuccessType implements SuccessType {
-    SUCCESS_GET_MISSIONS(HttpStatus.OK, "미션 조회 완료");
+    SUCCESS_GET_MISSIONS(HttpStatus.OK, "미션 조회 완료"),
+    SUCCESS_CHOOSE_MISSIONS(HttpStatus.OK, "미션 선택 완료");
 
     private final HttpStatus httpStatus;
     private final String message;

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class MissionRedisDto implements Serializable {
+    private Integer missionId;
     private Integer subId;
     private String dsl;
     private String mission;

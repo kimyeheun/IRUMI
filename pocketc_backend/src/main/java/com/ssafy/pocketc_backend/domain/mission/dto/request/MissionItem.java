@@ -9,5 +9,4 @@ public record MissionItem(
         Integer type,
         LocalDateTime validFrom,
         LocalDateTime validTo
-) {
-}
+) {}
