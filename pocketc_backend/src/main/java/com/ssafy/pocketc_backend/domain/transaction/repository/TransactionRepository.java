@@ -13,8 +13,8 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction,Integer> {
     List<Transaction> findAllByUser_UserIdAndTransactedAtGreaterThanEqualAndTransactedAtLessThan(Integer userId, LocalDateTime from, LocalDateTime to);
     List<Transaction> findAllByUser_UserIdAndTransactedAtBetween(Integer userId, LocalDate start, LocalDate end);
-    List<Transaction> findAllByUser_UserIdAndMajorCategory(Integer userId, Integer majorCategory);
-    List<Transaction> findAllByUser_UserIdAndSubCategory(Integer userId, Integer subCategory);
+    List<Transaction> findAllByUser_UserIdAndMajorId(Integer userId, Integer majorId);
+    List<Transaction> findAllByUser_UserIdAndSubId(Integer userId, Integer subId);
     @Query("SELECT COALESCE(SUM(t.amount), 0) " +
             "FROM Transaction t " +
             "WHERE t.user.userId = :userId " +
