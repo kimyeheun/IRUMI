@@ -78,17 +78,17 @@ public class MissionService {
                     m.getType(),
                     m.getMission(),
                     String.valueOf(m.getStatus()),
-                    0
+                    0L
             ));
             missionRedisDtos.add(MissionRedisDto.builder()
-                    .mission(m.getMission())
-                    .subId(m.getSubId())
-                    .dsl(m.getDsl())
-                    .validFrom(m.getValidFrom())
-                    .validTo(m.getValidTo())
-                    .status(m.getStatus())
-                    .type(m.getType())
-                    .progress(0)
+                            .mission(m.getMission())
+                            .subId(m.getSubId())
+                            .dsl(m.getDsl())
+                            .validFrom(m.getValidFrom())
+                            .validTo(m.getValidTo())
+                            .status(m.getStatus())
+                            .type(m.getType())
+                            .progress(0L)
                     .build());
         }
 

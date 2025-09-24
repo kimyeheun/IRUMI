@@ -5,9 +5,9 @@ public record MissionDto(
         Integer type,
         String mission,
         String status,
-        Integer progress
+        Long progress
 ) {
-    public static MissionDto of(Integer subId, Integer type, String mission, String status, Integer progress) {
+    public static MissionDto of(Integer subId, Integer type, String mission, String status, Long progress) {
         return new MissionDto(subId, type, mission, status, progress);
     }
 }
