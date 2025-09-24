@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,20 +18,28 @@ import com.example.irumi.ui.theme.BrandGreen
 import kotlin.math.ceil
 import kotlin.math.min
 
+/**
+ * 서버에서 내려준 스트릭 Boolean 배열로만 렌더링.
+ *
+ * @param friendName   섹션 타이틀 우측에 표시할 친구 이름(없으면 "나의 스트릭")
+ * @param days         달성 여부(true/false) 리스트. 반드시 실제 데이터 전달
+ * @param startWeekdayOffset 첫 주 시작 요일 오프셋(0=일, 1=월 …) 필요한 경우에만 지정
+ * @param footerText   하단 설명 문구(연속 N일 등). null이면 숨김
+ */
 @Composable
 fun StreakSection(
     friendName: String? = null,
-    totalDays: Int = 365,
+    days: List<Boolean>,
+    startWeekdayOffset: Int = 0,
     boxSize: Dp = 14.dp,
     boxSpacing: Dp = 3.dp,
     weekSpacing: Dp = 6.dp,
-    days: List<Boolean>? = null,
-    startWeekdayOffset: Int = 0
+    footerText: String? = null,
+    totalDays: Int
 ) {
-    val streakDays = remember(days, totalDays) {
-        days ?: List(totalDays) { i -> (i % 3) == 0 } // 데모
-    }
-    val weeks = ceil(totalDays / 7.0).toInt()
+    // days 가 비어있을 때는 빈 상태 UI만 출력
+    val totalDays = days.size
+    val weeks = ceil(totalDays / 7.0).toInt().coerceAtLeast(1)
 
     Column(
         modifier = Modifier
@@ -56,9 +63,10 @@ fun StreakSection(
         ) {
             items(weeks) { weekIndex ->
                 val start = weekIndex * 7
-                val end = min(start + 7, streakDays.size)
-                val weekSlice = if (start < end) streakDays.subList(start, end) else emptyList()
+                val end = min(start + 7, totalDays)
+                val weekSlice = if (start < end) days.subList(start, end) else emptyList()
 
+                // 첫 주만 시작 요일 오프셋 적용
                 val leadingEmpty = if (weekIndex == 0) startWeekdayOffset else 0
                 val padded: List<Boolean?> = buildList {
                     repeat(leadingEmpty) { add(null) }
@@ -75,9 +83,9 @@ fun StreakSection(
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
                                     when (state) {
-                                        null -> Color(0xFFF1F3F5)    // 빈칸
-                                        true -> BrandGreen           // 달성
-                                        false -> Color(0xFFE6E8EC)   // 미달성
+                                        null  -> Color(0xFFF1F3F5) // 빈칸(패딩)
+                                        true  -> BrandGreen        // 달성
+                                        false -> Color(0xFFE6E8EC) // 미달
                                     }
                                 )
                         )
@@ -85,11 +93,14 @@ fun StreakSection(
                 }
             }
         }
-        Spacer(Modifier.height(10.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("🔥", fontSize = 14.sp)
-            Spacer(Modifier.width(6.dp))
-            Text("연속 21일 달성!", fontSize = 12.sp, color = Color(0xFF6B7280))
+
+        if (!footerText.isNullOrBlank()) {
+            Spacer(Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("🔥", fontSize = 14.sp)
+                Spacer(Modifier.width(6.dp))
+                Text(footerText, fontSize = 12.sp, color = Color(0xFF6B7280))
+            }
         }
     }
 }
