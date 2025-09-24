@@ -28,7 +28,7 @@ public class JwtProvider {
 
     private final RefreshTokenService refreshTokenService; // Redis 기반 서비스
 
-    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 1000L * 60 * 30;//30분
+    private static final long ACCESS_TOKEN_EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 14;//임시 2주(30분)
     private static final long REFRESH_TOKEN_EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 14;//2주
 
     @PostConstruct
