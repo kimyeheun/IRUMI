@@ -5,11 +5,13 @@ import com.example.irumi.data.repositoryimpl.DummyRepositoryImpl
 import com.example.irumi.data.repositoryimpl.EventsRepositoryImpl
 import com.example.irumi.data.repositoryimpl.MainRepositoryImpl
 import com.example.irumi.data.repositoryimpl.PaymentsRepositoryImpl
+import com.example.irumi.data.repositoryimpl.StatsRepositoryImpl
 import com.example.irumi.domain.repository.AuthRepository
 import com.example.irumi.domain.repository.DummyRepository
 import com.example.irumi.domain.repository.EventsRepository
 import com.example.irumi.domain.repository.MainRepository
 import com.example.irumi.domain.repository.PaymentsRepository
+import com.example.irumi.domain.repository.StatsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -38,4 +40,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindEventRepository(eventRepositoryImpl: EventsRepositoryImpl): EventsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindStatsRepository(statsRepositoryImpl: StatsRepositoryImpl): StatsRepository
 }

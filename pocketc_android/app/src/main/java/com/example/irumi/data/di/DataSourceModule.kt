@@ -10,6 +10,8 @@ import com.example.irumi.data.datasource.main.MainDataSource
 import com.example.irumi.data.datasource.main.MainLocalDataSource
 import com.example.irumi.data.datasource.payments.PaymentsDataSource
 import com.example.irumi.data.datasource.payments.PaymentsRemoteDataSource
+import com.example.irumi.data.datasource.stats.StatsDataSource
+import com.example.irumi.data.datasource.stats.StatsRemoteDataSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -40,4 +42,8 @@ abstract class DataSourceModule {
     @Binds
     @Singleton
     abstract fun bindEventsDataSource(eventsDataSource: EventsRemoteDataSource): EventsDataSource
+
+    @Binds
+    @Singleton
+    abstract fun bindStatsDataSource(statsDataSource: StatsRemoteDataSource): StatsDataSource
 }
