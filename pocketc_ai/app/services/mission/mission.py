@@ -75,10 +75,8 @@ class MissionService:
         top_cats = self.repo.get_top_frequent_categories(user_id, now, days=30, top_n=1)
         if not top_cats:
             return []
-        print(top_cats)
         missions = []
         for top_cat in top_cats:
-            print(top_cat)
             sub_id = top_cat["sub_id"]
             sub_name = self.sub.get_name_by_id(sub_id)
             # 4주간의 데이터를 바탕으로 주간 평균 소비 계산
