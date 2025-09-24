@@ -37,7 +37,8 @@ public class User extends BaseTimeEntity {
     @Column
     private Long budget;
 
-    @Column
+    @Column(nullable = false)
+    @Builder.Default
     private Integer puzzleAttempts = 0;
 
     //    @Column
