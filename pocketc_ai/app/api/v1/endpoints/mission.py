@@ -15,14 +15,13 @@ router = APIRouter()
 def get_mission() :
     return "mission"
 
-@router.post("/daily", response_model=MissionResponse | NoneType, status_code=201)
+@router.get("/daily", response_model=MissionResponse | NoneType, status_code=201)
 def create_daily_mission(
         userId: int,
         service: MissionService = Depends(get_mission_service)
 ):
+    today = datetime.now()
     try:
-        today = datetime.now()
-
         missions = service.create_daily_mission(user_id=userId, now=today)
         data = {"userId": userId, "date": today.date(), "missions": missions}
 
@@ -34,4 +33,65 @@ def create_daily_mission(
         return MissionResponse(**payload)
     except Exception as e:
         logging.warning(f"An error occurred: {e}")
-        return None
+        data = {"userId": userId, "date": today.date(), "missions": []}
+
+        payload: Dict[str, Any] = {
+            "status": 201,
+            "message": "월간 미션 생성 완료 - 비어 있음!",
+            "data": data,
+        }
+        return MissionResponse(**payload)
+
+@router.get("/weekly", response_model=MissionResponse | NoneType, status_code=201)
+def create_weekly_mission(
+        userId: int,
+        service: MissionService = Depends(get_mission_service)
+):
+    today = datetime.now()
+    try:
+        missions = service.create_weekly_mission(user_id=userId, now=today)
+        data = {"userId": userId, "date": today.date(), "missions": missions}
+
+        payload: Dict[str, Any] = {
+            "status": 201,
+            "message": "주간 미션 생성 완료",
+            "data": data,
+        }
+        return MissionResponse(**payload)
+    except Exception as e:
+        logging.warning(f"An error occurred: {e}")
+        data = {"userId": userId, "date": today.date(), "missions": []}
+
+        payload: Dict[str, Any] = {
+            "status": 201,
+            "message": "월간 미션 생성 완료 - 비어 있음!",
+            "data": data,
+        }
+        return MissionResponse(**payload)
+
+@router.get("/monthly", response_model=MissionResponse | NoneType, status_code=201)
+def create_monthly_mission(
+        userId: int,
+        service: MissionService = Depends(get_mission_service)
+):
+    today = datetime.now()
+    try:
+        missions = service.create_monthly_mission(user_id=userId, now=today)
+        data = {"userId": userId, "date": today.date(), "missions": missions}
+
+        payload: Dict[str, Any] = {
+            "status": 201,
+            "message": "월간 미션 생성 완료",
+            "data": data,
+        }
+        return MissionResponse(**payload)
+    except Exception as e:
+        logging.warning(f"An error occurred: {e}")
+        data = {"userId": userId, "date": today.date(), "missions": []}
+
+        payload: Dict[str, Any] = {
+            "status": 201,
+            "message": "월간 미션 생성 완료 - 비어 있음!",
+            "data": data,
+        }
+        return MissionResponse(**payload)
