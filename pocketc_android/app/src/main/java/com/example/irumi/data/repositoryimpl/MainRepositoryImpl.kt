@@ -27,4 +27,13 @@ class MainRepositoryImpl @Inject constructor(
 
     override suspend fun getStreaks(): Result<List<StreakEntity>> =
         runCatching { dataSource.getStreaks().data!!.toEntity() }
+
+    override suspend fun getFollowIds(): Result<List<FollowInfoEntity>> =
+        runCatching { dataSource.getFollowIds().data!!.toEntity() }
+
+    override suspend fun follow(targetUserId: Int): Result<Unit> =
+        runCatching { dataSource.postFollow(targetUserId); Unit }
+
+    override suspend fun unfollow(targetUserId: Int): Result<Unit> =
+        runCatching { dataSource.deleteFollow(targetUserId); Unit }
 }

@@ -4,6 +4,7 @@ import com.example.irumi.core.network.BaseResponse
 import com.example.irumi.data.dto.response.main.BadgeListResponse
 import com.example.irumi.data.dto.response.main.BadgeListResponse.BadgeDto
 import com.example.irumi.data.dto.response.main.DailySavingResponse
+import com.example.irumi.data.dto.response.main.FollowIdsResponse
 import com.example.irumi.data.dto.response.main.FollowListResponse
 import com.example.irumi.data.dto.response.main.FollowListResponse.FollowDto
 import com.example.irumi.data.dto.response.main.SpendingResponse
@@ -21,7 +22,7 @@ class MainLocalDataSource @Inject constructor() : MainDataSource {
             data = UserProfileResponse(
                 userId = 123,
                 name = "김철수",
-                budget = "1000000",
+                budget = 1000000,
                 profileImageUrl = "https://bucket.s3.amazonaws.com/profile/123/profile.jpg?v=1737459200000"
             )
         )
@@ -95,4 +96,22 @@ class MainLocalDataSource @Inject constructor() : MainDataSource {
                 )
             )
         )
+
+    override suspend fun getFollowIds(): BaseResponse<FollowIdsResponse> =
+        BaseResponse(
+            status = 200,
+            message = "팔로우 정보 조회 성공",
+            data = FollowIdsResponse(
+                follows = listOf(
+                    FollowIdsResponse.FollowEntry(123, "2025-09-11T14:30:00Z"),
+                    FollowIdsResponse.FollowEntry(456, "2025-09-12T09:10:00Z")
+                )
+            )
+        )
+
+    override suspend fun postFollow(targetUserId: Int): BaseResponse<Unit?> =
+        BaseResponse(status = 201, message = "팔로우 성공", data = null)
+
+    override suspend fun deleteFollow(targetUserId: Int): BaseResponse<Unit?> =
+        BaseResponse(status = 200, message = "언팔로우 성공", data = null)
 }

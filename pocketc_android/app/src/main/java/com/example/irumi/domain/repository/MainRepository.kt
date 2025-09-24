@@ -9,4 +9,8 @@ interface MainRepository {
     suspend fun getFollows(): Result<List<FollowEntity>>
     suspend fun getBadges(): Result<List<BadgeEntity>>
     suspend fun getStreaks(): Result<List<StreakEntity>>
+
+    suspend fun getFollowIds(): Result<List<FollowInfoEntity>>
+    suspend fun follow(targetUserId: Int): Result<Unit>
+    suspend fun unfollow(targetUserId: Int): Result<Unit>
 }

@@ -3,6 +3,7 @@ package com.example.irumi.ui.home.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,34 +21,38 @@ import kotlin.math.min
 
 @Composable
 fun FriendCompareSection(
-    myScore: Int?,                 // 내 점수 (null → 로딩/미제공)
-    friendScore: Int?,             // 친구 점수 (null → 미제공)
+    myScore: Int?,                 // 내 점수 (서버에서 아직 안 왔으면 null)
+    friendScore: Int?,             // 친구 점수 (미제공/로딩 시 null)
     friendName: String,
     titleColor: Color = BrandGreen,
     modifier: Modifier = Modifier
 ) {
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+    val positive = Color(0xFF16A34A) // 브랜드 그린 톤
+    val negative = Color(0xFFEF4444) // 레드 톤
+    val bgNeutral = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .35f)
+
     val my = myScore?.coerceIn(0, 100)
     val friend = friendScore?.coerceIn(0, 100)
 
-    // 요약 문구
     val summary = when {
         my != null && friend != null -> {
             val diff = my - friend
             when {
-                diff > 0 -> "내가 ${diff}점 앞서요 🔼"
-                diff < 0 -> "${friendName}이(가) ${abs(diff)}점 앞서요 🔽"
-                else -> "동점이에요 🤝"
+                diff > 0  -> "내가 ${diff}점 앞서요 🔼"
+                diff < 0  -> "$friendName 이(가) ${abs(diff)}점 앞서요 🔽"
+                else      -> "동점이에요 🤝"
             }
         }
-        my != null && friend == null -> "친구 점수 준비 중…"
-        else -> "점수 불러오는 중…"
+        my != null && friend == null -> "친구 점수를 불러오는 중…"
+        else                         -> "점수 불러오는 중…"
     }
 
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         Text(
@@ -58,7 +63,6 @@ fun FriendCompareSection(
         )
         Spacer(Modifier.height(12.dp))
 
-        // 두 사람 점수 뱃지
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -67,24 +71,23 @@ fun FriendCompareSection(
             ScorePill(
                 label = "나",
                 score = my,
-                bg = Color(0xFFEFFDF3),
-                fg = Color(0xFF16A34A)      // 내 점수는 브랜드톤(그린)
+                bg = positive.copy(alpha = .10f),
+                fg = positive
             )
             ScorePill(
                 label = friendName,
                 score = friend,
-                bg = if (friend == null) Color(0xFFF3F4F6) else Color(0xFFFFF1F2),
-                fg = if (friend == null) Color(0xFF9CA3AF) else Color(0xFFEF4444)
+                bg = if (friend == null) bgNeutral else negative.copy(alpha = .10f),
+                fg = if (friend == null) onSurfaceVariant else negative
             )
         }
 
         Spacer(Modifier.height(10.dp))
-        Text(summary, fontSize = 12.sp, color = Color(0xFF6B7280))
+        Text(summary, fontSize = 12.sp, color = onSurfaceVariant)
         Spacer(Modifier.height(8.dp))
 
-        // 미니 바 그래프(선택): 점수 모두 있을 때만 노출
         if (my != null && friend != null) {
-            MiniBarCompare(my, friend)
+            MiniBarCompare(my, friend, myColor = positive, friendColor = negative)
         }
     }
 }
@@ -111,8 +114,9 @@ private fun ScorePill(
                     Modifier
                         .width(44.dp)
                         .height(20.dp)
-                        .alpha(0.4f)
-                        .background(Color(0xFFE5E7EB), RoundedCornerShape(6.dp))
+                        .alpha(0.35f)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color(0xFFE5E7EB))
                 )
             } else {
                 Text("${score}점", color = fg, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -122,7 +126,12 @@ private fun ScorePill(
 }
 
 @Composable
-private fun MiniBarCompare(my: Int, friend: Int) {
+private fun MiniBarCompare(
+    my: Int,
+    friend: Int,
+    myColor: Color,
+    friendColor: Color
+) {
     val total = max(1, my + friend)
     val myWeight = my.toFloat() / total
     val friendWeight = friend.toFloat() / total
@@ -138,13 +147,13 @@ private fun MiniBarCompare(my: Int, friend: Int) {
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(max(0.05f, min(0.95f, myWeight)))
-                .background(Color(0xFF22C55E))
+                .background(myColor)
         )
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(max(0.05f, min(0.95f, friendWeight)))
-                .background(Color(0xFFEF4444))
+                .background(friendColor)
         )
     }
 }
