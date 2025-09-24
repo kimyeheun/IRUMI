@@ -2,7 +2,7 @@ package com.example.irumi.ui.events
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.irumi.data.dto.response.RoomStatus
+import com.example.irumi.data.dto.response.events.RoomStatus
 import com.example.irumi.domain.entity.EventEntity
 import com.example.irumi.domain.entity.RoomEntity
 import com.example.irumi.domain.repository.EventsRepository
@@ -25,18 +25,6 @@ class EventViewModel @Inject constructor(
     private val _puzzleImageUrl = MutableStateFlow<String?>(null)
     val puzzleImageUrl: StateFlow<String?> =
         _puzzleImageUrl.asStateFlow()
-
-
-    val totalPieces: Int
-        get() {
-            val room = (_uiState.value as? EventUiState.InRoom)?.roomEntity
-            return when (room?.maxMembers) {
-                2 -> 5 * 5
-                3 -> 7 * 7
-                5 -> 9 * 9
-                else -> 9 * 9
-            }
-        }
 
     // 방 생성
     fun createRoom(maxMembers: Int) {
@@ -83,7 +71,7 @@ class EventViewModel @Inject constructor(
                 eventRepository.leaveEventsRoom()
                     .onSuccess {
                         Timber.d("!!! leaveRoom 성공: $it")
-                        _uiState.value = EventUiState.NoRoom(eventEntity = currentEventEntity)
+                        _uiState.value = EventUiState.NoRoom(eventEntity = it)
                     }
                     .onFailure {
                         Timber.d("!!! leaveRoom 실패: $it")
@@ -100,10 +88,10 @@ class EventViewModel @Inject constructor(
             eventRepository.fillPuzzle()
                 .onSuccess { response ->
                     Timber.d("!!! fillPuzzle 성공: $response")
-                    if(response.puzzles.size == totalPieces) {
+                    val currentState = _uiState.value as EventUiState.InRoom
+                    if(response.puzzles.size == currentState.roomEntity.totalPieces) {
                         getEventsRoomData()
                     }else {
-                        val currentState = _uiState.value as EventUiState.InRoom
                         val updatedRoom = currentState.roomEntity.copy(
                             puzzles = response.puzzles,
                             ranks = response.ranks,

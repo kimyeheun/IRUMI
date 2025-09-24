@@ -1,10 +1,10 @@
 package com.example.irumi.data.mapper
 
-import com.example.irumi.data.dto.response.Event
-import com.example.irumi.data.dto.response.Member
-import com.example.irumi.data.dto.response.Puzzle
-import com.example.irumi.data.dto.response.Rank
-import com.example.irumi.data.dto.response.Room
+import com.example.irumi.data.dto.response.events.Event
+import com.example.irumi.data.dto.response.events.Member
+import com.example.irumi.data.dto.response.events.Puzzle
+import com.example.irumi.data.dto.response.events.Rank
+import com.example.irumi.data.dto.response.events.Room
 import com.example.irumi.domain.entity.EventEntity
 import com.example.irumi.domain.entity.MemberEntity
 import com.example.irumi.domain.entity.PuzzleEntity
@@ -22,7 +22,12 @@ fun Room.toRoomEntity(puzzles: List<PuzzleEntity>, ranks: List<RankEntity>, memb
         roomCode = this.roomCode,
         puzzles = puzzles,
         ranks = ranks,
-        members = members
+        members = members,
+        totalPieces = when(this.maxMembers) {
+            2 -> 25
+            3 -> 49
+            else -> 81
+        }
     )
 }
 

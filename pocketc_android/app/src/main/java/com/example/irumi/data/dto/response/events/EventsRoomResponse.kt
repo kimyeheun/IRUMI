@@ -1,4 +1,4 @@
-package com.example.irumi.data.dto.response
+package com.example.irumi.data.dto.response.events
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

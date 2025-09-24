@@ -1,6 +1,6 @@
 package com.example.irumi.domain.entity
 
-import com.example.irumi.data.dto.response.RoomStatus
+import com.example.irumi.data.dto.response.events.RoomStatus
 
 data class RoomEntity(
     val roomId: Int,
@@ -9,6 +9,7 @@ data class RoomEntity(
     val puzzleAttempts: Int,
     val status: RoomStatus,
     val roomCode: String,
+    val totalPieces: Int,
     val puzzles: List<PuzzleEntity>,
     val ranks: List<RankEntity>,
     val members: List<MemberEntity>

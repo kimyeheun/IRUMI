@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -26,8 +27,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,6 +42,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -45,6 +51,7 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,13 +61,32 @@ import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.example.irumi.core.designsystem.component.dialog.TwoButtonDialog
-import com.example.irumi.data.dto.response.RoomStatus
+import com.example.irumi.data.dto.response.events.RoomStatus
 import com.example.irumi.domain.entity.EventEntity
 import com.example.irumi.domain.entity.MemberEntity
 import com.example.irumi.domain.entity.PuzzleEntity
 import com.example.irumi.domain.entity.RankEntity
 import com.example.irumi.domain.entity.RoomEntity
 
+// 토스 스타일 컬러 팔레트
+object SampleColors {
+    val Primary = Color(0xFF1E5EFF)
+    val PrimaryLight = Color(0xFF4D7EFF)
+    val Success = Color(0xFF00C896)
+    val Error = Color(0xFFFF4545)
+    val Warning = Color(0xFFFFA726)
+    val Background = Color(0xFFF8F9FA)
+    val Surface = Color.White
+    val OnSurface = Color(0xFF191F28)
+    val OnSurfaceVariant = Color(0xFF6B7684)
+    val Outline = Color(0xFFE5E8EB)
+    val Gray50 = Color(0xFFF8F9FA)
+    val Gray100 = Color(0xFFF1F3F4)
+    val Gray200 = Color(0xFFE5E8EB)
+    val Gray300 = Color(0xFFCDD2D7)
+    val Gray400 = Color(0xFFB0B8C1)
+    val Gray500 = Color(0xFF8B95A1)
+}
 @Composable
 fun EventRoomScreen(
     viewModel: EventViewModel = hiltViewModel(),
@@ -96,8 +122,7 @@ fun EventRoomScreen(
     Scaffold(
         topBar = {
             TopBar(
-                filledCount = roomEntity.puzzles.size,
-                totalPieces = viewModel.totalPieces,
+                isSuccess = isSuccess,
                 onLeaveClick = viewModel::leaveRoom
             )
         }
@@ -105,21 +130,32 @@ fun EventRoomScreen(
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .background(SampleColors.Background),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            isSuccess?.let { success ->
-                item {
-                    GameResultSection(success)
-                }
-            }
+
             item {
-                PuzzleMembers(members = roomEntity.members,
+                PuzzleMembers(
+                    members = roomEntity.members,
                     onFollowClick = { memberId ->
                         viewModel.followUser(memberId)
-                    })
-                Spacer(modifier = Modifier.height(24.dp))
+                    }
+                )
             }
+
+            item {
+                if (isSuccess != null) {
+                    GameResultSection(isSuccess)
+                } else {
+                    ProgressCard(
+                        filledCount = roomEntity.puzzles.size,
+                        totalPieces = roomEntity.totalPieces
+                    )
+                }
+            }
+
             item {
                 bitmap?.let { loadedBitmap ->
                     PuzzleGrid(
@@ -127,30 +163,163 @@ fun EventRoomScreen(
                         members = roomEntity.members,
                         selectedUserId = selectedUserId,
                         bitmap = loadedBitmap,
-                        onPuzzleClick = {
-                            // TODO: 퍼즐 클릭 시 로직 구현
-                            // 예를 들어, viewModel.onPuzzleClick(it) 호출
-                            //selectedUserId = it
-                        }
+                        onPuzzleClick = { /* TODO */ }
                     )
                 } ?: LoadingPlaceholder()
-                Spacer(modifier = Modifier.height(24.dp))
             }
 
             item {
                 AttemptsSection(
                     attemptsRemaining = roomEntity.puzzleAttempts,
+                    isSuccess = isSuccess,
                     onMatchButtonClick = viewModel::fillPuzzle
                 )
-                Spacer(modifier = Modifier.height(24.dp))
             }
 
-            items(
-                items = userRankings
-            ) { ranking ->
-                RankingItem(ranking) { userId -> selectedUserId = userId } // Pass the lambda
-                Spacer(modifier = Modifier.height(8.dp))
+            items(userRankings) { ranking ->
+                RankingItem(ranking) { userId ->
+                    selectedUserId = userId
+                }
             }
+
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun TopBar(
+    isSuccess: Boolean?,
+    onLeaveClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(4.dp),
+        colors = CardDefaults.cardColors(containerColor = SampleColors.Surface),
+        shape = RoundedCornerShape(0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "퍼즐 게임",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = SampleColors.OnSurface
+            )
+
+            //if(isSuccess == null) {
+                TextButton(
+                    onClick = onLeaveClick,
+                    colors = ButtonDefaults.textButtonColors(contentColor = SampleColors.Error)
+                ) {
+                    Text(
+                        "나가기",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            //}
+        }
+    }
+}
+
+@Composable
+fun ProgressCard(filledCount: Int, totalPieces: Int) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        colors = CardDefaults.cardColors(containerColor = SampleColors.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "진행률",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = SampleColors.OnSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "$filledCount / $totalPieces",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = SampleColors.Primary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Progress bar
+            val progress = if (totalPieces > 0) filledCount.toFloat() / totalPieces else 0f
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(SampleColors.Gray200)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(progress)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(SampleColors.Primary, SampleColors.PrimaryLight)
+                            )
+                        )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun GameResultSection(isSuccess: Boolean) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSuccess) SampleColors.Success else SampleColors.Error
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = if (isSuccess) "🎉" else "😞",
+                fontSize = 48.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = if (isSuccess) "퍼즐 완성!" else "아쉬워요",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = if (isSuccess) "모든 조각을 맞췄습니다" else "다음엔 꼭 성공해보세요",
+                fontSize = 16.sp,
+                color = Color.White.copy(alpha = 0.9f)
+            )
         }
     }
 }
@@ -163,49 +332,76 @@ fun PuzzleMembers(
     var showDialog by remember { mutableStateOf(false) }
     var selectedMemberForDialog by remember { mutableStateOf<MemberEntity?>(null) }
 
-    LazyRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        colors = CardDefaults.cardColors(containerColor = SampleColors.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
-        items(members) { member ->
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .combinedClickable(
-                        onClick = { /* 일반 클릭 시 동작 (옵션) */ },
-                        onLongClick = {
-                            if(!member.isFriend) {
-                                selectedMemberForDialog = member // 클릭 시 멤버 선택
-                                showDialog = true
-                            }
-                        }
-                    )
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+//            Text(
+//                text = "참여자",
+//                fontSize = 18.sp,
+//                fontWeight = FontWeight.Bold,
+//                color = SampleColors.OnSurface,
+//                modifier = Modifier.padding(bottom = 16.dp)
+//            )
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(CircleShape)
-                        .background(Color.LightGray)
-                )
-                Text(member.name, fontSize = 14.sp)
+                items(members) { member ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .combinedClickable(
+                                onClick = { },
+                                onLongClick = {
+                                    if (!member.isFriend) {
+                                        selectedMemberForDialog = member
+                                        showDialog = true
+                                    }
+                                }
+                            )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(SampleColors.Primary, SampleColors.PrimaryLight)
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = member.name.firstOrNull()?.toString() ?: "?",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = member.name,
+                            fontSize = 12.sp,
+                            color = SampleColors.OnSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             }
         }
-//        item {
-//            Box(
-//                modifier = Modifier
-//                    .size(60.dp)
-//                    .clip(CircleShape)
-//                    .background(Color.Gray),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Text("+", fontSize = 24.sp, color = Color.White)
-//            }
-//        }
     }
 
     selectedMemberForDialog?.let { memberToShow ->
         if (showDialog) {
-            TwoButtonDialog (
+            TwoButtonDialog(
                 title = "${memberToShow.name}님을 팔로우하시겠어요?",
                 text = "팔로우하면 해당 멤버의 활동 소식을 받아볼 수 있습니다.",
                 confirmButtonText = "팔로우",
@@ -225,7 +421,13 @@ fun PuzzleMembers(
 }
 
 @Composable
-fun PuzzleGrid(roomEntity: RoomEntity, members: List<MemberEntity>, bitmap: Bitmap, selectedUserId: Int?, onPuzzleClick: (Int) -> Unit) {
+fun PuzzleGrid(
+    roomEntity: RoomEntity,
+    members: List<MemberEntity>,
+    bitmap: Bitmap,
+    selectedUserId: Int?,
+    onPuzzleClick: (Int) -> Unit
+) {
     val totalCols = when(roomEntity.maxMembers) {
         2 -> 5
         3 -> 7
@@ -236,32 +438,50 @@ fun PuzzleGrid(roomEntity: RoomEntity, members: List<MemberEntity>, bitmap: Bitm
     val puzzleMap = remember(roomEntity.puzzles) {
         roomEntity.puzzles.associateBy { it.row to it.column }
     }
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        for (rowIdx in 1..totalRows) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                for (colIdx in 1..totalCols) {
-                    val puzzleEntity = puzzleMap[rowIdx to colIdx]
 
-                    PuzzleItem(
-                        puzzle = puzzleEntity,
-                        piece = cropBitmapPiece(
-                            bitmap,
-                            rowIdx,
-                            colIdx,
-                            totalRows,
-                            totalCols
-                        ),
-                        onPuzzleClick = onPuzzleClick, // Pass the click handler
-                        selectedUserId = selectedUserId, // TODO Pass selectedUserId
-                        members = members, // TODO ? Pass members for PuzzleItem to resolve filledBy
-                        modifier = Modifier.weight(1f)
-                    )
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        colors = CardDefaults.cardColors(containerColor = SampleColors.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "퍼즐",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = SampleColors.OnSurface,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            for (rowIdx in 1..totalRows) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    for (colIdx in 1..totalCols) {
+                        val puzzleEntity = puzzleMap[rowIdx to colIdx]
+
+                        PuzzleItem(
+                            puzzle = puzzleEntity,
+                            piece = cropBitmapPiece(
+                                bitmap,
+                                rowIdx,
+                                colIdx,
+                                totalRows,
+                                totalCols
+                            ),
+                            onPuzzleClick = onPuzzleClick,
+                            selectedUserId = selectedUserId,
+                            members = members,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         }
@@ -269,88 +489,211 @@ fun PuzzleGrid(roomEntity: RoomEntity, members: List<MemberEntity>, bitmap: Bitm
 }
 
 @Composable
-fun TopBar(filledCount: Int, totalPieces: Int, onLeaveClick: () -> Unit) {
-    Box (
-        modifier = Modifier.fillMaxWidth()
+fun PuzzleItem(
+    puzzle: PuzzleEntity?,
+    piece: ImageBitmap?,
+    onPuzzleClick: (Int) -> Unit,
+    selectedUserId: Int?,
+    members: List<MemberEntity>,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .padding(2.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .then(
+                if (selectedUserId != null && puzzle?.userId == selectedUserId) {
+                    Modifier.border(2.dp, SampleColors.Primary, RoundedCornerShape(8.dp))
+                } else {
+                    Modifier
+                }
+            ),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "$filledCount / $totalPieces",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Center)
-        )
-        Button(
-            onClick = onLeaveClick,
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-            modifier = Modifier.align(Alignment.CenterEnd)
-        ) {
-            Text("나가기", color = Color.White)
+        if (puzzle?.userId != null && piece != null) {
+            Image(
+                painter = BitmapPainter(piece),
+                contentDescription = "퍼즐 조각",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        SampleColors.Gray100,
+                        RoundedCornerShape(8.dp)
+                    )
+                    .border(
+                        1.dp,
+                        SampleColors.Gray200,
+                        RoundedCornerShape(8.dp)
+                    )
+            )
         }
     }
 }
 
-// 게임 성공/실패 텍스트를 보여주는 Composable
 @Composable
-fun GameResultSection(isSuccess: Boolean) {
-    Text(
-        text = if (isSuccess) "성공" else "실패",
-        fontSize = 48.sp,
-        fontWeight = FontWeight.Bold,
-        color = if (isSuccess) Color(0xFF4CAF50) else Color.Red,
-        modifier = Modifier.padding(16.dp)
-    )
+fun AttemptsSection(
+    attemptsRemaining: Int,
+    isSuccess: Boolean?,
+    onMatchButtonClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        colors = CardDefaults.cardColors(containerColor = SampleColors.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "남은 횟수 $attemptsRemaining",
+                    fontSize = 14.sp,
+                    color = SampleColors.OnSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = onMatchButtonClick,
+                enabled = attemptsRemaining > 0 && isSuccess == null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = SampleColors.Primary,
+                    contentColor = Color.White,
+                    disabledContainerColor = SampleColors.Gray400, // 비활성화 색상
+                    disabledContentColor = Color.White // 비활성화 시 글자색
+                ),
+                shape = RoundedCornerShape(12.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+            ) {
+                Text(
+                    "맞추기",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
 }
 
 @Composable
-fun AttemptsSection(attemptsRemaining: Int, onMatchButtonClick: () -> Unit) {
-    Column(
+fun RankingItem(
+    ranking: UserRanking,
+    onUserClick: (Int) -> Unit
+) {
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.End
+            .padding(horizontal = 20.dp)
+            .clickable { onUserClick(ranking.userId) },
+        colors = CardDefaults.cardColors(containerColor = SampleColors.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
-        Text(
-            text = "남은 횟수: $attemptsRemaining",
-            fontSize = 14.sp,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = onMatchButtonClick,
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
-            shape = CircleShape,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE))
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("맞추기", color = Color.White)
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Rank badge
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(
+                            when (ranking.rank) {
+                                1 -> Color(0xFFFFD700)
+                                2 -> Color(0xFFC0C0C0)
+                                3 -> Color(0xFFCD7F32)
+                                else -> SampleColors.Gray300
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "${ranking.rank}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = if (ranking.rank <= 3) Color.White else SampleColors.OnSurface
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Text(
+                    text = ranking.nickname,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = SampleColors.OnSurface
+                )
+            }
+
+            Text(
+                text = "${ranking.filledCount} / ${ranking.totalPieces}",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = SampleColors.Primary
+            )
         }
     }
 }
 
 @Composable
-fun RankingItem(ranking: UserRanking, onUserClick: (Int) -> Unit) {
-    Row(
+fun LoadingPlaceholder() {
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.LightGray)
-            .padding(16.dp)
-            .clickable { onUserClick(ranking.userId) },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 20.dp),
+        colors = CardDefaults.cardColors(containerColor = SampleColors.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "${ranking.rank}",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text(text = ranking.nickname, fontSize = 16.sp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(SampleColors.Gray200)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "퍼즐 이미지 로딩 중...",
+                    fontSize = 14.sp,
+                    color = SampleColors.OnSurfaceVariant
+                )
+            }
         }
-        Text(
-            text = "${ranking.filledCount} / ${ranking.totalPieces}",
-            fontSize = 16.sp
-        )
     }
 }
 
@@ -382,52 +725,6 @@ suspend fun loadBitmapFromUrl(context: Context, url: String?, placeholder: Bitma
         if (drawable is BitmapDrawable) drawable.bitmap else placeholder
     } catch (e: Exception) {
         placeholder
-    }
-}
-
-@Composable
-fun LoadingPlaceholder() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("퍼즐 이미지 로딩 중...")
-    }
-}
-
-@Composable
-fun PuzzleItem(
-    puzzle: PuzzleEntity?,
-    piece: ImageBitmap?,
-    onPuzzleClick: (Int) -> Unit,
-    selectedUserId: Int?,
-    members: List<MemberEntity>,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .aspectRatio(1f)
-            .padding(2.dp)
-            .then(
-                if (selectedUserId != null && puzzle?.userId == selectedUserId) {
-                    Modifier.border(2.dp, Color.Blue, RoundedCornerShape(4.dp))
-                } else {
-                    Modifier
-                }
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        if (puzzle?.userId != null && piece != null) {
-            Image(
-                painter = BitmapPainter(piece),
-                contentDescription = "퍼즐 조각",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.LightGray)
-            )
-        }
     }
 }
 
@@ -470,7 +767,8 @@ fun PreviewEventRoomScreen() {
         members = listOf(
             MemberEntity(userId = 1, name = "UserA", profileImageUrl = "", isFriend = true),
             MemberEntity(userId = 2, name = "UserB", profileImageUrl = "", isFriend = false)
-        )
+        ),
+        totalPieces = 25
     )
     val dummyEventEntity = EventEntity(
         eventId = 101,

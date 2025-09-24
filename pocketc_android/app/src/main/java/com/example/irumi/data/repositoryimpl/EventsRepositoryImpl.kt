@@ -56,7 +56,7 @@ class EventsRepositoryImpl @Inject constructor(
 
     override suspend fun leaveEventsRoom(): Result<EventEntity> {
         return runCatching {
-            eventDataSource.leaveEventsRoom().data!!.toEventEntity()
+            eventDataSource.leaveEventsRoom().data!!.event.toEventEntity()
         }
     }
 

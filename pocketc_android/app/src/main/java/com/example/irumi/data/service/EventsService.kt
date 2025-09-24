@@ -1,12 +1,12 @@
 package com.example.irumi.data.service
 
 import com.example.irumi.core.network.BaseResponse
-import com.example.irumi.data.dto.response.Event
-import com.example.irumi.data.dto.response.EventsRoomResponse
 import com.example.irumi.data.dto.response.PuzzlesResponse
+import com.example.irumi.data.dto.response.events.EventResponse
+import com.example.irumi.data.dto.response.events.EventsRoomResponse
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface EventsService {
@@ -20,9 +20,9 @@ interface EventsService {
     /**
      * 이벤트 방 입장 API
      */
-    @POST("/api/v1/event/room/join?roomCode={roomCode}")
+    @POST("/api/v1/event/room/join")
     suspend fun enterEventsRoom(
-        @Path("roomCode") roomCode: String
+        @Query("roomCode") roomCode: String
     ): BaseResponse<EventsRoomResponse>
 
     /**
@@ -36,9 +36,9 @@ interface EventsService {
     /**
      * 이벤트 방 나가기 API
      */
-    @POST("/api/v1/event/room")
+    @DELETE("/api/v1/event/room")
     suspend fun leaveEventsRoom(
-    ): BaseResponse<Event>
+    ): BaseResponse<EventResponse>
 
     /**
      * 퍼즐 채우기 API
