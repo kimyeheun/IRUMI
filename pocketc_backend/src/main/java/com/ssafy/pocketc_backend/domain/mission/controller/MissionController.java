@@ -20,7 +20,9 @@ public class MissionController {
 
     private final MissionService missionService;
 
-    private Integer userId(Principal principal) { return Integer.parseInt(principal.getName()); }
+    private Integer userId(Principal principal) {
+        return Integer.parseInt(principal.getName());
+    }
 
     @GetMapping("/users/missions")
     public ResponseEntity<ApiResponse<MissionResDto>> getMissions(Principal principal) {

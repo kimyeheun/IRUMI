@@ -52,7 +52,6 @@ public class TransactionService {
 
     private final MissionRedisService missionRedisService;
 
-    // 여기서 userId를 사용하고 있지는 않은거 같은데
     public TransactionResDto getTransactionById(int transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
