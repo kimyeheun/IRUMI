@@ -11,7 +11,8 @@ import org.springframework.http.HttpStatus;
 public enum TransactionErrorType implements ErrorType {
     ERROR_GET_TRANSACTION(HttpStatus.BAD_REQUEST, "거래내역을 찾을 수 없습니다."),
     ERROR_GET_MONTHLY_TRANSACTIONS(HttpStatus.BAD_REQUEST, "해당 월 거래내역을 찾을 수 없습니다."),
-    ERROR_UPDATE_TRANSACTION(HttpStatus.BAD_REQUEST, "거래내역 수정 실패");
+    ERROR_UPDATE_TRANSACTION(HttpStatus.BAD_REQUEST, "거래내역 수정 실패"),
+    ERROR_ALREADY_APPLIED(HttpStatus.BAD_REQUEST, "이미 반영된 거래내역");
 
     private final HttpStatus httpStatus;
     private final String message;
