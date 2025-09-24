@@ -4,7 +4,10 @@ import com.example.irumi.data.dto.response.main.*
 import com.example.irumi.domain.entity.main.*
 
 fun UserProfileResponse.toEntity() = UserProfileEntity(
-    userId, name, budget, profileImageUrl
+    userId = userId,
+    name = name,
+    budget = budget,
+    profileImageUrl = profileImageUrl
 )
 
 fun DailySavingResponse.toEntity() = DailySavingEntity(
@@ -23,3 +26,6 @@ fun BadgeListResponse.toEntity(): List<BadgeEntity> =
 
 fun StreaksResponse.toEntity(): List<StreakEntity> =
     streaks.map { StreakEntity(it.date, it.missionsCompleted, it.spending, it.isActive) }
+
+fun FollowIdsResponse.toEntity(): List<FollowInfoEntity> =
+    follows.map { FollowInfoEntity(it.followeeId, it.followedAt) }
