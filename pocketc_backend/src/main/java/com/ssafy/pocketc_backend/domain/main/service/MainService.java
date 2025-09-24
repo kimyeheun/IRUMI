@@ -97,7 +97,20 @@ public class MainService {
     public StreakResDto getStreaks(Integer userId) {
         List<Streak> streaks = streakRepository.findAllByUser_UserId(userId);
         List<StreakDto> streakDtos = new ArrayList<>();
+
+        /**
+         * 1. 최장 스트릭 조회
+         * 2. 반환할 streakDto에 추가
+         */
+        Integer longestStreak = 0;
+        Integer temp = 0;
         for (Streak streak : streaks) {
+            if (streak.getMissionCompletedCount() > 0) { // 수행한 미션의 개수가 0보다 크다면, temp, 최장스트릭 갱신
+                temp++;
+                longestStreak = Math.max(longestStreak, temp);
+            } else { // 없다면 temp 초기화
+                temp = 0;
+            }
             streakDtos.add(StreakDto.from(streak));
         }
         return new StreakResDto(streakDtos);

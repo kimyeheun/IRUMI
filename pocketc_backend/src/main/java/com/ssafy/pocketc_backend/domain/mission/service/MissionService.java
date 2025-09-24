@@ -36,15 +36,18 @@ public class MissionService {
     private final UserRepository userRepository;
 
     public MissionResDto getMissions(Integer userId) {
+        // userId, 오늘 날짜로 미션 조회
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         String key = missionRedisService.buildKey(userId, today);
 
         List<MissionRedisDto> cached = Optional.ofNullable(missionRedisService.getList(key))
                 .orElse(List.of());
 
+        // 조회한 미션이 있으면, missionDTO로 묶어서 보낸다. (일일, 주간, 월간 미션이 포함된다.)
         if (!cached.isEmpty()) {
             List<MissionDto> missionDtoList = new ArrayList<>();
             for (MissionRedisDto m : cached) {
+                System.out.println(m);
                 missionDtoList.add(MissionDto.of(
                         m.getSubId(),
                         m.getType(),
@@ -56,6 +59,7 @@ public class MissionService {
             return new MissionResDto(true, missionDtoList);
         }
 
+        // 미션 없으면 AI 미션 추천
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
 
