@@ -36,7 +36,6 @@ class CategoryService:
         transactedAt = datetime.fromisoformat(req.transactedAt)
         pred = self.categorizer.classify(req.merchantName, req.amount, transactedAt)
         category = self.repo.get_category(pred)
-        print(type(category.is_fixed))
 
         return CategoryResponse(
             amount=req.amount,
