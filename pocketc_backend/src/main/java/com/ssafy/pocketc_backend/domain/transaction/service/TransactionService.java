@@ -106,7 +106,7 @@ public class TransactionService {
         return buildTransactionListDto(transactions);
     }
 
-    public TransactionCreatedResDto createTransaction(Integer userId, TransactionCreateReqDto dto) {
+    public TransactionCreatedResDto createTransaction(TransactionCreateReqDto dto) {
 
         TransactionAiReqDto transactionAiReqDto = TransactionAiReqDto.of(String.valueOf(dto.date()), dto.amount(), dto.merchantName());
 
@@ -123,6 +123,8 @@ public class TransactionService {
                 )
                 .bodyToMono(TransactionAiResDto.class)
                 .timeout(Duration.ofSeconds(3)).block();
+
+        Integer userId = dto.userId();
 
         Transaction transaction = new Transaction();
         transaction.setTransactedAt(categorizedTransaction.transactedAt());

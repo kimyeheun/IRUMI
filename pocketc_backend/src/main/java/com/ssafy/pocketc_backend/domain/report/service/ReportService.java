@@ -60,6 +60,7 @@ public class ReportService {
             report.setReportMonth(now.minusMonths(i).withDayOfMonth(1));
             report.setMonthlyBudget(0L);
             report.setMonthlyTotalExpense(0L);
+            report.setMonthlyFixedExpense(0L);
             reports.add(report);
         }
         List<Report> findReports = reportRepository.findAllByUser_UserIdAndReportMonthBetweenOrderByReportMonthAsc(

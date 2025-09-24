@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.event.controller;
 
+import com.ssafy.pocketc_backend.domain.event.dto.request.EventCreateReqDTO;
 import com.ssafy.pocketc_backend.domain.event.dto.response.BadgeResDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.EventResDto;
 import com.ssafy.pocketc_backend.domain.event.dto.response.PuzzleResDto;
@@ -69,5 +70,11 @@ public class EventController {
                 SUCCESS_GET_BADGES,
                 eventService.getBadges(userId(principal))
         ));
+    }
+
+    @PostMapping("/admin/events")
+    public ResponseEntity<ApiResponse<?>> createEvent(@RequestParam EventCreateReqDTO dto) {
+        eventService.createEvent(dto);
+        return ResponseEntity.ok(ApiResponse.success(SUCCESS_CREATE_EVENT));
     }
 }
