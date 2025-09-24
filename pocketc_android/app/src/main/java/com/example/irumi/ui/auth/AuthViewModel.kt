@@ -33,14 +33,16 @@ class AuthViewModel @Inject constructor(
         launch {
             repo.signUp(SignUpRequest(name, email, pw, budget))
                 .onSuccess {
-                    Timber.d("!!! 회원가입 성공")
-                    tokenStore.save(it.accessToken, it.refreshToken)
+                    Timber.d("!!! 회원가입 성공 remember=${remember} email=${email}")
+                    // TODO 로그인 화면으로 돌리기
+                    // TODO 200인지도 확인 필요
+//                    tokenStore.save(it.accessToken, it.refreshToken)
                     tokenStore.autoLogin = remember
                     tokenStore.email = email
                     isLoggedIn = true
                 }
                 .onFailure {
-                    Timber.d("!!! 회원가입 실패 ${it.message}")
+                    Timber.d("!!! 회원가입 실패 ${it}")
                     error = it.message
                 }
         }

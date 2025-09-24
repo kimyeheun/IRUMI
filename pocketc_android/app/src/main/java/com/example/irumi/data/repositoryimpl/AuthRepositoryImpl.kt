@@ -6,6 +6,8 @@ import com.example.irumi.data.dto.request.auth.LoginRequest
 import com.example.irumi.data.dto.request.auth.SignUpRequest
 import com.example.irumi.data.dto.response.auth.LoginEnvelope
 import com.example.irumi.data.dto.response.auth.TokenEnvelope
+import com.example.irumi.data.mapper.toBaseEntity
+import com.example.irumi.domain.entity.BaseEntity
 import com.example.irumi.domain.entity.MemberProfileEntity
 import com.example.irumi.domain.repository.AuthRepository
 import javax.inject.Inject
@@ -14,8 +16,8 @@ class AuthRepositoryImpl @Inject constructor(
     private val ds: AuthDataSource
 ) : AuthRepository {
 
-    override suspend fun signUp(req: SignUpRequest): Result<TokenEnvelope> =
-        runCatching { ds.signUp(req).data!! }
+    override suspend fun signUp(req: SignUpRequest): Result<BaseEntity<Void>> =
+        runCatching { ds.signUp(req).toBaseEntity() }
 
     override suspend fun login(req: LoginRequest): Result<LoginEnvelope> =
         runCatching { ds.login(req).data!! }

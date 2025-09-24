@@ -1,5 +1,7 @@
 package com.example.irumi.data.dto.response
 
+import com.example.irumi.data.dto.response.events.Puzzle
+import com.example.irumi.data.dto.response.events.Rank
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
