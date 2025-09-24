@@ -52,7 +52,6 @@ public class TransactionService {
     private final ObjectMapper objectMapper;
 
     private final MissionRedisService missionRedisService;
-    private final StreakRepository streakRepository;
 
     public TransactionResDto getTransactionById(int transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
