@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.irumi.core.state.UiState
-import com.example.irumi.domain.entity.PaymentEntity
+import com.example.irumi.domain.entity.payments.PaymentEntity
 import com.example.irumi.domain.repository.PaymentsRepository
 import com.example.irumi.ui.payments.model.PaymentsByDay
 import com.example.irumi.ui.payments.model.PaymentsUiState

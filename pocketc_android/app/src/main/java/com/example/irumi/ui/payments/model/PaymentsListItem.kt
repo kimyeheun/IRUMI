@@ -1,6 +1,6 @@
 package com.example.irumi.ui.payments.model
 
-import com.example.irumi.domain.entity.PaymentEntity
+import com.example.irumi.domain.entity.payments.PaymentEntity
 
 sealed class PaymentsListItem {
     data class Header(val date: String, val dailyTotal: Int) : PaymentsListItem()

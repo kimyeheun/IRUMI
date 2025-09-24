@@ -46,7 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.core.state.UiState
-import com.example.irumi.domain.entity.PaymentEntity
+import com.example.irumi.domain.entity.payments.PaymentEntity
 import timber.log.Timber
 import java.text.NumberFormat
 import java.util.Locale

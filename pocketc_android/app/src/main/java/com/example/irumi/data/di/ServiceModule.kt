@@ -3,6 +3,7 @@ package com.example.irumi.data.di
 import com.example.irumi.data.service.AuthService
 import com.example.irumi.data.service.DummyService
 import com.example.irumi.data.service.EventsService
+import com.example.irumi.data.service.MainService
 import com.example.irumi.data.service.PaymentsService
 import dagger.Module
 import dagger.Provides
@@ -23,6 +24,11 @@ object ServiceModule {
     @Singleton
     fun bindAuthService(retrofit: Retrofit): AuthService =
         retrofit.create(AuthService::class.java)
+
+    @Provides
+    @Singleton
+    fun bindMainService(retrofit: Retrofit): MainService =
+        retrofit.create(MainService::class.java)
 
     @Provides
     @Singleton

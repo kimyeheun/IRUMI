@@ -5,8 +5,8 @@ import com.example.irumi.data.dto.response.payments.PaymentCheckRequest
 import com.example.irumi.data.mapper.toPaymentEditRequest
 import com.example.irumi.data.mapper.toPaymentEntity
 import com.example.irumi.data.mapper.toPaymentsHistoryEntity
-import com.example.irumi.domain.entity.PaymentEntity
-import com.example.irumi.domain.entity.PaymentsHistoryEntity
+import com.example.irumi.domain.entity.payments.PaymentEntity
+import com.example.irumi.domain.entity.payments.PaymentsHistoryEntity
 import com.example.irumi.domain.repository.PaymentsRepository
 import javax.inject.Inject
 

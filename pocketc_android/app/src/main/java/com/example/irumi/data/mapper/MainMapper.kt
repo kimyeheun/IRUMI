@@ -1,0 +1,25 @@
+package com.example.irumi.data.mapper
+
+import com.example.irumi.data.dto.response.main.*
+import com.example.irumi.domain.entity.main.*
+
+fun UserProfileResponse.toEntity() = UserProfileEntity(
+    userId, name, budget, profileImageUrl
+)
+
+fun DailySavingResponse.toEntity() = DailySavingEntity(
+    savingScore, totalSpending
+)
+
+fun SpendingResponse.toEntity() = SpendingEntity(
+    totalSpending
+)
+
+fun FollowListResponse.toEntity(): List<FollowEntity> =
+    follows.map { FollowEntity(it.followUserId, it.nickname, it.profileImageUrl) }
+
+fun BadgeListResponse.toEntity(): List<BadgeEntity> =
+    badges.map { BadgeEntity(it.badgeId, it.badgeName, it.badgeDescription, it.level, it.badgeImageUrl, it.createdAt) }
+
+fun StreaksResponse.toEntity(): List<StreakEntity> =
+    streaks.map { StreakEntity(it.date, it.missionsCompleted, it.spending, it.isActive) }
