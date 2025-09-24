@@ -3,7 +3,9 @@ package com.ssafy.pocketc_backend.domain.transaction.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ssafy.pocketc_backend.domain.event.entity.Status;
 import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionRedisDto;
+import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.MonthReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionAiReqDto;
@@ -15,6 +17,8 @@ import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionList
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionResDto;
 import com.ssafy.pocketc_backend.domain.transaction.entity.Transaction;
 import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionRepository;
+import com.ssafy.pocketc_backend.domain.user.entity.Streak;
+import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,7 @@ import reactor.core.publisher.Mono;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.ERROR_GET_MONTHLY_TRANSACTIONS;
 import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.ERROR_GET_TRANSACTION;
@@ -46,6 +51,9 @@ public class TransactionService {
     private final WebClient transactionAiClient;
 
     private final ObjectMapper objectMapper;
+
+    private final MissionRedisService missionRedisService;
+    private final StreakRepository streakRepository;
 
     // 여기서 userId를 사용하고 있지는 않은거 같은데
     public TransactionResDto getTransactionById(int transactionId) {
@@ -153,6 +161,32 @@ public class TransactionService {
         return new TransactionCreatedResDto(transaction.getTransactionId(), transaction.getUser().getUserId());
     }
 
+    public void appliedTransaction(Integer transactionId, Integer userId) throws JsonProcessingException {
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
+
+        LocalDate date = LocalDate.from(transaction.getTransactedAt());
+
+        String key = missionRedisService.buildKey(userId, date);
+
+        List<MissionRedisDto> cached = Optional.ofNullable(missionRedisService.getList(key))
+                .orElse(List.of());
+
+        Streak streak = streakRepository.findByUser_userIdAndDate(userId, date);
+
+        for (MissionRedisDto missionRedisDto : cached) {
+            if (missionRedisDto.getStatus() != Status.IN_PROGRESS) continue;
+            boolean check = checkMissionByTransaction(transaction, missionRedisDto);
+            if (!check) {
+                missionRedisDto.setStatus(Status.FAILURE);
+            } else {
+
+            }
+        }
+
+    }
+
+
     private TransactionListResDto buildTransactionListDto(List<Transaction> transactions) {
         List<TransactionResDto> transactionResDtoList = new ArrayList<>();
         Long totalSpending = 0L;
@@ -163,9 +197,7 @@ public class TransactionService {
         return TransactionListResDto.of(transactionResDtoList, totalSpending);
     }
 
-     public boolean checkMissionByTransaction(Integer transactionId, MissionRedisDto mission) throws JsonProcessingException {
-        Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
+     public boolean checkMissionByTransaction(Transaction transaction, MissionRedisDto mission) throws JsonProcessingException {
 
         String json = mission.getDsl();
 
