@@ -44,8 +44,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.irumi.core.state.UiState
+import com.example.irumi.data.dto.response.stats.MonthStatsResponse
 import com.example.irumi.ui.auth.AuthViewModel
 import com.example.irumi.ui.component.button.PrimaryButton
+import com.example.irumi.ui.events.LoadingPlaceholder
 import ir.ehsannarmani.compose_charts.LineChart
 import ir.ehsannarmani.compose_charts.PieChart
 import ir.ehsannarmani.compose_charts.models.DotProperties
@@ -58,11 +63,15 @@ import ir.ehsannarmani.compose_charts.models.Pie
 fun StatsRoute(
     brand: Color,
     onLoggedOut: () -> Unit, // 인트로 화면으로 이동
-    viewModel: AuthViewModel = hiltViewModel()
+    viewModel: AuthViewModel = hiltViewModel(),
+    statsViewModel: StatsViewModel = hiltViewModel()
 ) {
     val loading = viewModel.loading
     val error = viewModel.error
     val isLoggedIn = viewModel.isLoggedIn
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val stats by statsViewModel.statsUiState.collectAsStateWithLifecycle(lifecycleOwner)
 
     // 로그아웃 성공 감지 → 외부로 알림
     LaunchedEffect(isLoggedIn) {
@@ -75,11 +84,21 @@ fun StatsRoute(
         error?.let { Toast.makeText(ctx, it, Toast.LENGTH_SHORT).show() }
     }
 
-    StatsScreen(
-        brand = brand,
-        loading = loading,
-        onLogout = { viewModel.logout() }
-    )
+    when(stats) {
+        is UiState.Success -> {
+            StatsScreen(
+                brand = brand,
+                loading = loading,
+                stats = stats,
+                onLogout = { viewModel.logout() }
+            )
+        }
+        is UiState.Empty -> TODO()
+        is UiState.Failure -> TODO()
+        is UiState.Loading -> {
+            LoadingPlaceholder()
+        }
+    }
 }
 
 /** 프리젠테이션: UI만 담당 */
@@ -87,6 +106,7 @@ fun StatsRoute(
 fun StatsScreen(
     brand: Color,
     loading: Boolean,
+    stats: UiState<MonthStatsResponse>,
     onLogout: () -> Unit
 ) {
     Column(
@@ -568,6 +588,7 @@ private fun StatsScreenPreview() {
     StatsScreen(
         brand = Color(0xFF00C853),
         loading = false,
+        stats = UiState.Loading,
         onLogout = {}
     )
 }
