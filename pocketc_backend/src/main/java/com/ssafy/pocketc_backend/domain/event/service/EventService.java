@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.event.service;
 
+import com.ssafy.pocketc_backend.domain.event.dto.request.EventCreateReqDTO;
 import com.ssafy.pocketc_backend.domain.event.dto.response.*;
 import com.ssafy.pocketc_backend.domain.event.entity.*;
 import com.ssafy.pocketc_backend.domain.event.repository.BadgeRepository;
@@ -242,14 +243,21 @@ public class EventService {
         return new PuzzleResDto(puzzleDtos, rankDtos, user.getPuzzleAttempts());
     }
 
-    private void createNewEvent() {
-
+    public void createEvent(EventCreateReqDTO dto) {
         List<User> users = userRepository.findAll();
         for (User user : users) {
             leaveRoom(user.getUserId());
         }
 
-        Event event = Event.builder().build();
+        Event event = Event.builder()
+                .eventName(dto.eventName())
+                .eventDescription(dto.eventDescription())
+                .badgeName(dto.badgeName())
+                .badgeDescription(dto.badgeDescription())
+                .eventImageUrl(dto.eventImageUrl())
+                .badgeImageUrl(dto.badgeImageUrl())
+                .build();
+
         eventRepository.save(event);
     }
 }

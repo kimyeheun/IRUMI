@@ -18,14 +18,14 @@ import static com.ssafy.pocketc_backend.domain.transaction.exception.Transaction
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1")
 public class TransactionController {
 
     private final TransactionService transactionService;
 
     private Integer userId(Principal principal) { return Integer.parseInt(principal.getName()); }
 
-    @GetMapping("/transactions/{transactionId}")
+    @GetMapping("/users/transactions/{transactionId}")
     public ResponseEntity<ApiResponse<TransactionResDto>> getTransaction(@PathVariable("transactionId") Integer transactionId) {
         return ResponseEntity.ok(ApiResponse.success(
             SUCCESS_GET_TRANSACTION,
@@ -33,7 +33,7 @@ public class TransactionController {
         ));
     }
 
-    @GetMapping("/transactions")
+    @GetMapping("/users/transactions")
     public ResponseEntity<ApiResponse<TransactionListResDto>> getTransactions(@RequestBody MonthReqDto dto, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_MONTHLY_TRANSACTIONS,
@@ -41,7 +41,7 @@ public class TransactionController {
         ));
     }
 
-    @PutMapping("/transactions/{transactionId}")
+    @PutMapping("/users/transactions/{transactionId}")
     public ResponseEntity<ApiResponse<TransactionResDto>> updateTransaction(@PathVariable("transactionId") Integer transactionId, @RequestBody TransactionReqDto dto, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_UPDATE_TRANSACTION,
@@ -49,7 +49,7 @@ public class TransactionController {
         ));
     }
 
-    @GetMapping("/transactions/majorcategory/{majorCategory}")
+    @GetMapping("/users/transactions/majorcategory/{majorCategory}")
     public ResponseEntity<ApiResponse<TransactionListResDto>> getMajorCategoryTransactions(@PathVariable("majorCategory") Integer majorCategory, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_MAJOR_CATEGORY_TRANSACTIONS,
@@ -57,7 +57,7 @@ public class TransactionController {
         ));
     }
 
-    @GetMapping("/transactions/subcategory/{subCategory}")
+    @GetMapping("/users/transactions/subcategory/{subCategory}")
     public ResponseEntity<ApiResponse<TransactionListResDto>> getSubCategoryTransactions(@PathVariable("subCategory") Integer subCategory, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_SUB_CATEGORY_TRANSACTIONS,
@@ -65,11 +65,11 @@ public class TransactionController {
         ));
     }
 
-    @PostMapping("/transactions")
-    public ResponseEntity<ApiResponse<TransactionCreatedResDto>> createTransaction(Principal principal, @RequestBody TransactionCreateReqDto dto) {
+    @PostMapping("/admin/transactions")
+    public ResponseEntity<ApiResponse<TransactionCreatedResDto>> createTransaction(@RequestBody TransactionCreateReqDto dto) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_CREATE_TRANSACTIONS,
-                transactionService.createTransaction(userId(principal), dto)
+                transactionService.createTransaction(dto)
         ));
     }
 }
