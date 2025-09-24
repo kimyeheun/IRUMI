@@ -5,6 +5,7 @@ import com.example.irumi.data.service.DummyService
 import com.example.irumi.data.service.EventsService
 import com.example.irumi.data.service.MainService
 import com.example.irumi.data.service.PaymentsService
+import com.example.irumi.data.service.StatsService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,4 +40,9 @@ object ServiceModule {
     @Singleton
     fun bindEventsService(retrofit: Retrofit): EventsService =
         retrofit.create(EventsService::class.java)
+
+    @Provides
+    @Singleton
+    fun bindStatsService(retrofit: Retrofit): StatsService =
+        retrofit.create(StatsService::class.java)
 }
