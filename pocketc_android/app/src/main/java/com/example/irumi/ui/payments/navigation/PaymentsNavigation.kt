@@ -40,7 +40,8 @@ fun NavGraphBuilder.paymentDetailNavGraph(
     composable<PaymentDetail> {
         PaymentDetailRoute(
             paddingValues = paddingValues,
-            navigateUp = navigateUp
+            navigateUp = navigateUp,
+            paymentId = it.arguments?.getInt("paymentId")
         )
     }
 }
