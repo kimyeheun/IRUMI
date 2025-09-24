@@ -38,7 +38,7 @@ public class User extends BaseTimeEntity {
     private Long budget;
 
     @Column
-    private Integer puzzleAttempts;
+    private Integer puzzleAttempts = 0;
 
     //    @Column
 //    private String feedback;
