@@ -15,6 +15,7 @@ from app.schemas.mission import Mission
 from app.services.mission.clustering import cluster_for_user
 from app.services.mission.template.template import pick_template
 from app.services.mission.templates_to_mission import build_mission_details
+from app.utils.buf_data import BUF_MISSION
 
 
 class MissionService:
@@ -40,7 +41,6 @@ class MissionService:
 
         missions = []
         mission_counts = [2, 2, 1]
-
 
         for i, (sub_id, sub_name) in enumerate(zip(sub_ids, subs)):
             if len(missions) >= 5: break
@@ -68,6 +68,11 @@ class MissionService:
                     )
                 except ValueError:
                     break
+        if not missions:
+            for mission in BUF_MISSION:
+                mission["validFrom"] =  now.replace(hour=0, minute=0, second=0, microsecond=0)
+                mission["validTo"] =  now.replace(hour=23, minute=59, second=59, microsecond=999999)
+                missions.append(mission)
         return missions
 
 
