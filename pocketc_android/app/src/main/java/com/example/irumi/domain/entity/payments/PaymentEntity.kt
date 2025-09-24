@@ -1,4 +1,4 @@
-package com.example.irumi.domain.entity
+package com.example.irumi.domain.entity.payments
 
 data class PaymentEntity(
     val paymentId: Int,

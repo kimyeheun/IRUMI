@@ -1,6 +1,6 @@
 package com.example.irumi.ui.payments.model
 
-import com.example.irumi.domain.entity.PaymentEntity
+import com.example.irumi.domain.entity.payments.PaymentEntity
 
 data class PaymentsByDay(
     val date: String,

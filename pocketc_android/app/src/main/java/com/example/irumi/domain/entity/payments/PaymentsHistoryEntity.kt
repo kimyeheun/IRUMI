@@ -1,4 +1,4 @@
-package com.example.irumi.domain.entity
+package com.example.irumi.domain.entity.payments
 
 data class PaymentsHistoryEntity(
     val payments: List<PaymentEntity>,

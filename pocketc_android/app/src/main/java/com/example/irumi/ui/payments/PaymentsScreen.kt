@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.irumi.core.designsystem.component.dialog.TwoButtonDialog
-import com.example.irumi.domain.entity.PaymentEntity
+import com.example.irumi.domain.entity.payments.PaymentEntity
 import com.example.irumi.ui.payments.model.PaymentsByDay
 import com.example.irumi.ui.payments.model.PaymentsListItem
 import com.example.irumi.ui.payments.model.PaymentsUiState
