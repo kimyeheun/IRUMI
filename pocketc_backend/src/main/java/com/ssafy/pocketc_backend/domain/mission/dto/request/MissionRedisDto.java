@@ -21,5 +21,5 @@ public class MissionRedisDto implements Serializable {
     private LocalDateTime validFrom;
     private LocalDateTime validTo;
     private Status status = Status.IN_PROGRESS;
-    private Integer progress;
+    private Long progress;
 }

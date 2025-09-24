@@ -41,5 +41,5 @@ public class Mission {
     @Builder.Default
     private Status status = Status.IN_PROGRESS;
 
-    private Integer progress;
+    private Long progress;
 }

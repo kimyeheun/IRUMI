@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.pocketc_backend.domain.event.entity.Status;
 import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionRedisDto;
+import com.ssafy.pocketc_backend.domain.mission.dto.response.MissionDto;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
-import com.ssafy.pocketc_backend.domain.transaction.dto.request.MonthReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionAiReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionCreateReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionReqDto;
@@ -17,7 +17,6 @@ import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionList
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionResDto;
 import com.ssafy.pocketc_backend.domain.transaction.entity.Transaction;
 import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionRepository;
-import com.ssafy.pocketc_backend.domain.user.entity.Streak;
 import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
@@ -52,7 +51,6 @@ public class TransactionService {
     private final ObjectMapper objectMapper;
 
     private final MissionRedisService missionRedisService;
-    private final StreakRepository streakRepository;
 
     public TransactionResDto getTransactionById(int transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
@@ -159,7 +157,7 @@ public class TransactionService {
         return new TransactionCreatedResDto(transaction.getTransactionId(), transaction.getUser().getUserId());
     }
 
-    public void appliedTransaction(Integer transactionId, Integer userId) throws JsonProcessingException {
+    public int appliedTransaction(Integer transactionId, Integer userId) throws JsonProcessingException {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
@@ -176,14 +174,23 @@ public class TransactionService {
         List<MissionRedisDto> cached = Optional.ofNullable(missionRedisService.getList(key))
                 .orElse(List.of());
 
+        int count = 0;
+        List<MissionRedisDto> newCached = new ArrayList<>();
         for (MissionRedisDto missionRedisDto : cached) {
-            if (missionRedisDto.getStatus() != Status.IN_PROGRESS) continue;
-            boolean check = checkMissionByTransaction(transaction, missionRedisDto);
-            if (!check) {
-                missionRedisDto.setStatus(Status.FAILURE);
+            if (missionRedisDto.getStatus() != Status.IN_PROGRESS) {
+                newCached.add(missionRedisDto);
+                continue;
             }
+            long[] check = checkMissionByTransaction(transaction, missionRedisDto);
+            if (check[0] == 0) {
+                missionRedisDto.setStatus(Status.FAILURE);
+                count++;
+            }
+            missionRedisDto.setProgress(check[1]);
+            newCached.add(missionRedisDto);
         }
-        missionRedisService.putList(key, cached, missionRedisService.ttlUntilNext6am());
+        missionRedisService.putList(key, newCached, missionRedisService.ttlUntilNext6am());
+        return cached.size() - count;
     }
 
     private TransactionListResDto buildTransactionListDto(List<Transaction> transactions) {
@@ -196,31 +203,32 @@ public class TransactionService {
         return TransactionListResDto.of(transactionResDtoList, totalSpending);
     }
 
-     public boolean checkMissionByTransaction(Transaction transaction, MissionRedisDto mission) throws JsonProcessingException {
+    public long[] checkMissionByTransaction(Transaction transaction, MissionRedisDto mission) throws JsonProcessingException {
 
-        String json = mission.getDsl();
+        String json = mission.getDsl().replace("\'", "\"");
 
         JsonNode root = objectMapper.readTree(json);
 
-        String template = root.get("template").toString();
+        String template = root.get("template").toString().replace("\"", "");
         int subId = root.get("sub_id").asInt();
         int value = root.get("value").asInt();
+        long progress = mission.getProgress();
 
-        if (subId != transaction.getSubId()) return true;
+        if (subId != transaction.getSubId()) return new long[]{1, progress};
 
         LocalDateTime start = null, end = null;
         if (template.equals("TIME_BAN_DAILY")) {
             JsonNode tod = root.get("time_of_day");
             JsonNode tr = tod.get(0);
             String startStr = tr.get("start").asText();
-            String endStr   = tr.get("end").asText();
+            String endStr = tr.get("end").asText();
 
             LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
             LocalTime st = LocalTime.parse(startStr);
             LocalTime en = LocalTime.parse(endStr);
 
             start = LocalDateTime.of(today, st);
-            end   = LocalDateTime.of(today, en);
+            end = LocalDateTime.of(today, en);
 
             if (end.isBefore(start)) {
                 end = end.plusDays(1);
@@ -232,49 +240,53 @@ public class TransactionService {
             dayOfWeek = root.get("day_of_week").asInt();
         }
 
-        int progress = mission.getProgress();
-
         long amount = transaction.getAmount();
         LocalDateTime transactedAt = transaction.getTransactedAt();
 
-        boolean check = true;
+        int check = 1;
         switch (template) {
             case "CATEGORY_BAN_DAILY":
-                check = false;
+                check = 0;
                 break;
             case "SPEND_CAP_DAILY":
                 if (progress + amount > value)
-                    check = false;
+                    check = 0;
+                progress += amount;
                 break;
             case "PER_TXN_DAILY":
                 if (amount > value)
-                    check = false;
+                    check = 0;
                 break;
             case "TIME_BAN_DAILY":
                 if (start.isAfter(transactedAt) && end.isBefore(transactedAt))
-                    check = false;
+                    check = 0;
                 break;
             case "COUNT_CAP_DAILY":
                 if (progress + 1 > value)
-                    check = false;
+                    check = 0;
+                progress += 1;
                 break;
             case "DAY_BAN_WEEKLY":
                 if (dayOfWeek == (LocalDate.now().getDayOfWeek().getValue() % 7))
-                    check = false;
+                    check = 0;
                 break;
             case "SPEND_CAP_WEEKLY":
-                if (progress + amount > value) check = false;
+                if (progress + amount > value) check = 0;
+                progress += amount;
                 break;
             case "COUNT_CAP_WEEKLY":
-                if (progress + 1 > value) check = false;
+                if (progress + 1 > value) check = 0;
+                progress += 1;
                 break;
             case "SPEND_CAP_MONTHLY":
-                if (progress + amount > value) check = false;
+                if (progress + amount > value) check = 0;
+                progress += amount;
                 break;
             case "COUNT_CAP_MONTHLY":
-                if (progress + 1 > value) check = false;
+                if (progress + 1 > value) check = 0;
+                progress += 1;
                 break;
         }
-        return check;
+        return new long[]{check, progress};
     }
 }
