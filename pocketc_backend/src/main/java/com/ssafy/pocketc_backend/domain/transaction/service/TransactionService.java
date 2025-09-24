@@ -161,10 +161,7 @@ public class TransactionService {
         return TransactionListResDto.of(transactionResDtoList, totalSpending);
     }
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-
-
-    public boolean checkMissionByTransaction(Integer transactionId, MissionRedisDto mission) throws JsonProcessingException {
+     public boolean checkMissionByTransaction(Integer transactionId, MissionRedisDto mission) throws JsonProcessingException {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
@@ -174,11 +171,11 @@ public class TransactionService {
 
         String template = root.get("template").toString();
         int subId = root.get("sub_id").asInt();
-        String type = root.get("type").toString();
-        String comparator = root.get("comparator").toString();
         int value = root.get("value").asInt();
 
-        LocalDateTime start, end;
+        if (subId != transaction.getSubId()) return true;
+
+        LocalDateTime start = null, end = null;
         if (template.equals("TIME_BAN_DAILY")) {
             JsonNode tod = root.get("time_of_day");
             JsonNode tr = tod.get(0);
@@ -197,7 +194,7 @@ public class TransactionService {
             }
         }
 
-        int dayOfWeek;
+        int dayOfWeek = 0;
         if (template.equals("DAY_BAN_WEEKLY")) {
             dayOfWeek = root.get("day_of_week").asInt();
         }
@@ -207,28 +204,43 @@ public class TransactionService {
         long amount = transaction.getAmount();
         LocalDateTime transactedAt = transaction.getTransactedAt();
 
-        boolean check = false;
+        boolean check = true;
         switch (template) {
             case "CATEGORY_BAN_DAILY":
-
+                check = false;
+                break;
             case "SPEND_CAP_DAILY":
-
+                if (progress + amount > value)
+                    check = false;
+                break;
             case "PER_TXN_DAILY":
-
+                if (amount > value)
+                    check = false;
+                break;
             case "TIME_BAN_DAILY":
-
+                if (start.isAfter(transactedAt) && end.isBefore(transactedAt))
+                    check = false;
+                break;
             case "COUNT_CAP_DAILY":
-
+                if (progress + 1 > value)
+                    check = false;
+                break;
             case "DAY_BAN_WEEKLY":
-
+                if (dayOfWeek == (LocalDate.now().getDayOfWeek().getValue() % 7))
+                    check = false;
+                break;
             case "SPEND_CAP_WEEKLY":
-
+                if (progress + amount > value) check = false;
+                break;
             case "COUNT_CAP_WEEKLY":
-
+                if (progress + 1 > value) check = false;
+                break;
             case "SPEND_CAP_MONTHLY":
-
+                if (progress + amount > value) check = false;
+                break;
             case "COUNT_CAP_MONTHLY":
-
+                if (progress + 1 > value) check = false;
+                break;
         }
         return check;
     }
