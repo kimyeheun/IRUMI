@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class MissionRedisDto implements Serializable {
+    private Integer missionId;
     private Integer subId;
     private String dsl;
     private String mission;
@@ -21,5 +22,5 @@ public class MissionRedisDto implements Serializable {
     private LocalDateTime validFrom;
     private LocalDateTime validTo;
     private Status status = Status.IN_PROGRESS;
-    private Integer progress;
+    private Long progress;
 }
