@@ -16,7 +16,8 @@
 .cxx
 local.properties
 
-.env
+# AI 서버용
+.venv
 *.env
-
-pocketc_ai/mysql_data/
+*__pycache__/
+mysql_data/

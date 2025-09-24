@@ -27,7 +27,7 @@ celery.conf.update(
 celery.conf.beat_schedule = {
     "upsert-user-metrics-daily-batch_program": {
         "task": "app.tasks.user_metrics",
-        "schedule": crontab(minute=0),
+        "schedule": crontab(),
         "args": [3],
     },
 }
