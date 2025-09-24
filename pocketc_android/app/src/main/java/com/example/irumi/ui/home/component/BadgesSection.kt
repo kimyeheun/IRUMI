@@ -1,10 +1,8 @@
+// ui/home/component/BadgesSection.kt
 package com.example.irumi.ui.home.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,7 +17,10 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.irumi.domain.entity.main.BadgeEntity
 import com.example.irumi.ui.theme.BrandGreen
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BadgesSection(
     badges: List<BadgeEntity>,
@@ -50,27 +51,31 @@ fun BadgesSection(
             return@Column
         }
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
+        // 🔄 LazyVerticalGrid 대신 FlowRow 사용 (세로 스크롤 생성 X)
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 120.dp) // 콘텐츠 높이에 맞춰 늘어남
+            modifier = Modifier.fillMaxWidth()
         ) {
-            items(badges) { badge ->
-                BadgeItem(badge = badge)
+            badges.forEach { badge ->
+                BadgeItem(
+                    badge = badge,
+                    modifier = Modifier
+                        .width(100.dp)          // 카드 폭 고정(3열 느낌)
+                )
             }
         }
     }
 }
 
 @Composable
-private fun BadgeItem(badge: BadgeEntity) {
+private fun BadgeItem(
+    badge: BadgeEntity,
+    modifier: Modifier = Modifier
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFFF7F8FA))
             .padding(10.dp)
