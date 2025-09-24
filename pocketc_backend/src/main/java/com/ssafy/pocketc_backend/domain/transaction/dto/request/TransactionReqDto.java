@@ -1,12 +1,9 @@
 package com.ssafy.pocketc_backend.domain.transaction.dto.request;
 
-import java.time.LocalDateTime;
-
 public record TransactionReqDto(
-        LocalDateTime date,
         Long amount,
-        Integer majorCategory,
-        Integer subCategory,
+        Integer majorId,
+        Integer subId,
         String merchantName,
-        boolean isFixed
+        Boolean isFixed
 ) {}

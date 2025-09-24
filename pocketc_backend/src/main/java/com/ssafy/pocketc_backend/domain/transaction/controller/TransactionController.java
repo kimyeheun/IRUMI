@@ -26,10 +26,10 @@ public class TransactionController {
     private Integer userId(Principal principal) { return Integer.parseInt(principal.getName()); }
 
     @GetMapping("/transactions/{transactionId}")
-    public ResponseEntity<ApiResponse<TransactionResDto>> getTransaction(@PathVariable("transactionId") Integer transactionId, Principal principal) {
+    public ResponseEntity<ApiResponse<TransactionResDto>> getTransaction(@PathVariable("transactionId") Integer transactionId) {
         return ResponseEntity.ok(ApiResponse.success(
             SUCCESS_GET_TRANSACTION,
-            transactionService.getTransactionById(transactionId, userId(principal))
+            transactionService.getTransactionById(transactionId)
         ));
     }
 
@@ -37,7 +37,7 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<TransactionListResDto>> getTransactions(@RequestBody MonthReqDto dto, Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_MONTHLY_TRANSACTIONS,
-                transactionService.getMonthlyTransactionList(dto.month().atDay(1), userId(principal))
+                transactionService.getMonthlyTransactionList(dto, userId(principal))
         ));
     }
 
@@ -66,7 +66,7 @@ public class TransactionController {
     }
 
     @PostMapping("/transactions")
-    public ResponseEntity<ApiResponse<?>> createTransaction(Principal principal, @RequestBody TransactionCreateReqDto dto) {
+    public ResponseEntity<ApiResponse<TransactionCreatedResDto>> createTransaction(Principal principal, @RequestBody TransactionCreateReqDto dto) {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_CREATE_TRANSACTIONS,
                 transactionService.createTransaction(userId(principal), dto)

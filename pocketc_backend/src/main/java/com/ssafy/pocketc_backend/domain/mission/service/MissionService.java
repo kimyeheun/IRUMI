@@ -2,6 +2,7 @@ package com.ssafy.pocketc_backend.domain.mission.service;
 
 import com.ssafy.pocketc_backend.domain.mission.client.MissionAiClient;
 import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionItem;
+import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionRedisDto;
 import com.ssafy.pocketc_backend.domain.mission.dto.response.MissionDto;
 import com.ssafy.pocketc_backend.domain.mission.dto.response.MissionResDto;
 import com.ssafy.pocketc_backend.domain.mission.entity.Mission;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.ssafy.pocketc_backend.domain.mission.exception.MissionErrorType.*;
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
@@ -37,16 +39,19 @@ public class MissionService {
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         String key = missionRedisService.buildKey(userId, today);
 
-        List<Mission> cached = missionRedisService.getList(key);
+        List<MissionRedisDto> cached = Optional.ofNullable(missionRedisService.getList(key))
+                .orElse(List.of());
 
-        if (cached == null) cached = List.of();
-
-        System.out.println("cache  " + cached.size());
         if (!cached.isEmpty()) {
-            System.out.println(1);
             List<MissionDto> missionDtoList = new ArrayList<>();
-            for (Mission mission : cached) {
-                missionDtoList.add(MissionDto.from(mission));
+            for (MissionRedisDto m : cached) {
+                missionDtoList.add(MissionDto.of(
+                        m.getSubId(),
+                        m.getType(),
+                        m.getMission(),
+                        String.valueOf(m.getStatus()),
+                        m.getProgress()
+                ));
             }
             return new MissionResDto(true, missionDtoList);
         }
@@ -55,26 +60,51 @@ public class MissionService {
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
 
         List<Mission> missions = fetchDailyMissionsFromAi(user)
-                .timeout(Duration.ofSeconds(7)) // 현실적인 타임아웃
+                .timeout(Duration.ofSeconds(7))
                 .doOnSubscribe(s -> System.out.println("[Mission] subscribed"))
                 .doOnError(e -> System.out.println("[Mission] error: " + e.getClass() + " - " + e.getMessage()))
-                .onErrorResume(e -> Mono.just(List.of())) // 폴백은 하되 로그는 남김
-                .block(); // 실제 실행
+                .onErrorResume(e -> Mono.just(List.of()))
+                .block();
 
-        List<MissionDto> missionDtoList = new ArrayList<>();
-        for (Mission mission : missions) {
-            missionDtoList.add(MissionDto.from(mission));
-            System.out.println(mission.getMission());
+        List<MissionDto> missionDtos = new ArrayList<>();
+        List<MissionRedisDto> missionRedisDtos = new ArrayList<>();
+        for (Mission m : missions) {
+            missionDtos.add(MissionDto.of(
+                    m.getSubId(),
+                    m.getType(),
+                    m.getMission(),
+                    String.valueOf(m.getStatus()),
+                    0
+            ));
+            missionRedisDtos.add(MissionRedisDto.builder()
+                            .mission(m.getMission())
+                            .subId(m.getSubId())
+                            .dsl(m.getDsl())
+                            .validFrom(m.getValidFrom())
+                            .validTo(m.getValidTo())
+                            .status(m.getStatus())
+                            .type(m.getType())
+                            .progress(0)
+                    .build());
         }
 
-        // Weekly, Monthly 미션 추가
-//        List<Mission> weekMonth = missionRepository.findAllByUser_UserId(userId);
-//        missions.addAll(weekMonth);
+        List<Mission> wm = missionRepository.findAllByUser_UserId(userId);
+        for (Mission m : wm) {
+            missionRedisDtos.add(MissionRedisDto.builder()
+                    .mission(m.getMission())
+                    .subId(m.getSubId())
+                    .dsl(m.getDsl())
+                    .validFrom(m.getValidFrom())
+                    .validTo(m.getValidTo())
+                    .status(m.getStatus())
+                    .type(m.getType())
+                    .progress(m.getProgress())
+                    .build());
+        }
 
-//        if (!missions.isEmpty()) {
-//            missionRedisService.putList(key, missions, Duration.ofSeconds(60));
-//        }
-        return new MissionResDto(false, missionDtoList);
+        missionRedisService.putList(key, missionRedisDtos, missionRedisService.ttlUntilNext6am());
+
+        return new MissionResDto(false, missionDtos);
     }
 
     private Mono<List<Mission>> fetchDailyMissionsFromAi(User user) {

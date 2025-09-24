@@ -40,4 +40,6 @@ public class Mission {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private Status status = Status.IN_PROGRESS;
+
+    private Integer progress;
 }
