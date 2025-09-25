@@ -23,21 +23,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.irumi.domain.entity.main.DailySavingEntity
-import com.example.irumi.domain.entity.main.MissionEntity
 import com.example.irumi.domain.entity.main.UserProfileEntity
 import com.example.irumi.ui.auth.AuthViewModel
-import com.example.irumi.ui.component.button.PrimaryButton
 import com.example.irumi.ui.home.HomeViewModel
 import com.example.irumi.ui.theme.BrandGreen
 import java.text.DecimalFormat
 
 @Composable
-fun MyProfile(
+fun MyPageScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel(),
     onLoggedOut: () -> Unit, // 인트로 화면으로 이동
@@ -45,11 +42,8 @@ fun MyProfile(
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val money = remember { DecimalFormat("#,##0원") }
 
-    val loading = authViewModel.loading
     val error = authViewModel.error
     val isLoggedIn = authViewModel.isLoggedIn
-
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     // 로그아웃 성공 감지 → 외부로 알림
     LaunchedEffect(isLoggedIn) {
@@ -61,33 +55,38 @@ fun MyProfile(
     LaunchedEffect(error) {
         error?.let { Toast.makeText(ctx, it, Toast.LENGTH_SHORT).show() }
     }
+    LazyColumn() {
+        item {
+            // 프로필 헤더 카드
+            ProfileHeaderCard(
+                profile = uiState.profile,
+                myScore = uiState.myScore,
+                money = money,
+            )
+        }
 
-    // 프로필 헤더 카드
-    ProfileHeaderCard(
-        profile = uiState.profile,
-        myScore = uiState.myScore,
-        money = money,
-        BrandGreen = BrandGreen
-    )
+        item {
+            // 활동 통계 카드
+            ActivityStatsCard(
+                followCount = uiState.followInfos.size,
+                badgeCount = uiState.badges.size,
+                streakCount = uiState.streaks.size
+            )
+        }
 
-    // 활동 통계 카드
-    ActivityStatsCard(
-        followCount = uiState.followInfos.size,
-        badgeCount = uiState.badges.size,
-        streakCount = uiState.streaks.size,
-        BrandGreen = BrandGreen
-    )
+        // 설정 메뉴
+        item { SettingsSection(onLoggedOut) }
 
-    // 설정 메뉴
-    SettingsSection()
-
-    PrimaryButton(
-        text = if (loading) "로그아웃 중..." else "로그아웃",
-        onClick = onLoggedOut,
-        modifier = Modifier.fillMaxWidth(),
-        enabled = !loading,
-        loading = loading
-    )
+//        item {
+//            PrimaryButton(
+//                text = if (loading) "로그아웃 중..." else "로그아웃",
+//                onClick = onLoggedOut,
+//                modifier = Modifier.fillMaxWidth(),
+//                enabled = !loading,
+//                loading = loading
+//            )
+//        }
+    }
 }
 
 @Composable
@@ -95,7 +94,6 @@ private fun ProfileHeaderCard(
     profile: UserProfileEntity?,
     myScore: DailySavingEntity?,
     money: DecimalFormat,
-    BrandGreen: Color
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -106,74 +104,69 @@ private fun ProfileHeaderCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            // 프로필 이미지
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(BrandGreen.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
             ) {
-                // 프로필 이미지
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(BrandGreen.copy(alpha = 0.1f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (profile?.profileImageUrl?.isNotEmpty() == true) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(profile.profileImageUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "프로필 이미지",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(40.dp),
-                            tint = BrandGreen
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(20.dp))
-
-                // 사용자 정보
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = profile?.name ?: "사용자",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF191F28)
+                if (profile?.profileImageUrl?.isNotEmpty() == true) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(profile.profileImageUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "프로필 이미지",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = BrandGreen
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // 오늘의 절약 점수와 예산
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            // 사용자 이름
+            Text(
+                text = profile?.name ?: "사용자",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF191F28)
+            )
+
+            // 이메일 (희미하게)
+            Text(
+                text = "@" + profile?.userId.toString(),
+                fontSize = 14.sp,
+                color = Color(0xFF8B95A1),
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 예산 정보를 리스트 형태로
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                ScoreItem(
-                    title = "오늘 절약점수",
-                    value = "${myScore?.savingScore ?: 0}점",
-                    icon = "🎯",
-                    color = BrandGreen
-                )
-
-                ScoreItem(
+                // 이번 달 예산
+                InfoListItem(
+                    icon = "💰",
                     title = "이번 달 예산",
                     value = money.format(profile?.budget ?: 0),
-                    icon = "💰",
-                    color = Color(0xFF3B82F6)
+                    valueColor = BrandGreen
                 )
             }
         }
@@ -181,39 +174,53 @@ private fun ProfileHeaderCard(
 }
 
 @Composable
-private fun ScoreItem(
+private fun InfoListItem(
+    icon: String,
     title: String,
     value: String,
-    icon: String,
-    color: Color
+    valueColor: Color = Color(0xFF191F28)
 ) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = color.copy(alpha = 0.08f),
-        modifier = Modifier.padding(4.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFF8F9FA))
+            .padding(20.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = icon,
-                fontSize = 20.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Text(
-                text = value,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(BrandGreen.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = icon,
+                    fontSize = 18.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
             Text(
                 text = title,
-                fontSize = 12.sp,
-                color = Color(0xFF8B95A1),
-                modifier = Modifier.padding(top = 4.dp)
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF191F28)
             )
         }
+
+        Text(
+            text = value,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = valueColor
+        )
     }
 }
 
@@ -221,8 +228,7 @@ private fun ScoreItem(
 private fun ActivityStatsCard(
     followCount: Int,
     badgeCount: Int,
-    streakCount: Int,
-    BrandGreen: Color
+    streakCount: Int
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -269,6 +275,7 @@ private fun ActivityStatsCard(
     }
 }
 
+
 @Composable
 private fun StatItem(
     label: String,
@@ -312,7 +319,7 @@ private fun StatItem(
 }
 
 @Composable
-private fun SettingsSection() {
+private fun SettingsSection(onLoggedOut: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -329,32 +336,25 @@ private fun SettingsSection() {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            SettingItem(
-                icon = Icons.Default.Edit,
-                title = "프로필 편집",
-                subtitle = "이름, 이메일, 프로필 사진 변경",
-                onClick = { /* TODO */ }
-            )
-
-            SettingItem(
-                icon = Icons.Default.AccountBalanceWallet,
-                title = "예산 설정",
-                subtitle = "월 예산 금액 변경",
-                onClick = { /* TODO */ }
-            )
-
-            SettingItem(
-                icon = Icons.Default.Notifications,
-                title = "알림 설정",
-                subtitle = "미션, 절약 알림 관리",
-                onClick = { /* TODO */ }
-            )
+//            SettingItem(
+//                icon = Icons.Default.Edit,
+//                title = "프로필 편집",
+//                subtitle = "이름, 이메일, 프로필 사진 변경",
+//                onClick = { /* TODO */ }
+//            )
+//
+//            SettingItem(
+//                icon = Icons.Default.AccountBalanceWallet,
+//                title = "예산 설정",
+//                subtitle = "월 예산 금액 변경",
+//                onClick = { /* TODO */ }
+//            )
 
             SettingItem(
                 icon = Icons.Default.ExitToApp,
                 title = "로그아웃",
                 subtitle = "",
-                onClick = { /* TODO */ },
+                onClick = onLoggedOut,
                 textColor = Color(0xFFE53E3E)
             )
         }

@@ -59,7 +59,6 @@ import com.example.irumi.data.dto.response.stats.MonthStatsResponse
 import com.example.irumi.ui.auth.AuthViewModel
 import com.example.irumi.ui.component.button.PrimaryButton
 import com.example.irumi.ui.events.LoadingPlaceholder
-import com.example.irumi.ui.profile.MyProfile
 import ir.ehsannarmani.compose_charts.LineChart
 import ir.ehsannarmani.compose_charts.PieChart
 import ir.ehsannarmani.compose_charts.models.DotProperties
@@ -143,14 +142,6 @@ fun StatsScreen(
         Spacer(Modifier.height(8.dp))
 
         CategoryPieChart(stats = stats)
-
-        PrimaryButton(
-            text = if (loading) "로그아웃 중..." else "로그아웃",
-            onClick = onLogout,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loading,
-            loading = loading
-        )
     }
 }
 
