@@ -8,6 +8,5 @@ import java.util.List;
 
 public interface StreakRepository extends JpaRepository<Streak, Integer> {
     List<Streak> findAllByUser_UserId(Integer userUserId);
-
     Streak findByUser_userIdAndDate(Integer userUserId, LocalDate date);
 }

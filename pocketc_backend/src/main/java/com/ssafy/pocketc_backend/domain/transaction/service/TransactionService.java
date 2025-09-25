@@ -17,6 +17,7 @@ import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionList
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionResDto;
 import com.ssafy.pocketc_backend.domain.transaction.entity.Transaction;
 import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionRepository;
+import com.ssafy.pocketc_backend.domain.user.entity.Streak;
 import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
@@ -51,6 +52,7 @@ public class TransactionService {
     private final ObjectMapper objectMapper;
 
     private final MissionRedisService missionRedisService;
+    private final StreakRepository streakRepository;
 
     public TransactionResDto getTransactionById(int transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
@@ -83,6 +85,9 @@ public class TransactionService {
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
         LocalDate curMonth = transaction.getTransactedAt().toLocalDate().withDayOfMonth(1);
+
+        Streak streak = streakRepository.findByUser_userIdAndDate(userId, transaction.getTransactedAt().toLocalDate());
+        streak.setSpentAmount(streak.getSpentAmount() - transaction.getAmount() + dto.amount());
 
         if (transaction.isFixed() && dto.isFixed()) {
             reportService.updateMonthlyFixedExpense(userId, curMonth, -transaction.getAmount() + dto.amount());
@@ -119,6 +124,9 @@ public class TransactionService {
     public TransactionCreatedResDto createTransaction(TransactionCreateReqDto dto) {
 
         TransactionAiReqDto transactionAiReqDto = TransactionAiReqDto.of(String.valueOf(dto.date()), dto.amount(), dto.merchantName());
+
+        Streak streak = streakRepository.findByUser_userIdAndDate(dto.userId(), dto.date().toLocalDate());
+        streak.setSpentAmount(streak.getSpentAmount() + dto.amount());
 
         TransactionAiResDto categorizedTransaction = transactionAiClient.post()
                 .uri("/ai/categories")
