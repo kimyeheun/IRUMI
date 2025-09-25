@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.irumi.core.mapper.CategoryMapper
 import com.example.irumi.core.state.UiState
 import com.example.irumi.domain.entity.payments.PaymentEntity
+import com.example.irumi.domain.entity.payments.toPaymentDetailUiModel
 import com.example.irumi.domain.repository.PaymentsRepository
 import com.example.irumi.ui.payments.model.PaymentsByDay
 import com.example.irumi.ui.payments.model.PaymentsUiState
@@ -29,6 +30,7 @@ class PaymentsViewModel @Inject constructor(
     private val paymentsRepository: PaymentsRepository
 ) : ViewModel() {
 
+    // --- 결제 목록 관련 상태 ---
     private val _paymentsUiState: MutableStateFlow<PaymentsUiState> =
         MutableStateFlow(PaymentsUiState())
     val paymentsUiState = _paymentsUiState.asStateFlow()
@@ -36,8 +38,8 @@ class PaymentsViewModel @Inject constructor(
     private val _navigationEffect = MutableSharedFlow<PaymentsNavigationEffect>()
     val navigationEffect: SharedFlow<PaymentsNavigationEffect> = _navigationEffect.asSharedFlow()
 
+    // --- 결제 상세 및 수정 관련 상태 ---
     private val _selectedPaymentId = MutableStateFlow(0)
-    val selectedPaymentId = _selectedPaymentId.asStateFlow()
 
     private val _paymentDetailState: MutableStateFlow<UiState<PaymentEntity>> =
         MutableStateFlow(UiState.Loading)
@@ -57,8 +59,6 @@ class PaymentsViewModel @Inject constructor(
     // 현재 선택된 "소분류 이름" (UI에서 사용자가 선택한 값)
     private val _selectedMinorCategoryName = MutableStateFlow("")
     val selectedMinorCategoryName: StateFlow<String> = _selectedMinorCategoryName.asStateFlow()
-
-
 
     // 선택된 월
     private val _selectedMonth = MutableStateFlow(YearMonth.now())
@@ -129,22 +129,23 @@ class PaymentsViewModel @Inject constructor(
     }
 
     private fun groupTransactionsByDate(payments: List<PaymentEntity>): List<PaymentsByDay> {
-        val formatter = DateTimeFormatter.ofPattern("yyyy. MM. dd (E)", Locale.KOREAN)
-
+        val formatter = DateTimeFormatter.ofPattern("dd일 E요일", Locale.KOREAN)
+        val inputParser = DateTimeFormatter.ISO_LOCAL_DATE_TIME
         return payments.groupBy { paymentEntity ->
-            val localDateTime = LocalDateTime.parse(paymentEntity.date) // "2025-09-11T14:25:00"
-            localDateTime.toLocalDate() // 키는 LocalDate
+            LocalDateTime.parse(paymentEntity.date, inputParser).toLocalDate()
         }
             .mapValues { entry ->
-                entry.value.sortedByDescending { LocalDateTime.parse(it.date) }
+                entry.value.sortedByDescending { paymentEntity ->
+                    LocalDateTime.parse(paymentEntity.date, inputParser)
+                }
             }
             .entries
-            .sortedByDescending { it.key } // LocalDate로 정렬
+            .sortedByDescending { it.key }
             .map { (date, paymentList) ->
                 PaymentsByDay(
-                    date = date.format(formatter), // 여기서만 String 변환
+                    date = date.format(formatter),
                     dailyTotal = paymentList.sumOf { it.amount },
-                    payments = paymentList
+                    payments = paymentList.map { it.toPaymentDetailUiModel() }
                 )
             }
     }
