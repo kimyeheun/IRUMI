@@ -9,6 +9,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,7 +21,6 @@ import com.example.irumi.domain.entity.main.MissionEntity
 
 /**
  * UI용 간단한 미션 아이템 모델.
- * 서버 연동 시 ViewModel에서 이 모델로 변환해서 넘겨주면 됨.
  */
 data class TodoItemUi(
     val id: Int,
@@ -30,14 +30,25 @@ data class TodoItemUi(
 
 @Composable
 fun TodoSection(
-    items: List<TodoItemUi>? = null,                 // ← 기본값: null이면 플레이스홀더 표시
-    isUpdatingId: Int? = null,                       // ← 갱신 중인 항목 id(선택)
-    error: String? = null,                           // ← 오류 메시지(선택)
-    onToggle: (id: Int, newValue: Boolean) -> Unit = { _, _ -> }, // ← 기본 no-op
-    modifier: Modifier = Modifier,
     missionReceived: Boolean,
-    missions: List<MissionEntity>
+    missions: List<MissionEntity>,
+    isUpdatingId: Int? = null,
+    error: String? = null,
+    onToggle: (id: Int, newValue: Boolean) -> Unit = { _, _ -> },
+    modifier: Modifier = Modifier
 ) {
+    // 서버 모델 → UI 모델 매핑
+    val items = remember(missions) {
+        missions.map {
+            TodoItemUi(
+                id = it.missionId,
+                title = it.mission,
+                // 상태/진행도 기준 체크 표시(필요 시 조건 수정)
+                checked = it.status.equals("DONE", ignoreCase = true) || it.progress >= 100
+            )
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -58,8 +69,14 @@ fun TodoSection(
             Spacer(Modifier.height(6.dp))
         }
 
-        // 데이터 없을 때(초기/로딩/미설정) – 가벼운 플레이스홀더
-        if (items.isNullOrEmpty()) {
+        // 아직 선택(확정) 전이면 가이드/플레이스홀더
+        if (!missionReceived || items.isEmpty()) {
+            Text(
+                text = "아침에 추천 미션을 선택하면 여기에 보여줘요!",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF6B7280)
+            )
+            Spacer(Modifier.height(8.dp))
             repeat(3) {
                 Row(
                     modifier = Modifier
@@ -93,7 +110,7 @@ fun TodoSection(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 260.dp),           // 내부 스크롤만 생기도록 높이 제한
+                .heightIn(max = 260.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(items, key = { it.id }) { item ->

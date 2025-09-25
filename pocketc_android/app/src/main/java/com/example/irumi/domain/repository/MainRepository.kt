@@ -15,4 +15,5 @@ interface MainRepository {
     suspend fun unfollow(targetUserId: Int): Result<Unit>
     suspend fun getDailyWithFriend(friendId: Int): Result<FriendDailyEntity>
     suspend fun getMissions(): Result<MissionsEntity>
+    suspend fun submitMissions(selected: List<Int>): Result<MissionsEntity>
 }
