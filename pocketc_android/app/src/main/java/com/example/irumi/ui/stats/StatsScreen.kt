@@ -1,10 +1,13 @@
 package com.example.irumi.ui.stats
 
 import android.widget.Toast
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,15 +29,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
@@ -59,10 +68,12 @@ import ir.ehsannarmani.compose_charts.models.DotProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
 import ir.ehsannarmani.compose_charts.models.Pie
+import java.text.DecimalFormat
 import java.util.Locale.KOREA
-import kotlin.properties.Delegates
+import kotlin.math.roundToInt
 
 /** 컨테이너: ViewModel과 연결 + 로그아웃 성공 시 콜백 */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsRoute(
     brand: Color,
@@ -73,6 +84,7 @@ fun StatsRoute(
     val loading = viewModel.loading
     val error = viewModel.error
     val isLoggedIn = viewModel.isLoggedIn
+    val isRefreshing = statsViewModel.isRefreshing.collectAsState().value
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val stats by statsViewModel.statsUiState.collectAsStateWithLifecycle(lifecycleOwner)
@@ -90,12 +102,17 @@ fun StatsRoute(
 
     when(stats) {
         is UiState.Success -> {
-            StatsScreen(
-                brand = brand,
-                loading = loading,
-                stats = stats,
-                onLogout = { viewModel.logout() }
-            )
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = { statsViewModel.refresh() }
+            ) {
+                StatsScreen(
+                    brand = brand,
+                    loading = loading,
+                    stats = stats,
+                    onLogout = { viewModel.logout() }
+                )
+            }
         }
         is UiState.Empty -> TODO()
         is UiState.Failure -> TODO()
@@ -191,141 +208,147 @@ fun Header(
      */
     val budget = monthStatistics?.data?.budget!!
     val currMonthExpense = monthStatistics.data.currMonthExpense
-    val remainBudget = (budget-currMonthExpense).coerceAtLeast(0)
-    val usagePercentage = if (budget > 0) (currMonthExpense * 100).coerceIn(0, 100) / budget else 0
+    val usagePercentage: Int =
+        if (budget > 0L)
+            ((currMonthExpense.toDouble() / budget.toDouble()) * 100.0)
+                .coerceIn(0.0, 100.0)
+                .roundToInt()
+        else 0
     // 상단 여백
     Spacer(modifier = Modifier.height(16.dp))
 
     StatsCard(
         title = "월간 지출 통계",
-        subtitle = "잔여 예산 ${String.format(KOREA, "%,d", remainBudget)}원",
         content = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // 포맷터 및 계산
+            val money = remember { DecimalFormat("#,##0원") }
+            val clampedUsage = usagePercentage.coerceIn(0, 100)
+            val percentText = "${clampedUsage}%"
+            val progressTarget = (clampedUsage / 100f).coerceIn(0f, 1f)
+
+            // 애니메이션
+            val animatedProgress by animateFloatAsState(
+                targetValue = progressTarget,
+                animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing),
+                label = "progress"
+            )
+
+            // 동적 색상
+            val progressColor = when {
+                clampedUsage < 70 -> BrandGreen
+                clampedUsage < 90 -> Color(0xFFF59E0B)
+                else -> Color(0xFFFF6B6B)
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .background(
-                            BrandGreen,
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                // 헤더
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "예산 대비 지출량",
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF191F28)
+                    )
+
+                    Text(
+                        text = percentText,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = progressColor
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-            // 진행률 바
-            Column {
+                // 프로그레스 바
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)
-                        .background(
-                            Color(0xFFF2F4F6),
-                            RoundedCornerShape(4.dp)
-                        )
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color(0xFFF2F4F6))
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(usagePercentage.toFloat() / 100)
+                            .fillMaxWidth(animatedProgress)
                             .fillMaxHeight()
-                            .background(
-                                Color(0xFF3182F6),
-                                RoundedCornerShape(4.dp)
-                            )
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(progressColor)
                     )
                 }
 
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 예산 정보
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.End
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${usagePercentage}%",
-                        fontSize = 12.sp,
-                        color = Color(0xFF8B95A1),
+                        text = "예산",
+                        fontSize = 16.sp,
+                        color = Color(0xFF6B7280),
                         fontWeight = FontWeight.Medium
                     )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 지출 내역
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .background(
-                                    Color(0xFF3182F6),
-                                    CircleShape
-                                )
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "예산",
-                            fontSize = 15.sp,
-                            color = Color(0xFF4E5968)
-                        )
-                    }
                     Text(
-                        text = "${budget}원",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        text = money.format(budget),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
                         color = Color(0xFF191F28)
                     )
                 }
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 지출 정보
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .background(
-                                    Color(0xFFFF6B6B),
-                                    CircleShape
-                                )
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "총 지출 금액",
-                            fontSize = 15.sp,
-                            color = Color(0xFF4E5968)
-                        )
-                    }
                     Text(
-                        text = "${currMonthExpense}원",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF191F28)
+                        text = "총 지출 금액",
+                        fontSize = 16.sp,
+                        color = Color(0xFF6B7280),
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = money.format(currMonthExpense),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = progressColor
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 잔여 예산
+                val remaining = budget - currMonthExpense
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (remaining >= 0) "잔여 예산" else "예산 초과",
+                        fontSize = 16.sp,
+                        color = Color(0xFF6B7280),
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = if (remaining >= 0) money.format(remaining) else money.format(-remaining),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (remaining >= 0) BrandGreen else Color(0xFFFF6B6B)
                     )
                 }
             }
