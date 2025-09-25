@@ -1,5 +1,7 @@
 package com.example.irumi.ui.payments
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,24 +11,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,9 +45,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,18 +63,14 @@ import timber.log.Timber
 import java.text.NumberFormat
 import java.util.Locale
 
-
 @Composable
 fun PaymentDetailRoute(
     paddingValues: PaddingValues,
     paymentId: Int?,
     viewModel: PaymentsViewModel = hiltViewModel(),
     navigateUp: () -> Unit
-    ) {
-
-    // 1. 대분류 관련 상태 변수
+) {
     val lifecycleOwner = LocalLifecycleOwner.current
-
     val state by viewModel.paymentDetailState.collectAsStateWithLifecycle(lifecycleOwner = lifecycleOwner)
     val selectedMajorCategoryName by viewModel.selectedMajorCategoryName.collectAsStateWithLifecycle()
     val minorCategoryNameOptions by viewModel.minorCategoryNameOptions.collectAsStateWithLifecycle()
@@ -75,13 +82,13 @@ fun PaymentDetailRoute(
 
     when (state) {
         is UiState.Empty -> {}
-        is UiState.Loading -> {}
-        is UiState.Failure -> {}
+        is UiState.Loading -> LoadingScreen()
+        is UiState.Failure -> ErrorScreen()
         is UiState.Success -> {
             PaymentDetailScreen(
                 modifier = Modifier.padding(paddingValues),
                 paymentDetail = (state as UiState.Success<PaymentEntity>).data,
-                majorCategoryNames = viewModel.majorCategoryNames, // ViewModel에서 대분류 이름 목록 가져오기
+                majorCategoryNames = viewModel.majorCategoryNames,
                 minorCategoryNameOptions = minorCategoryNameOptions,
                 selectedMajorCategoryName = selectedMajorCategoryName,
                 selectedMinorCategoryName = selectedMinorCategoryName,
@@ -91,15 +98,53 @@ fun PaymentDetailRoute(
                     Timber.d("!!! onEditClick UI ${updatedAmount}")
                     viewModel.onEditClick(updatedAmount)
                     navigateUp()
-                }
+                },
+                onBackClick = navigateUp
             )
         }
     }
 }
 
+// 재사용 가능한 뒤로가기 상단바
+@Composable
+fun BackNavigationBar(
+    title: String,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "뒤로가기",
+                    tint = TossColors.OnSurface,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = TossColors.OnSurface
+            )
+        }
+}
+
 @Composable
 fun PaymentDetailScreen(
-    modifier: Modifier = Modifier, // Scaffold 패딩 등을 적용하기 위한 Modifier
+    modifier: Modifier = Modifier,
     paymentDetail: PaymentEntity,
     majorCategoryNames: List<String>,
     minorCategoryNameOptions: List<String>,
@@ -107,66 +152,113 @@ fun PaymentDetailScreen(
     selectedMinorCategoryName: String,
     onMajorCategoryNameSelected: (String) -> Unit,
     onMinorCategoryNameSelected: (String) -> Unit,
-    onEditClick: (updatedAmount: Int) -> Unit
+    onEditClick: (updatedAmount: Int) -> Unit,
+    onBackClick: () -> Unit
 ) {
-    var currentAmountForEditButton by remember(paymentDetail.amount) { mutableStateOf(paymentDetail.amount) }
+    var currentAmountForEditButton by remember(paymentDetail.amount) {
+        mutableStateOf(paymentDetail.amount)
+    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 24.dp)
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = TossColors.Surface
     ) {
-        // 상단 사용처, 금액 및 수정 버튼
-        HeaderSection(
-            merchantName = paymentDetail.merchantName
-        )
-        EditableAmountText(
-            initialAmount = paymentDetail.amount,
-            onAmountChange = { newAmount ->
-                currentAmountForEditButton = newAmount
+        Column {
+            // 상단바
+            BackNavigationBar(
+                title = "상세 내역",
+                onBackClick = onBackClick
+            )
+
+
+                // 스크롤 가능한 컨텐츠
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .background(color = TossColors.Background)
+                        .padding(horizontal = 20.dp)
+                ) {
+
+                        // 결제 정보 카드
+                        PaymentInfoCard(
+                            merchantName = paymentDetail.merchantName,
+                            initialAmount = paymentDetail.amount,
+                            onAmountChange = { newAmount ->
+                                currentAmountForEditButton = newAmount
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // 카테고리 설정 카드
+                        CategoryCard(
+                            majorCategoryNames = majorCategoryNames,
+                            minorCategoryNameOptions = minorCategoryNameOptions,
+                            selectedMajorCategoryName = selectedMajorCategoryName,
+                            selectedMinorCategoryName = selectedMinorCategoryName,
+                            onMajorCategoryNameSelected = onMajorCategoryNameSelected,
+                            onMinorCategoryNameSelected = onMinorCategoryNameSelected
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // 기타 정보 카드
+                        PaymentDetailsCard(paymentDetail = paymentDetail)
+
+                    Spacer(Modifier.weight(1f)) // 버튼을 하단에 위치시키기 위한 Spacer
+
+
+                    // 수정 완료 버튼
+                    Button(
+                        onClick = { onEditClick(currentAmountForEditButton) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = TossColors.Primary,
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(
+                            "수정 완료",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+                }
             }
-        )
-
-        Spacer(Modifier.height(32.dp))
-
-        // 카테고리 설정
-        CategorySection(
-            majorCategoryNames = majorCategoryNames,
-            minorCategoryNameOptions = minorCategoryNameOptions,
-            selectedMajorCategoryName = selectedMajorCategoryName,
-            selectedMinorCategoryName = selectedMinorCategoryName,
-            onMajorCategoryNameSelected = onMajorCategoryNameSelected,
-            onMinorCategoryNameSelected = onMinorCategoryNameSelected
-        )
-
-        Spacer(Modifier.height(32.dp))
-
-        // 기타 결제 정보
-        InfoSection(
-            paymentDetail = paymentDetail
-        )
-
-        Spacer(Modifier.weight(1f)) // 버튼을 하단에 위치시키기 위한 Spacer
-
-        Button(onClick = { onEditClick(currentAmountForEditButton) }, Modifier.fillMaxWidth()) {
-            Text("수정 완료")
         }
     }
-}
+
 
 @Composable
-fun HeaderSection(merchantName: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // 사용처 이름
-        Text(
-            text = merchantName,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-        )
-    }
+fun PaymentInfoCard(
+    merchantName: String,
+    initialAmount: Int,
+    onAmountChange: (Int) -> Unit
+) {
+    Column(
+            modifier = Modifier.padding(horizontal = 24.dp)
+        ) {
+            // 상점명
+            Text(
+                text = merchantName,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = TossColors.OnSurface,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // 편집 가능한 금액
+            EditableAmountText(
+                initialAmount = initialAmount,
+                onAmountChange = onAmountChange
+            )
+        }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -182,18 +274,30 @@ fun EditableAmountText(
     val numberFormatter = remember { NumberFormat.getNumberInstance(Locale.KOREA) }
 
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(TossColors.OutlineVariant)
+            .clickable { showBottomSheet = true }
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            text = "${numberFormatter.format(amount)} 원",
-            style = MaterialTheme.typography.headlineLarge
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        IconButton(onClick = { showBottomSheet = true }) {
-            Icon(Icons.Default.Edit, contentDescription = "금액 수정")
+        Column {
+            Text(
+                text = "${numberFormatter.format(amount)}원",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = TossColors.OnSurface
+            )
         }
+
+        Icon(
+            Icons.Default.Edit,
+            contentDescription = "금액 수정",
+            tint = TossColors.OnSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
     }
 
     if (showBottomSheet) {
@@ -201,49 +305,81 @@ fun EditableAmountText(
 
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = TossColors.Background
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("금액 수정", style = MaterialTheme.typography.titleLarge)
-                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    "금액 수정",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TossColors.OnSurface
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 OutlinedTextField(
                     value = inputText,
                     onValueChange = { inputText = it.filter { ch -> ch.isDigit() } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("금액을 입력하세요") },
+                    colors = TextFieldDefaults.colors(
+                        TossColors.Primary
+                    )
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    OutlinedButton(onClick = { showBottomSheet = false }) {
-                        Text("취소")
+                    OutlinedButton(
+                        onClick = { showBottomSheet = false },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("취소", fontWeight = FontWeight.SemiBold)
                     }
-                    Button(onClick = {
-                        val newAmount = inputText.toIntOrNull()
-                        if (newAmount != null) {
-                            amount = newAmount
-                            onAmountChange(newAmount)
-                        }
-                        showBottomSheet = false
-                    }) {
-                        Text("완료")
+
+                    Button(
+                        onClick = {
+                            val newAmount = inputText.toIntOrNull()
+                            if (newAmount != null) {
+                                amount = newAmount
+                                onAmountChange(newAmount)
+                            }
+                            showBottomSheet = false
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = TossColors.Primary
+                        )
+                    ) {
+                        Text("완료", fontWeight = FontWeight.SemiBold)
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
 
 @Composable
-fun CategorySection(
+fun CategoryCard(
     majorCategoryNames: List<String>,
     minorCategoryNameOptions: List<String>,
     selectedMajorCategoryName: String,
@@ -251,69 +387,25 @@ fun CategorySection(
     onMajorCategoryNameSelected: (String) -> Unit,
     onMinorCategoryNameSelected: (String) -> Unit,
 ) {
-    Column {
-        Text(
-            text = "카테고리 설정",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(Modifier.height(16.dp))
+    Column(
+        modifier = Modifier.padding(horizontal = 24.dp)
+    ) {
         CategoryRow(
             label = "대분류",
             selectedCategoryName = selectedMajorCategoryName,
             onCategoryNameSelected = onMajorCategoryNameSelected,
             categoryNameList = majorCategoryNames
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         CategoryRow(
             label = "소분류",
             selectedCategoryName = selectedMinorCategoryName,
             onCategoryNameSelected = onMinorCategoryNameSelected,
-            categoryNameList = minorCategoryNameOptions, // ViewModel에서 전달된 소분류 옵션 사용
-            enabled = minorCategoryNameOptions.isNotEmpty() // 소분류 옵션이 있을 때만 활성화
+            categoryNameList = minorCategoryNameOptions,
+            enabled = minorCategoryNameOptions.isNotEmpty()
         )
-    }
-}
-
-@Composable
-fun InfoSection(paymentDetail: PaymentEntity) {
-    Column {
-        // 결제일시
-        DetailItem(
-            label = "결제일시",
-            value = paymentDetail.date, // toFormattedDateTime()
-            showArrow = false
-        )
-
-        // 사용처
-        DetailItem(
-            label = "사용처",
-            value = paymentDetail.merchantName,
-            showArrow = false
-        )
-    }
-}
-
-@Composable
-fun DetailItem(label: String, value: String, showArrow: Boolean = true) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = label, fontSize = 16.sp, color = Color.Gray)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = value, fontSize = 16.sp)
-            if (showArrow) {
-                Spacer(Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = Color.Gray
-                )
-            }
-        }
     }
 }
 
@@ -324,66 +416,101 @@ fun CategoryRow(
     selectedCategoryName: String,
     onCategoryNameSelected: (String) -> Unit,
     categoryNameList: List<String>,
-    enabled: Boolean = true // 드롭다운 활성화 여부
+    enabled: Boolean = true
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // 라벨 (대분류)
+    Row {
         Text(
             text = label,
-            modifier = Modifier.weight(0.3f), // 30% 비율로 공간 차지
             fontSize = 16.sp,
-            color = if (enabled) Color.Gray else Color.LightGray
+            color = TossColors.OnSurface,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier
+                        .weight(0.3f)
+                .align(Alignment.CenterVertically)
         )
 
-        // 드롭다운 메뉴 박스 (식비, 아래 화살표)
         ExposedDropdownMenuBox(
-            expanded = isExpanded && enabled, // 활성화 상태일 때만 확장 가능
-            onExpandedChange = { if (enabled) isExpanded = !isExpanded },
-            modifier = Modifier.weight(0.7f)
+            modifier = Modifier.weight(0.7f),
+            expanded = isExpanded, // && enabled,
+            onExpandedChange = {isExpanded = !isExpanded}//{ if (enabled) isExpanded = !isExpanded }
         ) {
-            TextField(
+            Card(
                 modifier = Modifier
                     .menuAnchor()
                     .fillMaxWidth(),
-                readOnly = true,
-                value = selectedCategoryName,
-                onValueChange = {},
-                placeholder = { if (categoryNameList.isEmpty()) Text("항목 없음") else Text("") },
-                enabled = enabled, // TextField 자체도 활성화 상태에 따라 변경
-                colors = ExposedDropdownMenuDefaults.textFieldColors(
-                    // 포커스/언포커스 시 하단 라인 투명하게 (선택적)
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    // 비활성화 시 텍스트 및 아이콘 색상 (선택적)
-                    disabledTextColor = Color.LightGray,
-                    disabledTrailingIconColor = Color.LightGray
+//                    .clickable(enabled = enabled) {
+//                        if (enabled) isExpanded = !isExpanded
+//                    },
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (enabled) TossColors.OutlineVariant
+                    else TossColors.OutlineVariant.copy(alpha = 0.5f)
                 ),
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded && enabled) },
-            )
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = selectedCategoryName.ifEmpty {
+                            if (categoryNameList.isEmpty()) "항목 없음" else "선택하세요"
+                        },
+                        fontSize = 16.sp,
+                        color = if (enabled && selectedCategoryName.isNotEmpty())
+                            TossColors.OnSurface
+                        else TossColors.OnSurfaceVariant,
+                        fontWeight = if (selectedCategoryName.isNotEmpty())
+                            FontWeight.Medium
+                        else FontWeight.Normal
+                    )
 
-            if (enabled) { // 활성화 상태일 때만 드롭다운 메뉴 표시
+                    if (enabled) {
+                        Icon(
+                            Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = TossColors.OnSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+
+            Timber.d("!!! enalbed = ${enabled} isExpanded = ${isExpanded}")
+            if (enabled) {
                 ExposedDropdownMenu(
                     expanded = isExpanded,
-                    onDismissRequest = { isExpanded = false }
+                    onDismissRequest = { isExpanded = false },
+                    modifier = Modifier.background(TossColors.Background)
                 ) {
                     if (categoryNameList.isEmpty()) {
                         DropdownMenuItem(
-                            text = { Text(text = "선택 가능한 항목이 없습니다.") },
+                            text = {
+                                Text(
+                                    "선택 가능한 항목이 없습니다.",
+                                    color = TossColors.OnSurfaceVariant
+                                )
+                            },
                             onClick = { isExpanded = false },
                             enabled = false
                         )
                     } else {
                         categoryNameList.forEach { item ->
                             DropdownMenuItem(
-                                text = { Text(text = item) },
+                                text = {
+                                    Text(
+                                        text = item,
+                                        color = TossColors.OnSurface,
+                                        fontWeight = if (item == selectedCategoryName)
+                                            FontWeight.SemiBold
+                                        else FontWeight.Normal
+                                    )
+                                },
                                 onClick = {
                                     onCategoryNameSelected(item)
                                     isExpanded = false
@@ -397,23 +524,105 @@ fun CategoryRow(
     }
 }
 
+@Composable
+fun PaymentDetailsCard(paymentDetail: PaymentEntity) {
+        Column(
+            modifier = Modifier.padding(horizontal = 24.dp)
+        ) {
+            DetailItem(
+                label = "결제일시",
+                value = paymentDetail.date
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            DetailItem(
+                label = "사용처",
+                value = paymentDetail.merchantName
+            )
+        }
+}
+
+@Composable
+fun DetailItem(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = 16.sp,
+            color = TossColors.OnSurface,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(0.3f)
+        )
+
+        Text(
+            text = value,
+            fontSize = 16.sp,
+            color = TossColors.OnSurface,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.weight(0.7f),
+            textAlign = TextAlign.End
+        )
+    }
+}
+
+@Composable
+fun LoadingScreen() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = TossColors.Surface
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "로딩 중...",
+                fontSize = 16.sp,
+                color = TossColors.OnSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun ErrorScreen() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = TossColors.Surface
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "오류가 발생했습니다",
+                fontSize = 16.sp,
+                color = TossColors.Error
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewPaymentDetailScreen() {
-    // 미리보기용 더미 데이터와 콜백 함수 전달
     val samplePaymentDetail = PaymentEntity(
         paymentId = 501,
         date = "2025-09-11T14:25:00Z",
         amount = 13500,
         majorCategory = 2,
         subCategory = 3,
-        merchantName = "스타벅스",
+        merchantName = "스타벅스 강남점",
         isApplied = true,
         isFixed = false,
         createdAt = "2025-09-11T14:25:30Z",
         updatedAt = "2025-09-11T14:25:30Z"
     )
-    // CategoryMapper에서 실제 이름 가져오기
+
     val majorName = CategoryMapper.getMajorName(samplePaymentDetail.majorCategory) ?: "식비"
     val subName = CategoryMapper.getSubName(samplePaymentDetail.subCategory) ?: "간식"
     val subOptions = CategoryMapper.getSubListByMajorId(samplePaymentDetail.majorCategory)
@@ -426,8 +635,7 @@ fun PreviewPaymentDetailScreen() {
         selectedMinorCategoryName = subName,
         onMajorCategoryNameSelected = {},
         onMinorCategoryNameSelected = {},
-        onEditClick = {}
+        onEditClick = {},
+        onBackClick = {}
     )
 }
-
-
