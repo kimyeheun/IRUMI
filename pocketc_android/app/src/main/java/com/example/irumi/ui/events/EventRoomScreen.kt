@@ -1,6 +1,5 @@
 package com.example.irumi.ui.events
 
-import android.R
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -73,8 +72,10 @@ import com.example.irumi.domain.entity.MemberEntity
 import com.example.irumi.domain.entity.PuzzleEntity
 import com.example.irumi.domain.entity.RankEntity
 import com.example.irumi.domain.entity.RoomEntity
+import com.example.irumi.ui.payments.PullRefreshContent
 import com.example.irumi.ui.payments.TossColors
 import com.example.irumi.ui.theme.BrandGreen
+import timber.log.Timber
 
 // 토스 스타일 컬러 팔레트
 object SampleColors {
@@ -100,7 +101,12 @@ fun EventRoomScreen(
     viewModel: EventViewModel = hiltViewModel(),
     roomEntity: RoomEntity,
     eventEntity: EventEntity,
-    isSuccess: Boolean? = null
+    isSuccess: Boolean? = null,
+    isRefresh: Boolean = false,
+    onRefresh: () -> Unit,
+    onLeaveClick: () -> Unit,
+    onFollowClick: (Int) -> Unit,
+    onMatchButtonClick: () -> Unit
 ) {
     // ViewModel 관리 변수
     val context = LocalContext.current
@@ -127,79 +133,96 @@ fun EventRoomScreen(
         bitmap = loadBitmapFromUrl(context, puzzleImageUrl, placeholderBitmap)
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.toastEvent.collect {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopBar(
+                context = context,
                 isSuccess = isSuccess,
                 roomCode = roomEntity.roomCode,
-                onLeaveClick = viewModel::leaveRoom
+                onLeaveClick = onLeaveClick
             )
         }
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .background(SampleColors.Background)
-                .padding(top = innerPadding.calculateTopPadding())
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Spacer(Modifier.height(16.dp))
-                PuzzleMembers(
-                    members = roomEntity.members,
-                    onFollowClick = { memberId ->
-                        viewModel.followUser(memberId)
+
+        PullRefreshContent(
+            isRefreshing = isRefresh,
+            modifier = Modifier.fillMaxSize(),
+            onRefresh = onRefresh,
+            content = {
+                LazyColumn(
+                    modifier = Modifier
+                        .background(SampleColors.Background)
+                        .padding(top = innerPadding.calculateTopPadding())
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        Spacer(Modifier.height(16.dp))
+                        PuzzleMembers(
+                            context = context,
+                            maxMembers = roomEntity.maxMembers,
+                            members = roomEntity.members,
+                            onFollowClick = onFollowClick
+                        )
                     }
-                )
-            }
 
-            item {
-                if (isSuccess != null) {
-                    GameResultSection(isSuccess)
-                } else {
-                    ProgressCard(
-                        filledCount = roomEntity.puzzles.size,
-                        totalPieces = roomEntity.totalPieces
-                    )
+                    item {
+                        if (isSuccess != null) {
+                            GameResultSection(isSuccess)
+                        } else {
+                            ProgressCard(
+                                filledCount = roomEntity.puzzles.size,
+                                totalPieces = roomEntity.totalPieces
+                            )
+                        }
+                    }
+
+                    item {
+                        bitmap?.let { loadedBitmap ->
+                            PuzzleGrid(
+                                roomEntity = roomEntity,
+                                members = roomEntity.members,
+                                selectedUserId = selectedUserId,
+                                bitmap = loadedBitmap,
+                                onPuzzleClick = { /* TODO */ }
+                            )
+                        } ?: LoadingPlaceholder()
+                    }
+
+                    item {
+                        AttemptsSection(
+                            attemptsRemaining = roomEntity.puzzleAttempts,
+                            isSuccess = isSuccess,
+                            onMatchButtonClick = onMatchButtonClick
+                        )
+                    }
+
+                    items(userRankings) { ranking ->
+                        RankingItem(ranking) { userId ->
+                            selectedUserId = userId
+                        }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
                 }
             }
+        )
 
-            item {
-                bitmap?.let { loadedBitmap ->
-                    PuzzleGrid(
-                        roomEntity = roomEntity,
-                        members = roomEntity.members,
-                        selectedUserId = selectedUserId,
-                        bitmap = loadedBitmap,
-                        onPuzzleClick = { /* TODO */ }
-                    )
-                } ?: LoadingPlaceholder()
-            }
-
-            item {
-                AttemptsSection(
-                    attemptsRemaining = roomEntity.puzzleAttempts,
-                    isSuccess = isSuccess,
-                    onMatchButtonClick = viewModel::fillPuzzle
-                )
-            }
-
-            items(userRankings) { ranking ->
-                RankingItem(ranking) { userId ->
-                    selectedUserId = userId
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-        }
     }
 }
 
 @Composable
 fun TopBar(
+    context: Context,
     isSuccess: Boolean?,
     roomCode: String,
     onLeaveClick: () -> Unit
@@ -260,6 +283,7 @@ fun TopBar(
 
     if (showDialog) {
         InviteDialog(
+            context = context,
             roomCode = roomCode,
             onDismiss = { showDialog = false } // 닫기
         )
@@ -268,11 +292,10 @@ fun TopBar(
 
 @Composable
 fun InviteDialog(
+    context: Context,
     roomCode: String,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
-
     TwoButtonDialog (
         onDismissRequest = onDismiss,
         title =  "방코드" ,
@@ -386,6 +409,8 @@ fun GameResultSection(isSuccess: Boolean) {
 
 @Composable
 fun PuzzleMembers(
+    context: Context,
+    maxMembers: Int,
     members: List<MemberEntity>,
     onFollowClick: (Int) -> Unit
 ) {
@@ -407,45 +432,27 @@ fun PuzzleMembers(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 itemsIndexed(members) { index, member ->
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .then(
-                                if(index != 0) {
-                                    Modifier.combinedClickable(
-                                        onClick = { },
-                                        onLongClick = {
-                                            if (!member.isFriend) {
-                                                selectedMemberForDialog = member
-                                                showDialog = true
-                                            }
-                                        }
-                                    )
-                                }else {
-                                    Modifier
-                                }
-                            )
-
+                    PuzzleMemberItem(
+                        isEmpty = false,
+                        index = index,
+                        member = member
                     ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(member.profileImageUrl)
-                                //.crossfade(true)
-                                .placeholder(R.color.darker_gray) // TODO 로딩 중 보여줄 플레이스홀더 이미지 (선택 사항)
-                                .build(),
-                            contentDescription = "프로필 이미지",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .width(56.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = member.name,
-                            fontSize = 12.sp,
-                            color = SampleColors.OnSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
+                        if (!member.isFriend) {
+                            selectedMemberForDialog = member
+                            showDialog = true
+                        }
+                    }
+                }
+
+                val emptySlots = maxMembers - members.size
+                items(emptySlots) {
+                    Timber.d("!!! Empty slot ${it}")
+                    PuzzleMemberItem(
+                        isEmpty = true,
+                        index = null,
+                        member = null
+                    ) {
+                        Toast.makeText(context, "방코드를 공유해보세요", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -470,6 +477,55 @@ fun PuzzleMembers(
                 }
             )
         }
+    }
+}
+
+@Composable
+fun PuzzleMemberItem(
+    isEmpty: Boolean,
+    index: Int?,
+    member: MemberEntity?,
+    onMemberLongClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .then(
+                if(!isEmpty && index == 0) {
+                    Modifier
+                }else {
+                    Modifier.combinedClickable(
+                        onClick = { },
+                        onLongClick = {
+                           onMemberLongClick()
+                        }
+                    )
+                }
+            )
+
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(if (isEmpty) Color.LightGray else Color.Transparent)
+        ) {
+            if (!isEmpty) {
+                AsyncImage(
+                    model = member?.profileImageUrl,
+                    contentDescription = "프로필 이미지",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = member?.name ?: "",
+            fontSize = 12.sp,
+            color = SampleColors.OnSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
@@ -608,17 +664,21 @@ fun AttemptsSection(
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "남은 횟수 $attemptsRemaining",
-                    fontSize = 14.sp,
-                    color = SampleColors.OnSurfaceVariant
-                )
-            }
+            Text(
+                text = "퍼즐 조각",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = SampleColors.OnSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "$attemptsRemaining",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = SampleColors.Primary,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -835,5 +895,5 @@ fun PreviewEventRoomScreen() {
         badgeImageUrl = ""
     )
 
-    EventRoomScreen(roomEntity = dummyRoomEntity, eventEntity = dummyEventEntity, isSuccess = true) // Example for preview
+    EventRoomScreen(roomEntity = dummyRoomEntity, eventEntity = dummyEventEntity, isSuccess = true, onRefresh = {}, onLeaveClick = {}, onFollowClick = {}, onMatchButtonClick = {}) // Example for preview
 }
