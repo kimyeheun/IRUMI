@@ -6,7 +6,7 @@ from app.services.categorize.rules.base import Rule
 
 
 class Categorizer:
-    def __init__(self, rules: List[Rule], fallback: str = "기타"):
+    def __init__(self, rules: List[Rule], fallback: str = "기타 지출"):
         self.rules = rules
         self.fallback = fallback
 

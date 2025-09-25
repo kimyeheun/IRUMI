@@ -55,7 +55,7 @@ REGEX_RULES: List[Tuple[re.Pattern, str]] = [
     (re.compile(r"(증권|주식|펀드|ETF|코인|암호화폐|가상자산|키움)"), "투자"),
 
     # 기타
-    (re.compile(r"(페이)"), "기타"),
+    (re.compile(r"(페이)"), "기타 지출"),
 ]
 
 # 식비 세분화 힌트

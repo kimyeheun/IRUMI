@@ -11,7 +11,7 @@ from app.services.categorize.rules.regex_rule import RegexRule
 
 
 class Categorization:
-    def __init__(self, fallback: str = "기타"):
+    def __init__(self, fallback: str = "기타 지출"):
         self._categorizer = Categorizer(
             rules=[
                 RegexRule(REGEX_RULES),
@@ -27,7 +27,7 @@ class Categorization:
 
 
 class CategoryService:
-    def __init__(self, db: Session, fallback: str = "기타"):
+    def __init__(self, db: Session, fallback: str = "기타 지출"):
         self.db = db
         self.repo = SubCategoryRepository(db)
         self.categorizer = Categorization(fallback=fallback)
