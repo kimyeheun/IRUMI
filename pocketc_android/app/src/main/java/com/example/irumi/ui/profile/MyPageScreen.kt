@@ -265,7 +265,7 @@ private fun ActivityStatsCard(
                 )
 
                 StatItem(
-                    label = "연속일",
+                    label = "연속스트릭",
                     value = streakCount.toString(),
                     icon = Icons.Default.LocalFireDepartment,
                     color = Color(0xFFE91E63)

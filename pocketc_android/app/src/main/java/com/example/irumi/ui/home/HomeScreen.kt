@@ -25,6 +25,10 @@ import com.example.irumi.ui.home.component.MissionPickSheet
 import com.example.irumi.ui.theme.BrandGreen
 import kotlin.math.min
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -40,6 +44,21 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // 화면이 다시 보여질 때마다 새로고침
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     // "나" + followIds 기반 친구 목록 (닉네임 없음 → placeholder)
     val friends = remember(state.followInfos, state.profile?.profileImageUrl) {
