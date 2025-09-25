@@ -1,4 +1,4 @@
-BUF_MISSION = [
+BUF_DAILY_MISSION = [
     {
         "mission": "간식 1건 8000원 이하",
         "subId": 4,
@@ -28,5 +28,23 @@ BUF_MISSION = [
         "subId": 39,
         "dsl": "{'template': 'COUNT_CAP_DAILY', 'sub_id': 39, 'type': 'count', 'comparator': '<=', 'value': 1}",
         "type": 0,
+    }
+]
+
+BUF_WEEKLY_MISSION = [
+    {
+        "mission": "이번 주 커피 결제 1회 이하로 줄이기",
+        "subId": 1,
+        "dsl": "{'template': 'COUNT_CAP_WEEKLY', 'sub_id': 1, 'type': 'count', 'comparator': '<=', 'value': 1}",
+        "type": 1,
+    }
+]
+
+BUF_MONTHLY_MISSION = [
+    {
+        "mission": "이번 달 커피 50,900원 이하로 사용하기",
+        "subId": 1,
+        "dsl": "{'template': 'SPEND_CAP_MONTHLY', 'sub_id': 1, 'type': 'total_spend', 'comparator': '<=', 'value': '50900'}",
+        "type": 2,
     }
 ]

@@ -169,8 +169,16 @@ def build_mission_details(
     if tmpl_code.endswith("_WEEKLY"): scope = "weekly"
     elif tmpl_code.endswith("_MONTHLY"): scope = "monthly"
     (valid_from, valid_to) = _get_valid_time(now, params, scope)
-    # 3. 미션 문장 생성
-    sentence = raw_sentence.format_map(_SafeDict(params))
-    # 4. 동일한 파라미터를 사용해 DSL 생성
+    # 3. 동일한 파라미터를 사용해 DSL 생성
     dsl = _build_dsl_for_template(tmpl_code, params)
+    # 4. 미션 문장 생성
+    if params.get("amount") is not None:
+        num = params.get("amount")
+        num = num - (num % 100)
+        params["amount"] = format(num, ",")
+    elif params.get("per_txn") is not None:
+        num = params.get("per_txn")
+        num = num - (num % 100)
+        params["per_txn"] = format(num, ",")
+    sentence = raw_sentence.format_map(_SafeDict(params))
     return sentence, dsl, (valid_from, valid_to)
