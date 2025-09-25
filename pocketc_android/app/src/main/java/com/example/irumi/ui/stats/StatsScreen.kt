@@ -27,8 +27,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
@@ -48,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -580,6 +579,7 @@ private fun AchievementMessage(savingPercent: Double) {
     }
 }
 
+
 @Composable
 fun CategoryPieChart(
     stats: UiState<MonthStatsResponse>
@@ -641,139 +641,277 @@ fun CategoryPieChart(
         subtitle = "이번 달 주요 지출 카테고리를 확인하세요",
         content = {
             Column {
-                // 차트와 범례를 나란히 배치 (토스 스타일)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // 파이 차트
+                // 지출이 없을 때와 있을 때 조건부 렌더링
+                if (totalExpense <= 0 || expenseByCategories.isNullOrEmpty()) {
+                    // 빈 상태 메시지
                     Box(
                         modifier = Modifier
-                            .size(200.dp)
-                            .weight(1f),
+                            .fillMaxWidth()
+                            .height(200.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        PieChart(
-                            modifier = Modifier.size(180.dp),
-                            data = data ?: emptyList(),
-                            onPieClick = { pie ->
-                                val pieIndex = data?.indexOf(pie)
-                                data = data?.mapIndexed { mapIndex, p ->
-                                    p.copy(selected = pieIndex == mapIndex)
-                                }
-                            },
-                            selectedScale = 1.1f, // 토스 스타일 - 덜 튀는 확대
-                            scaleAnimEnterSpec = spring<Float>(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessLow
-                            ),
-                            colorAnimEnterSpec = tween(400),
-                            colorAnimExitSpec = tween(400),
-                            scaleAnimExitSpec = tween(400),
-                            spaceDegreeAnimExitSpec = tween(400),
-                            style = Pie.Style.Stroke(width = 35.dp) // 도넛 차트로 변경
-                        )
-                        // 중앙에 총 지출 표시 (토스 스타일)
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "총 지출",
-                                fontSize = 12.sp,
-                                color = Color.DarkGray,
-                                fontWeight = FontWeight.Medium
+                                text = "💸",
+                                fontSize = 48.sp,
+                                modifier = Modifier.padding(bottom = 16.dp)
                             )
                             Text(
-                                text = money.format(totalExpense),
-                                fontSize = 16.sp,
+                                text = "지출이 없어요!",
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF191F28)
+                                color = Color(0xFF191F28),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            Text(
+                                text = "이번 달에는 아직 지출 내역이 없습니다",
+                                fontSize = 14.sp,
+                                color = Color(0xFF8B95A1),
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
-
-                    Spacer(modifier = Modifier.width(24.dp))
-
-                    // 범례 (토스 스타일)
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                } else {
+                    // 차트와 범례를 나란히 배치 (토스 스타일)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        categories.take(4).forEachIndexed { index, category ->
-                            val percentage = ((category.amount.toDouble() / totalExpense) * 100).toInt()
+                        // 파이 차트
+                        Box(
+                            modifier = Modifier
+                                .size(200.dp)
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            PieChart(
+                                modifier = Modifier.size(180.dp),
+                                data = data ?: emptyList(),
+                                onPieClick = { pie ->
+                                    val pieIndex = data?.indexOf(pie)
+                                    data = data?.mapIndexed { mapIndex, p ->
+                                        // 이미 선택된 파이를 다시 클릭하면 선택 해제, 아니면 해당 파이 선택
+                                        p.copy(selected = if (pieIndex == mapIndex && p.selected) false else pieIndex == mapIndex)
+                                    }
+                                },
+                                selectedScale = 1.1f, // 토스 스타일 - 덜 튀는 확대
+                                scaleAnimEnterSpec = spring<Float>(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessLow
+                                ),
+                                colorAnimEnterSpec = tween(400),
+                                colorAnimExitSpec = tween(400),
+                                scaleAnimExitSpec = tween(400),
+                                spaceDegreeAnimExitSpec = tween(400),
+                                style = Pie.Style.Stroke(width = 35.dp) // 도넛 차트로 변경
+                            )
 
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
+                            // 중앙에 총 지출 표시 (토스 스타일)
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                // 색상 인디케이터
-                                Box(
-                                    modifier = Modifier
-                                        .size(12.dp)
-                                        .clip(RoundedCornerShape(3.dp))
-                                        .background(pieColors.getOrElse(index) { Color.Gray })
+                                Text(
+                                    text = "총 지출",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF8B95A1),
+                                    fontWeight = FontWeight.Medium
                                 )
+                                Text(
+                                    text = money.format(totalExpense),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF191F28)
+                                )
+                            }
+                        }
 
-                                Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(24.dp))
 
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = category.name,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = Color(0xFF191F28)
+                        // 범례 (토스 스타일)
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            categories.take(4).forEachIndexed { index, category ->
+                                val percentage = ((category.amount.toDouble() / totalExpense) * 100).toInt()
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // 색상 인디케이터
+                                    Box(
+                                        modifier = Modifier
+                                            .size(12.dp)
+                                            .clip(RoundedCornerShape(3.dp))
+                                            .background(pieColors.getOrElse(index) { Color.Gray })
                                     )
-                                    Row {
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "${percentage}%",
-                                            fontSize = 11.sp,
-                                            color = Color(0xFF8B95A1)
+                                            text = category.name,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = Color(0xFF191F28)
                                         )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = "•",
-                                            fontSize = 11.sp,
-                                            color = Color(0xFF8B95A1)
-                                        )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = money.format(category.amount),
-                                            fontSize = 11.sp,
-                                            color = Color(0xFF8B95A1)
-                                        )
+                                        Row {
+                                            Text(
+                                                text = "${percentage}%",
+                                                fontSize = 11.sp,
+                                                color = Color(0xFF8B95A1)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(
+                                                text = "•",
+                                                fontSize = 11.sp,
+                                                color = Color(0xFF8B95A1)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(
+                                                text = money.format(category.amount),
+                                                fontSize = 11.sp,
+                                                color = Color(0xFF8B95A1)
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+                // 파이 차트
+                Box(
+                    modifier = Modifier
+                        .size(200.dp)
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PieChart(
+                        modifier = Modifier.size(180.dp),
+                        data = data ?: emptyList(),
+                        onPieClick = { pie ->
+                            val pieIndex = data?.indexOf(pie)
+                            data = data?.mapIndexed { mapIndex, p ->
+                                // 이미 선택된 파이를 다시 클릭하면 선택 해제, 아니면 해당 파이 선택
+                                p.copy(selected = if (pieIndex == mapIndex && p.selected) false else pieIndex == mapIndex)
+                            }
+                        },
+                        selectedScale = 1.1f, // 토스 스타일 - 덜 튀는 확대
+                        scaleAnimEnterSpec = spring<Float>(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        colorAnimEnterSpec = tween(400),
+                        colorAnimExitSpec = tween(400),
+                        scaleAnimExitSpec = tween(400),
+                        spaceDegreeAnimExitSpec = tween(400),
+                        style = Pie.Style.Stroke(width = 35.dp) // 도넛 차트로 변경
+                    )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                    // 중앙에 총 지출 표시 (토스 스타일)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "총 지출",
+                            fontSize = 12.sp,
+                            color = Color(0xFF8B95A1),
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = money.format(totalExpense),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF191F28)
+                        )
+                    }
+                }
 
-                // 구분선
-                HorizontalDivider(
-                    thickness = 1.dp,
-                    color = Color(0xFFF2F4F6)
+                Spacer(modifier = Modifier.width(24.dp))
+
+                // 범례 (토스 스타일)
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    categories.take(4).forEachIndexed { index, category ->
+                        val percentage = ((category.amount.toDouble() / totalExpense) * 100).toInt()
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // 색상 인디케이터
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(pieColors.getOrElse(index) { Color.Gray })
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = category.name,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFF191F28)
+                                )
+                                Row {
+                                    Text(
+                                        text = "${percentage}%",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF8B95A1)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "•",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF8B95A1)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = money.format(category.amount),
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF8B95A1)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 구분선
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color(0xFFF2F4F6)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 상세 카테고리 리스트 (기존 CategoryList 컴포넌트 재활용)
+            Column {
+                Text(
+                    text = "전체 카테고리",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF191F28),
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // 상세 카테고리 리스트 (기존 CategoryList 컴포넌트 재활용)
-                Column {
-                    Text(
-                        text = "전체 카테고리",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF191F28),
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    CategoryList(
-                        stats = stats,
-                        categories = categories,
-                        modifier = Modifier
-                    )
-                }
+                CategoryList(
+                    stats = stats,
+                    categories = categories,
+                    modifier = Modifier
+                )
             }
         }
     )
