@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.irumi.core.mapper.CategoryMapper
 import com.example.irumi.core.state.UiState
 import com.example.irumi.data.dto.response.stats.MonthStatsResponse
 import com.example.irumi.ui.auth.AuthViewModel
@@ -57,6 +58,7 @@ import ir.ehsannarmani.compose_charts.models.DotProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
 import ir.ehsannarmani.compose_charts.models.Pie
+import kotlin.properties.Delegates
 
 /** 컨테이너: ViewModel과 연결 + 로그아웃 성공 시 콜백 */
 @Composable
@@ -118,9 +120,9 @@ fun StatsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        Header()
+        Header(stats = stats)
 
-        MonthChart()
+        MonthChart(stats = stats)
 
         Spacer(Modifier.height(8.dp))
 
@@ -132,7 +134,7 @@ fun StatsScreen(
             loading = loading
         )
 
-        CategoryPieChart()
+        CategoryPieChart(stats = stats)
     }
 }
 
@@ -175,23 +177,27 @@ fun StatsCard(
 }
 
 @Composable
-fun Header() {
+fun Header(
+    stats: UiState<MonthStatsResponse>
+) {
+    val monthStatistics = stats as? UiState.Success<MonthStatsResponse>
     // 상단 여백
     Spacer(modifier = Modifier.height(16.dp))
 
     // 절약한 총 금액 카드
-    StatsCard(
-        title = "절약한 총 금액",
-        content = {
-            Text(
-                text = "-10,000원",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF191F28)
-            )
-        }
-    )
-
+    ////////////////////////////// 이거 없음
+//    StatsCard(
+//        title = "절약한 총 금액",
+//        content = {
+//            Text(
+//                text = "-10,000원",
+//                fontSize = 32.sp,
+//                fontWeight = FontWeight.Bold,
+//                color = Color(0xFF191F28)
+//            )
+//        }
+//    )
+    //////////////////////////////
     StatsCard(
         title = "월간 지출 총액",
         subtitle = "하루 예산 22,634원",
@@ -288,7 +294,7 @@ fun Header() {
                         )
                     }
                     Text(
-                        text = "800,000원",
+                        text = "${monthStatistics?.data?.budget}원",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF191F28)
@@ -319,7 +325,7 @@ fun Header() {
                         )
                     }
                     Text(
-                        text = "670,000원",
+                        text = "${monthStatistics?.data?.currMonthExpense}원",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF191F28)
@@ -331,18 +337,41 @@ fun Header() {
 }
 
 @Composable
-fun MonthChart() {
+fun MonthChart(
+    stats: UiState<MonthStatsResponse>
+) {
+    val monthlyStatistics = stats as? UiState.Success<MonthStatsResponse>
     val dataPointsCount = 7 // lineData.firstOrNull()?.values?.size ?: 0
+
+    // TODO : months 항목을 좀 더 예쁘게 보여줘야 함
+    /**
+     * 통계 계산
+     * savingScores: 월별 절약점수 리스트
+     * months: 월 리스트
+     * savingPercent: 지난 달 대비 절약 비율
+     */
+    lateinit var savingScores: List<Double>
+    lateinit var months: List<String>
+    var savingPercent by Delegates.notNull<Double>()
+    with(monthlyStatistics?.data!!){
+        savingScores = monthlySavingScoreList.map { it.savingScore }
+        months = monthlySavingScoreList.map { it.month.split("-")[1] }
+        savingPercent = (if (lastMonthExpense > 0) {
+            (lastMonthExpense - currMonthExpense) / lastMonthExpense * 100
+        } else 0.0) as Double
+    }
     StatsCard(
-        title = "절약한 총 금액",
+        title = "절약 점수 추이",
         content = {
             LineChart(
-                modifier = Modifier.fillMaxWidth().height(300.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
                 data = remember {
                     listOf(
                         Line(
                             label = "Windows",
-                            values = listOf(28.0, 41.0, 5.0, 10.0, 35.0, 60.0, 28.0),
+                            values = savingScores,
                             color = SolidColor(Color.Blue),
                             curvedEdges = false,
                             dotProperties = DotProperties(
@@ -357,26 +386,28 @@ fun MonthChart() {
                 },
                 labelProperties = LabelProperties(
                     enabled = true,
-                    labels = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "July")
+                    labels = months
                 ),
                 curvedEdges = false,
+                maxValue = 100.0
             )
 
-            AchievementMessage(17)
+            AchievementMessage(savingPercent)
         }
     )
 }
 
 @Composable
 fun AchievementMessage(
-    percentage: Int = 17,
+    percentage: Double,
     modifier: Modifier = Modifier
 ) {
     Spacer(modifier = Modifier.height(12.dp))
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF00C73C)),
+        colors = if (percentage > 0.0) CardDefaults.cardColors(containerColor = Color(0xFF00C73C))
+                    else CardDefaults.cardColors(containerColor = Color.Red),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -394,7 +425,7 @@ fun AchievementMessage(
             )
 
             Text(
-                text = "전월 대비 ${percentage}% 절약했어요!",
+                text = if (percentage <= 0.0) "다음엔 좀 더 잘해봐요!" else "전월 대비 ${percentage}% 절약했어요!",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
@@ -405,13 +436,46 @@ fun AchievementMessage(
 }
 
 @Composable
-fun CategoryPieChart() {
+fun CategoryPieChart(
+    stats: UiState<MonthStatsResponse>
+) {
+    /**
+     * 월간 데이터 통계
+     * expenseByCategories: 카테고리별 지출
+     * totalExpense: 총 지출 금액
+     */
+    val monthlyStatistics = stats as? UiState.Success<MonthStatsResponse>
+    val expenseByCategories = monthlyStatistics?.data?.expenseByCategories?.sortedByDescending{it.expense}
+    val totalExpense = monthlyStatistics?.data?.currMonthExpense ?: 1
+
+    /**
+     * 상위 4개 파이차트의 색상
+     * pieColors: 기본 파이 상태 색상
+     * selectedPieColors: 선택된 파이의 색상
+     * categories: 카테고리 지출 내역(카테고리, 지출액) 리스트
+     */
+    val pieColors = listOf(Color.Red, Color.Green, Color.Blue, Color.Yellow)
+    val selectedPieColors = listOf(Color.Red, Color.Green, Color.Blue, Color.Yellow)
     var data by remember {
         mutableStateOf(
-            listOf(
-                Pie(label = "Android", data = 20.0, color = Color.Red, selectedColor = Color.Green),
-                Pie(label = "Windows", data = 45.0, color = Color.Cyan, selectedColor = Color.Blue),
-                Pie(label = "Linux", data = 35.0, color = Color.Gray, selectedColor = Color.Yellow),
+            expenseByCategories?.take(4)?.mapIndexed { index, item -> // 상위 4개의 카테고리 조회
+                Pie(
+                    label = "${item.categoryId}",
+                    data = if (totalExpense > 0) item.expense.toDouble() / totalExpense else 0.0,
+                    color = pieColors.getOrElse(index) { Color.Gray }, // 기타
+                    selectedColor = selectedPieColors.getOrElse(index) { Color.Black }
+                )
+            }
+        )
+    }
+    val categories = mutableListOf<ExpenseCategory>()
+    expenseByCategories?.forEachIndexed { index, item ->
+        categories.add(
+            ExpenseCategory(
+                name = "${CategoryMapper.getMajorName(item.categoryId)}",
+                percentage = if (totalExpense > 0) item.expense / totalExpense else 0,
+                amount = item.expense,
+                color = pieColors.getOrElse(index) { Color.Gray }
             )
         )
     }
@@ -423,7 +487,8 @@ fun CategoryPieChart() {
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(24.dp)
+            modifier = Modifier
+                .padding(24.dp)
                 .fillMaxWidth()
         ) {
             Text(
@@ -436,13 +501,15 @@ fun CategoryPieChart() {
             Spacer(modifier = Modifier.height(16.dp))
 
             PieChart(
-                modifier = Modifier.fillMaxWidth().height(240.dp),
-                data = data,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp),
+                data = data!!,
                 onPieClick = {
                     println("${it.label} Clicked")
-                    val pieIndex = data.indexOf(it)
+                    val pieIndex = data?.indexOf(it)
                     data =
-                        data.mapIndexed { mapIndex, pie -> pie.copy(selected = pieIndex == mapIndex) }
+                        data?.mapIndexed { mapIndex, pie -> pie.copy(selected = pieIndex == mapIndex) }
                 },
                 selectedScale = 1.2f,
                 scaleAnimEnterSpec = spring<Float>(
@@ -456,7 +523,7 @@ fun CategoryPieChart() {
                 style = Pie.Style.Fill
             )
 
-            CategoryList()
+            CategoryList(stats = stats, categories = categories)
         }
     }
 }
@@ -470,18 +537,11 @@ data class ExpenseCategory(
 
 @Composable
 fun CategoryList(
-    totalAmount: Int = 670000,
-    categories: List<ExpenseCategory> = listOf(
-        ExpenseCategory("커피", 45, 301500, Color(0xFFFF4757)),
-        ExpenseCategory("간식", 20, 134000, Color(0xFFFF3838)),
-        ExpenseCategory("술", 16, 107200, Color(0xFF9B59B6)),
-        ExpenseCategory("대중교통", 10, 67000, Color(0xFF3742FA)),
-        ExpenseCategory("음료", 5, 33500, Color(0xFF70A1FF)),
-        ExpenseCategory("OTT/구독 서비스", 3, 18100, Color(0xFF2ED573)),
-        ExpenseCategory("기타", 1, 2000, Color(0xFF747D8C))
-    ),
+    stats: UiState<MonthStatsResponse>,
+    categories: List<ExpenseCategory>,
     modifier: Modifier = Modifier
 ) {
+    val monthlyStatistics = stats as? UiState.Success<MonthStatsResponse>
    Column(
         modifier = Modifier.padding(20.dp)
     ) {
@@ -498,7 +558,7 @@ fun CategoryList(
                 color = Color(0xFF191F28)
             )
             Text(
-                text = "${String.format("%,d", totalAmount)}원",
+                text = "${monthlyStatistics?.data?.currMonthExpense}원",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF191F28)
