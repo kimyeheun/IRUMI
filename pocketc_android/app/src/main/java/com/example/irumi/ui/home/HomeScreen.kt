@@ -22,6 +22,7 @@ import com.example.irumi.ui.home.component.StreakSection
 import com.example.irumi.ui.home.component.TodoSection
 import com.example.irumi.ui.theme.BrandGreen
 import kotlin.math.min
+import androidx.compose.foundation.layout.Arrangement // ✅ 필요 import
 
 data class Friend(val id: Int, val name: String)
 
@@ -32,12 +33,13 @@ fun HomeScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // ✅ "나" + followIds 기반 친구 목록 (닉네임 없음 → placeholder)
+    // "나" + followIds 기반 친구 목록 (닉네임 없음 → placeholder)
     val friends = remember(state.followInfos) {
         listOf(Friend(0, "나")) +
                 state.followInfos.map { Friend(it.followUserId, "친구 ${it.followUserId}") }
     }
 
+    // 선택된 친구
     var selectedFriend by remember { mutableStateOf(Friend(0, "나")) }
     LaunchedEffect(friends) {
         if (friends.none { it.id == selectedFriend.id }) {
@@ -45,6 +47,14 @@ fun HomeScreen(
         }
     }
 
+    // 선택된 친구가 바뀌면 비교 데이터 로드 (캐시 사용)
+    LaunchedEffect(selectedFriend.id) {
+        if (selectedFriend.id != 0) {
+            viewModel.reloadFriendDaily(selectedFriend.id) // skipIfCached = true(기본)
+        }
+    }
+
+    // 친구 추가/삭제 UI 상태
     var showAddSheet by remember { mutableStateOf(false) }
     var followLoading by remember { mutableStateOf(false) }
     var followError by remember { mutableStateOf<String?>(null) }
@@ -95,7 +105,11 @@ fun HomeScreen(
             MyScoreSection(score = state.myScore?.savingScore ?: 0)
             Spacer(Modifier.height(12.dp))
 
-            TodoSection()
+            // ✅ 미션 바인딩
+            TodoSection(
+                missionReceived = state.missionReceived,
+                missions = state.missions
+            )
             Spacer(Modifier.height(12.dp))
 
             BadgesSection(badges = state.badges)
@@ -107,12 +121,26 @@ fun HomeScreen(
                 totalDays = 365
             )
         } else {
-            FriendCompareSection(
-                myScore = state.myScore?.savingScore,
-                friendScore = null, // TODO: 친구 점수 API 연동 시 바인딩
-                friendName = selectedFriend.name
-            )
-            Spacer(Modifier.height(12.dp))
+            // 친구 비교 데이터 (없으면 로딩 중)
+            val pair = state.friendDaily[selectedFriend.id]
+
+            if (pair == null) {
+                // 선택 직후 로딩 피드백
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+                Spacer(Modifier.height(12.dp))
+            } else {
+                FriendCompareSection(
+                    myScore = pair.me.savingScore,          // 내 점수(엔드포인트에서 함께 제공)
+                    friendScore = pair.friend.savingScore,  // 친구 점수
+                    friendName = selectedFriend.name
+                )
+                Spacer(Modifier.height(12.dp))
+            }
 
             StreakSection(
                 friendName = selectedFriend.name,
