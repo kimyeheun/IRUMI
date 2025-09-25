@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,7 +31,7 @@ class StatsViewModel @Inject constructor(
     fun getMonthStatistics() {
         viewModelScope.launch {
             _statsUiState.value = UiState.Loading
-            statsRepository.getMonthStatistics("2025-09-24") // TODO: 현재 날짜로 변경
+            statsRepository.getMonthStatistics(LocalDateTime.now().toString())
                 .onSuccess { response ->
                     Timber.d("!!! getMonthStatistics 성공: $response")
                     _statsUiState.value = UiState.Success(response)
