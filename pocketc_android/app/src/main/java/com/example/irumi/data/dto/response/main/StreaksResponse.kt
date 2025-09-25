@@ -1,16 +1,19 @@
 package com.example.irumi.data.dto.response.main
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class StreaksResponse(
-    val streaks: List<StreakDto>
-) {
-    @Serializable
-    data class StreakDto(
-        val date: String,
-        val missionsCompleted: Int,
-        val spending: Int,
-        val isActive: Boolean
-    )
-}
+    @SerialName("streaks") val streaks: List<StreakResponse>
+)
+
+@Serializable
+data class StreakResponse(
+    @SerialName("date") val date: String,              // "2025-09-25"
+    @SerialName("missionsCompleted") val missionsCompleted: Int,
+    @SerialName("spending") val spending: Long,
+    @SerialName("isActive") val isActive: Boolean
+)
+
+
