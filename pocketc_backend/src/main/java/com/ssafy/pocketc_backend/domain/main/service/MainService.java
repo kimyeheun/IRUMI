@@ -133,7 +133,6 @@ public class MainService {
      * 새벽 6시에 모든 유저의 당일 결제내역을 반영합니다.
      * 반영하는 결제일 : 현재 일자 기준 전날 0600i ~ 오늘일자 0600i
      * 결제내역 반영 후 스트릭 추가
-     *
      */
     public void applyDailyTransaction() throws JsonProcessingException {
         LocalDateTime now = LocalDateTime.now();
