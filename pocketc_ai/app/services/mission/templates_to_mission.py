@@ -161,9 +161,7 @@ def build_mission_details(
         repo,
 ) -> Tuple[str, Dict[str, Any], Tuple[datetime, datetime]]:
     tmpl = repo.get_by_code(tmpl_code)
-    print(tmpl)
     raw_sentence: str = getattr(tmpl, "mission", "")
-    print(raw_sentence)
     # 1. 미션 파라미터 설정 (동적 시간대 포함)
     params = _compute_params_for_template(tmpl_code, sub_id, sub_name, stats)
     # 2. 미션 시간
