@@ -14,19 +14,13 @@ from app.repository.userMetricsRepository import UserMetricsRepository
 
 
 def get_data(metrics, sub):
-    print("데이터 로딩 중...")
-
     metrics_df = metrics.get_all_metrics_as_df()
     subs = sub.get_all_sub()
     sub_cat_df = pd.DataFrame([(s.sub_id, s.sub_name) for s in subs], columns=["sub_id", "sub_name"])
-
-    print(f"총 {len(metrics_df)}개의 일일 지표 데이터를 로드했습니다.")
     return metrics_df, sub_cat_df
 
 
 def build_features_from_metrics(df: pd.DataFrame, sub_cat_df: pd.DataFrame) -> pd.DataFrame:
-    print("사용자 특징(Features) 생성 중...")
-
     user_summary = df.groupby('user_id').agg(
         total_spend_30d=('day_sum', 'sum'),
         total_count_30d=('day_count', 'sum'),
@@ -57,8 +51,6 @@ def build_features_from_metrics(df: pd.DataFrame, sub_cat_df: pd.DataFrame) -> p
     final_features.drop(columns=['night_count_30d', 'morning_count_30d', 'afternoon_count_30d'], inplace=True)
 
     final_features.replace([np.inf, -np.inf], 0, inplace=True)
-
-    print(f"총 {len(final_features)}명의 사용자에 대한 특징 생성을 완료했습니다.")
     return final_features.sort_index(axis=1)
 
 
@@ -66,11 +58,9 @@ def find_optimal_k(X: np.ndarray, max_k: int = 10) -> int:
     n_samples = X.shape[0]
 
     if n_samples < 2:
-        print(f"샘플 수가 {n_samples}개로, 클러스터링을 수행할 수 없습니다. k=1을 반환합니다.")
         return 1
     effective_max_k = min(max_k, n_samples - 1)
     if effective_max_k < 2:
-        print(f"샘플 수가 {n_samples}개로 너무 적어 최적 k를 찾을 수 없습니다. k={n_samples}을 반환합니다.")
         return n_samples
 
     print(f"최적의 클러스터 개수(k)를 찾는 중... (샘플 수: {n_samples}, k 범위: 2-{effective_max_k})")
@@ -120,15 +110,6 @@ def main():
         joblib.dump(scaler, output_dir / "scaler.joblib")
         with open(output_dir / "feature_cols.json", "w", encoding="utf-8") as f:
             json.dump(user_features.columns.tolist(), f, ensure_ascii=False, indent=2)
-
-        print("=" * 50)
-        print(f"클러스터링 모델 및 설정 파일 저장 완료!")
-        print(f"경로: {output_dir.absolute()}")
-        print(f"  - kmeans.joblib (클러스터 모델)")
-        print(f"  - scaler.joblib (데이터 스케일러)")
-        print(f"  - feature_cols.json (모델이 사용한 특징 목록)")
-        print("=" * 50)
-
     finally:
         db.close()
 
