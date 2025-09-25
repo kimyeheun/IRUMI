@@ -22,9 +22,13 @@ import com.example.irumi.ui.home.component.StreakSection
 import com.example.irumi.ui.home.component.TodoSection
 import com.example.irumi.ui.theme.BrandGreen
 import kotlin.math.min
-import androidx.compose.foundation.layout.Arrangement // ✅ 필요 import
+import androidx.compose.foundation.layout.Arrangement
 
-data class Friend(val id: Int, val name: String)
+data class Friend(
+    val id: Int,
+    val name: String,
+    val avatarUrl: String? = null
+)
 
 @Composable
 fun HomeScreen(
@@ -34,9 +38,16 @@ fun HomeScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     // "나" + followIds 기반 친구 목록 (닉네임 없음 → placeholder)
-    val friends = remember(state.followInfos) {
-        listOf(Friend(0, "나")) +
-                state.followInfos.map { Friend(it.followUserId, "친구 ${it.followUserId}") }
+    val friends = remember(state.followInfos, state.profile?.profileImageUrl) {
+        listOf(
+            Friend(0, "나", state.profile?.profileImageUrl)  // ✅ 내 프로필 URL
+        ) + state.followInfos.map { info ->
+            Friend(
+                id = info.followUserId,
+                name = "친구 ${info.followUserId}",
+                avatarUrl = null // TODO: friendProfileUrls[info.followUserId] 로 매핑
+            )
+        }
     }
 
     // 선택된 친구
@@ -87,8 +98,10 @@ fun HomeScreen(
                     unfollowError = null
                     pendingUnfollow = friend
                 }
-            }
+            },
+            getAvatarUrl = { f -> f.avatarUrl }
         )
+
         Spacer(Modifier.height(16.dp))
 
         // --- 로딩 & 에러 ---
@@ -105,7 +118,7 @@ fun HomeScreen(
             MyScoreSection(score = state.myScore?.savingScore ?: 0)
             Spacer(Modifier.height(12.dp))
 
-            // ✅ 미션 바인딩
+            // 미션 바인딩
             TodoSection(
                 missionReceived = state.missionReceived,
                 missions = state.missions
@@ -171,7 +184,7 @@ fun HomeScreen(
             }
         )
 
-        // ✅ followInfos 기준으로 성공 여부 감지
+        // followInfos 기준으로 성공 여부 감지
         LaunchedEffect(state.followInfos, state.error, followLoading, showAddSheet, pendingFollowTargetId) {
             if (!showAddSheet || !followLoading) return@LaunchedEffect
             if (state.error != null) {
@@ -240,7 +253,7 @@ fun HomeScreen(
             }
         )
 
-        // ✅ followInfos 기준으로 언팔 성공 감지
+        // followInfos 기준으로 언팔 성공 감지
         LaunchedEffect(state.followInfos, state.error, unfollowLoading, pendingUnfollow) {
             if (!unfollowLoading) return@LaunchedEffect
             if (state.error != null) {

@@ -15,8 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Arrangement
+import coil.compose.AsyncImage
 import com.example.irumi.ui.home.Friend
 
 @Composable
@@ -26,7 +29,8 @@ fun FriendList(
     brand: Color,
     onSelect: (Friend) -> Unit,
     onAddClick: () -> Unit,
-    onLongPress: (Friend) -> Unit,          // 🔹 추가
+    onLongPress: (Friend) -> Unit,
+    getAvatarUrl: (Friend) -> String? = { null } // 외부에서 URL을 제공(없으면 null)
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
@@ -39,9 +43,7 @@ fun FriendList(
                     .width(84.dp)
                     .combinedClickable(
                         onClick = { onSelect(friend) },
-                        onLongClick = {
-                            if (friend.id != 0) onLongPress(friend) // "나"는 제외
-                        }
+                        onLongClick = { if (friend.id != 0) onLongPress(friend) } // "나"는 롱클릭 제외
                     )
             ) {
                 Box(
@@ -57,14 +59,31 @@ fun FriendList(
                         .padding(6.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    // 1) 외부에서 넘어온 URL
+                    // 2) 비어있으면 S3 기본 이미지로 폴백
+                    val provided = getAvatarUrl(friend)
+                    val avatarUrl = if (!provided.isNullOrBlank()) {
+                        provided
+                    } else {
+                        defaultProfileUrlFor(friend.id)
+                    }
+
                     Box(
                         modifier = Modifier
                             .size(52.dp)
                             .clip(CircleShape)
-                            .background(if (friend == selected) brand.copy(alpha = .15f) else Color(0xFFEDEFF3)),
+                            .background(
+                                if (friend == selected) brand.copy(alpha = .08f)
+                                else Color(0xFFEDEFF3)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("🐹", fontSize = 22.sp)
+                        AsyncImage(
+                            model = avatarUrl,
+                            contentDescription = "${friend.name} 프로필",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
                     }
                 }
                 Spacer(Modifier.height(6.dp))
@@ -93,4 +112,10 @@ fun FriendList(
             }
         }
     }
+}
+
+/** 친구 id 기준으로 기본 프로필 이미지를 순환하여 반환 (default1~default5) */
+private fun defaultProfileUrlFor(id: Int): String {
+    val idx = (id % 5) + 1 // 1..5
+    return "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/profile/default$idx.jpg"
 }

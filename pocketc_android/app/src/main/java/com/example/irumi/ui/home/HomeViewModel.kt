@@ -256,11 +256,11 @@ data class HomeUiState(
     val badges: List<BadgeEntity> = emptyList(),            // /users/badges
     val streaks: List<StreakEntity> = emptyList(),          // /users/streaks
 
-    // ✅ /users/missions
+    // /users/missions
     val missionReceived: Boolean = false,
     val missions: List<MissionEntity> = emptyList(),
 
-    // ✅ 친구 비교 캐시: friendId → (me, friend)
+    // 친구 비교 캐시: friendId → (me, friend)
     val friendDaily: Map<Int, FriendDailyEntity> = emptyMap()
 )
 
