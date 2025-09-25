@@ -17,7 +17,9 @@ public enum EventErrorType implements ErrorType {
     ERROR_NOT_INCLUDED_ROOM(HttpStatus.BAD_REQUEST, "방에 속해져 있지 않습니다."),
     ERROR_MAX_PUZZLES(HttpStatus.BAD_REQUEST, "퍼즐 갯수가 최대입니다."),
     ERROR_MAX_MEMBERS(HttpStatus.BAD_REQUEST, "최대 멤버 수에 도달하였습니다."),
-    ERROR_NO_PUZZLE_ATTEMPTS(HttpStatus.BAD_REQUEST, "퍼즐 조각이 없습니다.");
+    ERROR_NO_PUZZLE_ATTEMPTS(HttpStatus.BAD_REQUEST, "퍼즐 조각이 없습니다."),
+    ERROR_ROOM_NOT_JOINABLE(HttpStatus.BAD_REQUEST, "방이 진행중이 아닙니다."),
+    ERROR_ROOM_IS_FULL(HttpStatus.BAD_REQUEST, "방의 정원이 넘었습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
