@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.main.controller;
 
+import com.ssafy.pocketc_backend.domain.main.dto.DailyCompareResponse;
 import com.ssafy.pocketc_backend.domain.main.dto.MainResponse;
 import com.ssafy.pocketc_backend.domain.main.dto.StreakResDto;
 import com.ssafy.pocketc_backend.domain.main.service.MainService;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,14 +25,15 @@ import static com.ssafy.pocketc_backend.domain.main.exception.MainSuccessType.SU
 public class MainController {
 
     private final MainService mainService;
-    @Operation(summary = "절약점수와 오늘 총 지출 조회")
-    @GetMapping("/daily")
-    public ResponseEntity<ApiResponse<MainResponse>> getDailyStats(
-            Principal principal) {
-        Integer userId = Integer.valueOf(principal.getName());
-        MainResponse dto = mainService.getDailyScoreAndTotal(userId);
-
-        return ResponseEntity.ok(ApiResponse.success(SUCCESS_GET_DAILY_STAT,dto));
+    @Operation(summary = "친구와 내 절약점수+총 지출 조회")
+    @GetMapping("/daily/{friendId}")
+    public ResponseEntity<ApiResponse<DailyCompareResponse>> getDailyStats(
+            Principal principal,@PathVariable Integer friendId) {
+        Integer myId = Integer.valueOf(principal.getName());
+        MainResponse myStats = mainService.getDailyScoreAndTotal(myId);
+        MainResponse friendStats = mainService.getDailyScoreAndTotal(friendId);
+        DailyCompareResponse response = new DailyCompareResponse(myStats, friendStats);
+        return ResponseEntity.ok(ApiResponse.success(SUCCESS_GET_DAILY_STAT,response));
     }
 
     @Operation(summary = "스트릭 조회")
