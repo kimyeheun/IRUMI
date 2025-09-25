@@ -10,12 +10,14 @@ from app.repository.transactionRepository import TransactionRepository
 from app.services.batch_program.clustering.features import build_user_features
 
 
-def cluster_for_user(cluster_path:Path, repo:TransactionRepository, user_id: int, now:datetime, days: int = 30) -> int | None:
+def cluster_for_user(cluster_path:Path, repo:TransactionRepository, user_id: int, now:datetime, days: int = 30) -> int:
     scaler = joblib.load(Path(cluster_path) / "scaler.joblib")
     kmeans = joblib.load(Path(cluster_path) / "kmeans.joblib")
     feature_cols = json.loads((Path(cluster_path) / "feature_cols.json").read_text(encoding="utf-8"))
 
     tx = repo.get_user_term_transactions_as_df(user_id=user_id, now=now, days=days)
+    if tx.empty:
+        return 0
     user_feat = build_user_features(tx)
 
     X = user_feat.reindex(columns=feature_cols, fill_value=0.0).values

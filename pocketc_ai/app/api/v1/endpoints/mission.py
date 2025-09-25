@@ -21,15 +21,16 @@ def create_daily_mission(
         service: MissionService = Depends(get_mission_service)
 ):
     today = datetime.now()
+
     try:
         missions = service.create_daily_mission(user_id=userId, now=today)
         data = {"userId": userId, "date": today.date(), "missions": missions}
-
         payload: Dict[str, Any] = {
             "status": 201,
             "message": "데일리 미션 생성 완료",
             "data": data,
         }
+
         return MissionResponse(**payload)
     except Exception as e:
         logging.warning(f"An error occurred: {e}")
