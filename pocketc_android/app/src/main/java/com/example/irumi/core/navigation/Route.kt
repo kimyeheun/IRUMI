@@ -17,4 +17,7 @@ object Stats : Route
 object Events : Route
 
 @Serializable
+object MyPage : Route
+
+@Serializable
 data class PaymentDetail(val paymentId: Int) : Route

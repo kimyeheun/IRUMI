@@ -142,14 +142,6 @@ fun StatsScreen(
         Spacer(Modifier.height(8.dp))
 
         CategoryPieChart(stats = stats)
-
-        PrimaryButton(
-            text = if (loading) "로그아웃 중..." else "로그아웃",
-            onClick = onLogout,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loading,
-            loading = loading
-        )
     }
 }
 

@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.irumi.core.navigation.Events
 import com.example.irumi.core.navigation.Home
+import com.example.irumi.core.navigation.MyPage
 import com.example.irumi.core.navigation.Stats
 import com.example.irumi.ui.component.navBar.BottomNavBar
 import com.example.irumi.ui.events.EventsScreen
@@ -29,6 +30,7 @@ import com.example.irumi.ui.main.MainNavigator
 import com.example.irumi.ui.main.rememberMainNavigator
 import com.example.irumi.ui.payments.navigation.paymentDetailNavGraph
 import com.example.irumi.ui.payments.navigation.paymentsNavGraph
+import com.example.irumi.ui.profile.MyPageScreen
 import com.example.irumi.ui.stats.StatsRoute
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -83,6 +85,19 @@ fun MainScreen(navigator: MainNavigator = rememberMainNavigator()) {
             }
             composable<Events> {
                 EventsScreen(brand)
+            }
+            composable<MyPage> {
+                val ctx = LocalContext.current
+                MyPageScreen(
+                    onLoggedOut = {
+                        val intent = Intent(ctx, IntroActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                        ctx.startActivity(intent)
+
+                        (ctx as? Activity)?.finish()
+                    }
+                )
             }
 
             paymentsNavGraph(
