@@ -68,4 +68,8 @@ public class MissionRedisService {
         var ops = redisTemplate.opsForValue();
         ops.set(key, list, ttl);
     }
+
+    public void deleteAll() {
+        redisTemplate.delete(redisTemplate.keys("*"));
+    }
 }
