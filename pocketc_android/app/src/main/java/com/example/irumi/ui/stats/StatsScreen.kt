@@ -184,12 +184,14 @@ fun Header(
     val monthStatistics = stats as? UiState.Success<MonthStatsResponse>
     /**
      * 사용 통계 데이터
-     * mon
+     * currMonthExpense: 당월 지출액
+     * remainBudget: 잔여 예산
+     * usagePercentage: 예산 사용 비율
      */
     val budget = monthStatistics?.data?.budget!!
     val currMonthExpense = monthStatistics.data.currMonthExpense
     val remainBudget = (budget-currMonthExpense).coerceAtLeast(0)
-    val usagePercentage = if (budget > 0) currMonthExpense * 100 / budget else 0
+    val usagePercentage = if (budget > 0) (currMonthExpense * 100).coerceIn(0, 100) / budget else 0
     // 상단 여백
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -250,7 +252,7 @@ fun Header(
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = "${String.format("%.1f", currMonthExpense / budget)}%",
+                        text = "${usagePercentage}%",
                         fontSize = 12.sp,
                         color = Color(0xFF8B95A1),
                         fontWeight = FontWeight.Medium
@@ -288,7 +290,7 @@ fun Header(
                         )
                     }
                     Text(
-                        text = "${monthStatistics?.data?.budget}원",
+                        text = "${budget}원",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF191F28)
@@ -319,7 +321,7 @@ fun Header(
                         )
                     }
                     Text(
-                        text = "${monthStatistics?.data?.currMonthExpense}원",
+                        text = "${currMonthExpense}원",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF191F28)
