@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -31,7 +32,7 @@ class StatsViewModel @Inject constructor(
     fun getMonthStatistics() {
         viewModelScope.launch {
             _statsUiState.value = UiState.Loading
-            statsRepository.getMonthStatistics(LocalDateTime.now().toString())
+            statsRepository.getMonthStatistics(LocalDate.now().toString())
                 .onSuccess { response ->
                     Timber.d("!!! getMonthStatistics 성공: $response")
                     _statsUiState.value = UiState.Success(response)
