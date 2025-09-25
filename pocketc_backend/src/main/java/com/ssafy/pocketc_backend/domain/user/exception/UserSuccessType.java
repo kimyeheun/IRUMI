@@ -15,6 +15,7 @@ public enum UserSuccessType implements SuccessType {
     REISSUE_SUCCESS(HttpStatus.OK, "토큰 재발급에 성공했습니다."),
     LOGOUT_SUCCESS(HttpStatus.NO_CONTENT, "로그아웃에 성공했습니다."),
     UPDATE_MEMBER_SUCCESS(HttpStatus.OK, "회원 정보 수정이 완료되었습니다"),
+    SIGNUP_MEMBER_SUCCESS(HttpStatus.OK, "회원가입이 완료되었습니다"),
     WITHDRAW_MEMBER_SUCCESS(HttpStatus.NO_CONTENT, "회원 탈퇴가 완료되었습니다."),
 
     GET_ME_SUCCESS(HttpStatus.OK, "회원 조회에 성공했습니다."),
