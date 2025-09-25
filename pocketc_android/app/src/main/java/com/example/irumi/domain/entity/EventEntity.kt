@@ -5,6 +5,7 @@ data class EventEntity(
     val eventName: String,
     val eventDescription: String,
     val eventImageUrl: String,
+    val badgeImageUrl: String,
     val badgeName: String,
     val badgeDescription: String,
     val startAt: String,

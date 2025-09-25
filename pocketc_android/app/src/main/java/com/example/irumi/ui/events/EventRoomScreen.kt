@@ -779,7 +779,8 @@ fun PreviewEventRoomScreen() {
         badgeName = "Dummy Badge",
         badgeDescription = "Dummy Badge Description",
         startAt = "2025-09-01T00:00:00Z",
-        endAt = "2025-09-30T23:59:59Z"
+        endAt = "2025-09-30T23:59:59Z",
+        badgeImageUrl = ""
     )
 
     EventRoomScreen(roomEntity = dummyRoomEntity, eventEntity = dummyEventEntity, isSuccess = true) // Example for preview
