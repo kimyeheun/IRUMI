@@ -89,10 +89,10 @@ public class ReportService {
         Collections.sort(reports);  // Comparable 기준인 reportMonth 오름차순
 
         // 이번 달 예산
-        Long budget = reports.get(reports.size() - 1).getMonthlyBudget();
+        Long budget = reports.getLast().getMonthlyBudget();
 
         // 이번 달의 지출, 지난 달의 지출
-        Long currMonthExpense = reports.get(reports.size() - 1).getMonthlyTotalExpense();
+        Long currMonthExpense = reports.getLast().getMonthlyTotalExpense();
         Long lastMonthExpense = reports.get(reports.size() - 2).getMonthlyTotalExpense()    ;
 
         // 카테고리별 결제내역 리스트

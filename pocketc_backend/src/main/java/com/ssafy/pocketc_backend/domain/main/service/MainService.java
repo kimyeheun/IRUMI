@@ -1,10 +1,13 @@
 package com.ssafy.pocketc_backend.domain.main.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ssafy.pocketc_backend.domain.event.entity.Badge;
+import com.ssafy.pocketc_backend.domain.event.entity.Event;
+import com.ssafy.pocketc_backend.domain.event.repository.BadgeRepository;
+import com.ssafy.pocketc_backend.domain.event.repository.EventRepository;
 import com.ssafy.pocketc_backend.domain.main.dto.MainResponse;
 import com.ssafy.pocketc_backend.domain.main.dto.StreakDto;
 import com.ssafy.pocketc_backend.domain.main.dto.StreakResDto;
-import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionItem;
 import com.ssafy.pocketc_backend.domain.report.entity.Report;
 import com.ssafy.pocketc_backend.domain.report.repository.ReportRepository;
 import com.ssafy.pocketc_backend.domain.transaction.entity.Transaction;
@@ -14,15 +17,17 @@ import com.ssafy.pocketc_backend.domain.user.entity.Streak;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
+import com.ssafy.pocketc_backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.ssafy.pocketc_backend.domain.main.exception.MainErrorType.ERROR_GET_BADGE;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +38,8 @@ public class MainService {
     private final ReportRepository reportRepository;
     private final StreakRepository streakRepository;
     private final TransactionService transactionService;
+    private final BadgeRepository badgeRepository;
+    private final EventRepository eventRepository;
 
     public MainResponse getDailyScoreAndTotal(Integer userId) {
         LocalDate today = LocalDate.now();
@@ -100,17 +107,16 @@ public class MainService {
     // 최장 스트릭 반환
     public Integer getLongestStreak(Integer userId) {
         List<Streak> streaks = streakRepository.findAllByUser_UserId(userId);
-        Integer longestStreak = 0;
-        Integer temp = 0;
+        int longestStreak = 0;
+        int temp = 0;
         for (Streak streak: streaks) {
-            if (streak.getMissionCompletedCount() > 0) {
+            if (streak.isStatus()) {
                 temp++;
                 longestStreak = Math.max(longestStreak, temp);
             } else {
                 temp = 0;
             }
         }
-
         return longestStreak;
     }
 
@@ -126,7 +132,6 @@ public class MainService {
     /**
      * 새벽 6시에 모든 유저의 당일 결제내역을 반영합니다.
      * 반영하는 결제일 : 현재 일자 기준 전날 0600i ~ 오늘일자 0600i
-     *
      * 결제내역 반영 후 스트릭 추가
      *
      */
@@ -144,24 +149,47 @@ public class MainService {
             );
 
             // 결제내역 반영 및 당일 지출 금액, 성공한 미션 갯수 count
-            Integer successCount = 0;
-            Long spendAmount = 0L;
+            int successCount = 0;
             for (Transaction transaction : transactions) {
-                transactionService.appliedTransaction(transaction.getTransactionId(), user.getUserId());
-                spendAmount += transaction.getAmount();
+                successCount += transactionService.appliedTransaction(transaction.getTransactionId(), user.getUserId());
             }
 
             // 스트릭 생성
-            Streak streak = new Streak();
-            streak.setDate(now.toLocalDate());
-            streak.setUser(user);
+            Streak streak = streakRepository.findByUser_userIdAndDate(user.getUserId(), now.minusDays(1).toLocalDate());
             streak.setMissionCompletedCount(successCount);
-            streak.setSpentAmount(spendAmount);
             streak.setStatus(successCount > 0);
-            streakRepository.save(streak);
 
             // 성공한 미션 갯수만큼 퍼즐 부여
             user.setPuzzleAttempts(successCount);
+
+            // 스트릭 수에 따라 뱃지 부여
+            int longestStreak = getLongestStreak(user.getUserId());
+            if (longestStreak > 0 && (longestStreak & (longestStreak - 1)) == 0) {
+
+                int badgeIndex = (int) (Math.log(longestStreak) / Math.log(2));
+
+                Event event = eventRepository.findById(badgeIndex)
+                        .orElseThrow(() -> new CustomException(ERROR_GET_BADGE));
+
+                badgeRepository.save(Badge.builder()
+                                .user(user)
+                                .event(event)
+                                .level(1)
+                        .build());
+            }
+        }
+    }
+
+    public void createNewStreak() {
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            streakRepository.save(Streak.builder()
+                            .user(user)
+                            .date(LocalDate.now())
+                            .missionCompletedCount(0)
+                            .spentAmount(0L)
+                            .status(false)
+                    .build());
         }
     }
 }

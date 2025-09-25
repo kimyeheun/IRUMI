@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor(access =  AccessLevel.PRIVATE)
 public enum MainErrorType implements ErrorType {
-    ERROR_GET_STREAKS(HttpStatus.NOT_FOUND, "스트릭 조회 실패");
+    ERROR_GET_STREAKS(HttpStatus.NOT_FOUND, "스트릭 조회 실패"),
+    ERROR_GET_BADGE(HttpStatus.BAD_REQUEST, "뱃지 생성 실패");
 
     private final HttpStatus httpStatus;
     private final String message;

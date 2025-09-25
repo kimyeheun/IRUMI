@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.security.Principal;
-
 @Component
 @RequiredArgsConstructor
 public class Scheduler {
@@ -28,9 +26,15 @@ public class Scheduler {
         missionService.assignMonthlyMissions();
     }
 
-    //매일 06시 빈 스트릭 생성
+    //매일 06시 결제 내역 반영
     @Scheduled(cron = "0 0 6 * * ?", zone = "Asia/Seoul")
-    public void createNewStreak() throws JsonProcessingException {
+    public void appliedAllTransactions() throws JsonProcessingException {
         mainService.applyDailyTransaction();
+    }
+
+    //매일 00시 빈 스트릭 생성
+    @Scheduled(cron = "0 0 6 * * ?", zone = "Asia/Seoul")
+    public void createNewStreak() {
+        mainService.createNewStreak();
     }
 }
