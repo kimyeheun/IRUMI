@@ -36,3 +36,4 @@ lint-results.html
 
 # Generated Hilt classes
 **/build/generated/hilt/
+/.kotlin/errors/
