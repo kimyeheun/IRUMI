@@ -52,6 +52,7 @@ import com.example.irumi.data.dto.response.stats.MonthStatsResponse
 import com.example.irumi.ui.auth.AuthViewModel
 import com.example.irumi.ui.component.button.PrimaryButton
 import com.example.irumi.ui.events.LoadingPlaceholder
+import com.example.irumi.ui.theme.BrandGreen
 import ir.ehsannarmani.compose_charts.LineChart
 import ir.ehsannarmani.compose_charts.PieChart
 import ir.ehsannarmani.compose_charts.models.DotProperties
@@ -196,7 +197,7 @@ fun Header(
     Spacer(modifier = Modifier.height(16.dp))
 
     StatsCard(
-        title = "월간 지출 총액",
+        title = "월간 지출 통계",
         subtitle = "잔여 예산 ${String.format(KOREA, "%,d", remainBudget)}원",
         content = {
             Row(
@@ -207,7 +208,7 @@ fun Header(
                 Box(
                     modifier = Modifier
                         .background(
-                            Color(0xFF3182F6),
+                            BrandGreen,
                             RoundedCornerShape(12.dp)
                         )
                         .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -236,7 +237,7 @@ fun Header(
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(0.96f)
+                            .fillMaxWidth(usagePercentage.toFloat() / 100)
                             .fillMaxHeight()
                             .background(
                                 Color(0xFF3182F6),
@@ -348,13 +349,15 @@ fun MonthChart(
      */
     lateinit var savingScores: List<Double>
     lateinit var months: List<String>
-    var savingPercent by Delegates.notNull<Double>()
-    with(monthlyStatistics?.data!!){
-        savingScores = monthlySavingScoreList.map { it.savingScore }
-        months = monthlySavingScoreList.map { it.month.split("-")[1] }
-        savingPercent = (if (lastMonthExpense > 0) {
-            (lastMonthExpense - currMonthExpense) / lastMonthExpense * 100
-        } else 0.0) as Double
+    var savingPercent: Double = 0.0
+    monthlyStatistics?.data?.let { data ->
+        savingScores = data.monthlySavingScoreList.map { it.savingScore }
+        months = data.monthlySavingScoreList.map { it.month.split("-")[1] }
+
+        savingPercent = if (data.lastMonthExpense > 0L) {
+            ((data.lastMonthExpense - data.currMonthExpense).toDouble() /
+                    data.lastMonthExpense.toDouble()) * 100.0
+        } else 0.0
     }
     StatsCard(
         title = "절약 점수 추이",
@@ -421,7 +424,7 @@ fun AchievementMessage(
             )
 
             Text(
-                text = if (percentage <= 0.0) "다음엔 좀 더 잘해봐요!" else "전월 대비 ${percentage}% 절약했어요!",
+                text = if (percentage <= 0.0) "다음엔 좀 더 잘해봐요!" else "전월 대비 ${String.format("%.2f", percentage)}% 절약했어요!",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White,
