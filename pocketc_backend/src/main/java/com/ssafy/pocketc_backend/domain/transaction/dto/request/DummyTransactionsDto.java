@@ -2,4 +2,4 @@ package com.ssafy.pocketc_backend.domain.transaction.dto.request;
 
 import java.util.List;
 
-public record DummyTransactionsDto(List<TransactionCreateReqDto> transactions) {}
+public record DummyTransactionsDto(List<Dummy> transactions) {}
