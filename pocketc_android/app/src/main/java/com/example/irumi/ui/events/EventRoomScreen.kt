@@ -1,8 +1,12 @@
 package com.example.irumi.ui.events
 
+import android.R
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,6 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -58,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.createBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.ImageLoader
+import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.example.irumi.core.designsystem.component.dialog.TwoButtonDialog
@@ -67,6 +73,7 @@ import com.example.irumi.domain.entity.MemberEntity
 import com.example.irumi.domain.entity.PuzzleEntity
 import com.example.irumi.domain.entity.RankEntity
 import com.example.irumi.domain.entity.RoomEntity
+import com.example.irumi.ui.payments.TossColors
 import com.example.irumi.ui.theme.BrandGreen
 
 // 토스 스타일 컬러 팔레트
@@ -124,20 +131,21 @@ fun EventRoomScreen(
         topBar = {
             TopBar(
                 isSuccess = isSuccess,
+                roomCode = roomEntity.roomCode,
                 onLeaveClick = viewModel::leaveRoom
             )
         }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .background(SampleColors.Background),
+                .background(SampleColors.Background)
+                .padding(top = innerPadding.calculateTopPadding())
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             item {
+                Spacer(Modifier.height(16.dp))
                 PuzzleMembers(
                     members = roomEntity.members,
                     onFollowClick = { memberId ->
@@ -193,8 +201,11 @@ fun EventRoomScreen(
 @Composable
 fun TopBar(
     isSuccess: Boolean?,
+    roomCode: String,
     onLeaveClick: () -> Unit
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -210,13 +221,29 @@ fun TopBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
+                text = "방코드",
+                fontSize = 16.sp,
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .background(
+                        TossColors.Primary,
+                        RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .clickable {
+                        showDialog = true
+                    }
+            )
+
+            Text(
                 text = "퍼즐 게임",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = SampleColors.OnSurface
             )
 
-            //if(isSuccess == null) {
+            if(isSuccess == null) {
                 TextButton(
                     onClick = onLeaveClick,
                     colors = ButtonDefaults.textButtonColors(contentColor = SampleColors.Error)
@@ -227,9 +254,41 @@ fun TopBar(
                         fontWeight = FontWeight.Medium
                     )
                 }
-            //}
+            }
         }
     }
+
+    if (showDialog) {
+        InviteDialog(
+            roomCode = roomCode,
+            onDismiss = { showDialog = false } // 닫기
+        )
+    }
+}
+
+@Composable
+fun InviteDialog(
+    roomCode: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+
+    TwoButtonDialog (
+        onDismissRequest = onDismiss,
+        title =  "방코드" ,
+        text =  "$roomCode\n방코드를 친구에게 공유하세요!",
+        confirmButtonText = "복사",
+        dismissButtonText = "취소",
+        onConfirmFollow = {
+            // 클립보드에 복사
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("방코드", roomCode)
+            clipboard.setPrimaryClip(clip)
+
+            Toast.makeText(context, "방코드가 복사되었습니다", Toast.LENGTH_SHORT).show()
+            onDismiss()
+        }
+    )
 }
 
 @Composable
@@ -344,49 +403,42 @@ fun PuzzleMembers(
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-//            Text(
-//                text = "참여자",
-//                fontSize = 18.sp,
-//                fontWeight = FontWeight.Bold,
-//                color = SampleColors.OnSurface,
-//                modifier = Modifier.padding(bottom = 16.dp)
-//            )
-
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(members) { member ->
+                itemsIndexed(members) { index, member ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .combinedClickable(
-                                onClick = { },
-                                onLongClick = {
-                                    if (!member.isFriend) {
-                                        selectedMemberForDialog = member
-                                        showDialog = true
-                                    }
+                            .then(
+                                if(index != 0) {
+                                    Modifier.combinedClickable(
+                                        onClick = { },
+                                        onLongClick = {
+                                            if (!member.isFriend) {
+                                                selectedMemberForDialog = member
+                                                showDialog = true
+                                            }
+                                        }
+                                    )
+                                }else {
+                                    Modifier
                                 }
                             )
+
                     ) {
-                        Box(
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(member.profileImageUrl)
+                                //.crossfade(true)
+                                .placeholder(R.color.darker_gray) // TODO 로딩 중 보여줄 플레이스홀더 이미지 (선택 사항)
+                                .build(),
+                            contentDescription = "프로필 이미지",
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier
-                                .size(56.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    brush = Brush.linearGradient(
-                                        colors = listOf(SampleColors.Primary, SampleColors.PrimaryLight)
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = member.name.firstOrNull()?.toString() ?: "?",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
+                                .width(56.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = member.name,
@@ -454,9 +506,9 @@ fun PuzzleGrid(
         ) {
             Text(
                 text = "퍼즐",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = SampleColors.OnSurface,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = SampleColors.OnSurfaceVariant,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 

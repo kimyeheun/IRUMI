@@ -1,6 +1,7 @@
 package com.example.irumi.ui.events
 
 import android.R
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,7 +61,8 @@ fun NoEventScreen(viewModel: EventViewModel = hiltViewModel(), eventEntity: Even
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .background(Color.White)
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AsyncImage(
@@ -72,7 +74,7 @@ fun NoEventScreen(viewModel: EventViewModel = hiltViewModel(), eventEntity: Even
             contentDescription = "Event Image",
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .fillMaxWidth()
+                .width(150.dp)
                 .clip(RoundedCornerShape(8.dp))
         )
 
@@ -91,34 +93,41 @@ fun NoEventScreen(viewModel: EventViewModel = hiltViewModel(), eventEntity: Even
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "기간: ${formatDate(eventEntity.startAt)} ~ ${formatDate(eventEntity.endAt)}",
-                fontSize = 14.sp,
+                fontSize = 16.sp,
                 color = Color.Gray
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = eventEntity.eventDescription,
                 fontSize = 16.sp,
-                color = Color.Black
+                color = Color.Black,
+                textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "🏆 보상: ${eventEntity.badgeName}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.Black
+                        color = Color.Black,
+                        textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = eventEntity.badgeDescription,
                         fontSize = 14.sp,
-                        color = Color.DarkGray
+                        color = Color.DarkGray,
+                        textAlign = TextAlign.Center
                     )
                 }
             }
