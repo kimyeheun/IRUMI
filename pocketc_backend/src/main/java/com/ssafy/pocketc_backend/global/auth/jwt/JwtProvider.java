@@ -1,6 +1,6 @@
 package com.ssafy.pocketc_backend.global.auth.jwt;
 
-import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserResponse;
 import com.ssafy.pocketc_backend.global.auth.service.RefreshTokenService;
 import com.ssafy.pocketc_backend.global.dev.DevTokenHolder;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
@@ -42,14 +42,14 @@ public class JwtProvider {
     }
     // Access Token, Refresh Token을 발급하는 메서드
     // TODO: 이 메서드는 비즈니스 로직 (Redis 저장 포함)이므로 나중에 UserService로 옮길것
-    public UserLoginResponse issueToken(Integer userId, String email) {
+    public UserResponse issueToken(Integer userId, String email) {
         String accessToken = generateJwt(userId, email, ACCESS_TOKEN_EXPIRATION_TIME);
         String refreshToken = generateJwt(userId, email, REFRESH_TOKEN_EXPIRATION_TIME);
 
         //Redis에 저장
         refreshTokenService.save(userId.toString(), refreshToken);
 
-        return new UserLoginResponse(accessToken, refreshToken);
+        return new UserResponse(accessToken, refreshToken);
     }
 
     public String generateJwt(Integer userId, String email, long expirationTime) {
@@ -127,7 +127,7 @@ public class JwtProvider {
     }
 
     // TODO: 이 메서드도 비즈니스 로직 (재발급 + Redis 갱신) → UserService로 옮기는 게 맞음
-    public UserLoginResponse reissueToken(String refreshToken) {
+    public UserResponse reissueToken(String refreshToken) {
         Integer userId = validateRefreshToken(refreshToken);
 
         // 이메일은 claim에서 꺼낼 수 있음
@@ -140,7 +140,7 @@ public class JwtProvider {
         // Redis 갱신
         refreshTokenService.save(userId.toString(), newRefreshToken);
 
-        return new UserLoginResponse(newAccessToken, newRefreshToken);
+        return new UserResponse(newAccessToken, newRefreshToken);
     }
 
 }

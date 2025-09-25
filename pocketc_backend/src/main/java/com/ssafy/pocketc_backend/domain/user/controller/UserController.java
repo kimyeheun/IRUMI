@@ -4,7 +4,7 @@ import com.ssafy.pocketc_backend.domain.user.dto.request.TokenReissueRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
-import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserResponse;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserProfileResponse;
 import com.ssafy.pocketc_backend.domain.user.service.UserService;
 import com.ssafy.pocketc_backend.global.auth.jwt.JwtProvider;
@@ -30,23 +30,23 @@ public class UserController {
     @Operation(summary = "회원가입", description = "이름, 패스워드, 이메일, 에산")
     @PostMapping
     public ResponseEntity<ApiResponse<?>> signup(@RequestBody UserSignupRequest request) {
-        userService.signup(request);
-        return ResponseEntity.ok(ApiResponse.success(PROCESS_SUCCESS));
+
+        return ResponseEntity.ok(ApiResponse.success(SIGNUP_MEMBER_SUCCESS, userService.signup(request)));
     }
 
     @Operation(summary = "로그인", description = "아메일,패스워드")
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<UserLoginResponse>> login(@RequestBody UserLoginRequest request) {
+    public ResponseEntity<ApiResponse<UserResponse>> login(@RequestBody UserLoginRequest request) {
 
-        return ResponseEntity.ok(ApiResponse.success(LOGIN_SUCCESS,userService.login(request)
+        return ResponseEntity.ok(ApiResponse.success(LOGIN_SUCCESS, userService.login(request)
         ));
     }
 
     @Operation(summary = "토큰 재발급", description = "리프레시토큰 기반으로 토큰 재발급")
     @PostMapping("/reissue")
-    public ResponseEntity<ApiResponse<UserLoginResponse>> reissue(@RequestBody TokenReissueRequest request) {
-        UserLoginResponse response = jwtProvider.reissueToken(request.refreshToken());
-        return ResponseEntity.ok(ApiResponse.success(REISSUE_SUCCESS,response));
+    public ResponseEntity<ApiResponse<UserResponse>> reissue(@RequestBody TokenReissueRequest request) {
+        UserResponse response = jwtProvider.reissueToken(request.refreshToken());
+        return ResponseEntity.ok(ApiResponse.success(REISSUE_SUCCESS, response));
     }
 
     @Operation(summary = "로그아웃", description = "액세스 토큰 기반으로 리프레시 토큰 삭제")
@@ -55,13 +55,13 @@ public class UserController {
         userService.logout(authorizationHeader);
         return ResponseEntity.ok(ApiResponse.success(LOGOUT_SUCCESS));
     }
+
     @Operation(summary = "내 회원정보 조회", description = "회원정보(이름, 이메일, 프로필 이미지 등)를 조회합니다.")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(Principal principal) {
         Integer userId = Integer.valueOf(principal.getName());
-        return ResponseEntity.ok(ApiResponse.success(PROCESS_SUCCESS,userService.getProfile(userId)));
+        return ResponseEntity.ok(ApiResponse.success(PROCESS_SUCCESS, userService.getProfile(userId)));
     }
-
 
 
     @Operation(summary = "회원정보 수정", description = "전달하지 않은 필드는 변경되지 않음 " +

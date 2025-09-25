@@ -6,7 +6,7 @@ import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
-import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserResponse;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserProfileResponse;
 import com.ssafy.pocketc_backend.domain.user.entity.Streak;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
@@ -55,7 +55,7 @@ public class UserService {
     }
 
     @Transactional
-    public void signup(UserSignupRequest request) {
+    public UserResponse signup(UserSignupRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(UserErrorType.ALREADY_EXISTS);
         }
@@ -89,9 +89,10 @@ public class UserService {
 
         missionService.getWeeklyMissions(user.getUserId());
         missionService.getMonthlyMissions(user.getUserId());
+        return jwtProvider.issueToken(user.getUserId(), user.getEmail());
     }
 
-    public UserLoginResponse login(UserLoginRequest request) {
+    public UserResponse login(UserLoginRequest request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new CustomException(LOGIN_FAIL));
 
