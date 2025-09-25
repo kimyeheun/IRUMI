@@ -161,6 +161,9 @@ class PaymentsViewModel @Inject constructor(
                     Timber.d("!!! getPaymentDetail ${paymentId}성공: $response")
                     _selectedPaymentId.value = paymentId
                     _paymentDetailState.value = UiState.Success(response)
+                    onMajorCategoryNameSelected(CategoryMapper.getMajorName(response.majorCategory)!!)
+                    onMinorCategoryNameSelected(CategoryMapper.getSubName(response.subCategory)!!)
+                    Timber.d("!!! PaymentsViewModel init -> ${_selectedMajorCategoryName.value}")
                 }
                 .onFailure {
                     Timber.d("!!! getPaymentDetail ${paymentId} 실패: ${it.message}")
