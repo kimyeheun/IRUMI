@@ -67,7 +67,7 @@ fun NoEventScreen(viewModel: EventViewModel = hiltViewModel(), eventEntity: Even
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(eventEntity.eventImageUrl)
+                .data(eventEntity.badgeImageUrl)
                 .crossfade(true) // 부드러운 이미지 로딩 효과 (선택 사항)
                 .placeholder(R.drawable.ic_menu_gallery) // TODO 로딩 중 보여줄 플레이스홀더 이미지 (선택 사항)
                 .build(),

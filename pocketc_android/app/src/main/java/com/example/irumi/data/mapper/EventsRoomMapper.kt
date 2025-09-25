@@ -40,7 +40,8 @@ fun Event.toEventEntity(): EventEntity {
         badgeName = this.badgeName,
         badgeDescription = this.badgeDescription,
         startAt = this.startAt,
-        endAt = this.endAt
+        endAt = this.endAt,
+        badgeImageUrl = this.badgeImageUrl
     )
 }
 

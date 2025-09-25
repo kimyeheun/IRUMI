@@ -51,6 +51,8 @@ data class Event(
     val eventDescription: String,
     @SerialName("eventImageUrl")
     val eventImageUrl: String,
+    @SerialName("badgeImageUrl")
+    val badgeImageUrl: String,
     @SerialName("badgeName")
     val badgeName: String,
     @SerialName("badgeDescription")
