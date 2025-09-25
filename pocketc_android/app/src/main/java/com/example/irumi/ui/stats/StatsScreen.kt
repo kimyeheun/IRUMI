@@ -672,9 +672,8 @@ fun CategoryPieChart(
                             colorAnimExitSpec = tween(400),
                             scaleAnimExitSpec = tween(400),
                             spaceDegreeAnimExitSpec = tween(400),
-                            style = Pie.Style.Fill
+                            style = Pie.Style.Stroke(width = 35.dp) // 도넛 차트로 변경
                         )
-
                         // 중앙에 총 지출 표시 (토스 스타일)
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
@@ -682,7 +681,7 @@ fun CategoryPieChart(
                             Text(
                                 text = "총 지출",
                                 fontSize = 12.sp,
-                                color = Color(0xFF8B95A1),
+                                color = Color.DarkGray,
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
