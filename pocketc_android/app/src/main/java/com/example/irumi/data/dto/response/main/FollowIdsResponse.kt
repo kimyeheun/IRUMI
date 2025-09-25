@@ -10,6 +10,7 @@ data class FollowIdsResponse(
 
 @Serializable
 data class FollowItem(
-    @SerialName("followeeId") val followUserId: Int,
+    @SerialName("followeeId") val followUserId: Int,  // ← 프로퍼티명: followUserId
     @SerialName("followedAt") val followedAt: String
 )
+

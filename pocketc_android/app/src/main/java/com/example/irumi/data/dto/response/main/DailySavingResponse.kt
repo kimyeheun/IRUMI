@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DailySavingResponse(
     @SerialName("savingScore") val savingScore: Int,
-    @SerialName("totalSpending") val totalSpending: Long
+    @SerialName("totalSpending") val totalSpending: Int
 )

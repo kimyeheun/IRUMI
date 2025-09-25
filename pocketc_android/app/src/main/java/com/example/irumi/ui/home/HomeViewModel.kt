@@ -47,95 +47,129 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /** 개별 섹션 갱신 */
+    /** 개별 섹션 갱신: 데일리 점수/지출 */
     fun reloadMyScore() = launchAndSet("[reloadMyScore]") {
         val daily = mainRepository.getDaily().getOrThrow().also {
-            Timber.d("[HomeVM] reloadMyScore(): savingScore=%d, totalSpending=%d",
+            Timber.d(
+                "[HomeVM] reloadMyScore(): savingScore=%d, totalSpending=%d",
                 it.savingScore, it.totalSpending
             )
         }
         _uiState.value = _uiState.value.copy(
             myScore = daily,
-            // spending API 제거: daily.totalSpending으로 동기화
-            todaySpending = SpendingEntity(daily.totalSpending)
+            todaySpending = SpendingEntity(daily.totalSpending) // spending API 제거
         )
         Timber.d("[HomeVM] reloadMyScore() -> uiState=%s", _uiState.value.summary())
     }
 
+    /** 개별 섹션 갱신: 스트릭 */
     fun reloadStreaks() = launchAndSet("[reloadStreaks]") {
         val streaks = mainRepository.getStreaks().getOrThrow()
-        Timber.d("[HomeVM] reloadStreaks(): size=%d, first=%s",
+        Timber.d(
+            "[HomeVM] reloadStreaks(): size=%d, first=%s",
             streaks.size, streaks.firstOrNull()?.date ?: "null"
         )
         _uiState.value = _uiState.value.copy(streaks = streaks)
     }
 
-    fun reloadFollows() = launchAndSet("[reloadFollows]") {
-        val follows = mainRepository.getFollows().getOrThrow()
-        Timber.d("[HomeVM] reloadFollows(): size=%d, ids=%s",
-            follows.size, follows.joinToString { it.followUserId.toString() }
+    /** 개별 섹션 갱신: 팔로우(IDs) */
+    fun reloadFollowIds() = launchAndSet("[reloadFollowIds]") {
+        val followInfos = mainRepository.getFollowIds().getOrThrow()
+        Timber.d(
+            "[HomeVM] reloadFollowIds(): size=%d, ids=%s",
+            followInfos.size, followInfos.joinToString { it.followUserId.toString() }
         )
-        _uiState.value = _uiState.value.copy(follows = follows)
+        _uiState.value = _uiState.value.copy(followInfos = followInfos)
+    }
+
+    /** 개별 섹션 갱신: 뱃지 */
+    fun reloadBadges() = launchAndSet("[reloadBadges]") {
+        val badges = mainRepository.getBadges().getOrThrow()
+        Timber.d("[HomeVM] reloadBadges(): size=%d", badges.size)
+        _uiState.value = _uiState.value.copy(badges = badges)
     }
 
     // ---------- 내부 ----------
 
+    /** 병렬 로딩 + 부분 성공 허용 */
     private suspend fun loadAll() = coroutineScope {
         Timber.d("[HomeVM] loadAll() start (parallel)")
 
         val profileDef = async {
             runCatching { mainRepository.getUserProfile().getOrThrow() }
-                .onSuccess { Timber.d("[HomeVM] /me OK: id=%d, name=%s, budget=%d",
-                    it.userId, it.name, it.budget) }
-                .onFailure { Timber.e(it, "[HomeVM] /me ERROR") }
+                .also { r ->
+                    r.onSuccess {
+                        Timber.d("[HomeVM] /me OK: id=%d, name=%s, budget=%d", it.userId, it.name, it.budget)
+                    }.onFailure {
+                        Timber.e(it, "[HomeVM] /me ERROR")
+                    }
+                }
         }
 
         val dailyDef = async {
             runCatching { mainRepository.getDaily().getOrThrow() }
-                .onSuccess { Timber.d("[HomeVM] /daily OK: savingScore=%d, totalSpending=%d",
-                    it.savingScore, it.totalSpending) }
-                .onFailure { Timber.e(it, "[HomeVM] /daily ERROR") }
+                .also { r ->
+                    r.onSuccess {
+                        Timber.d("[HomeVM] /daily OK: savingScore=%d, totalSpending=%d", it.savingScore, it.totalSpending)
+                    }.onFailure {
+                        Timber.e(it, "[HomeVM] /daily ERROR")
+                    }
+                }
         }
 
-        val followsDef = async {
-            runCatching { mainRepository.getFollows().getOrThrow() }
-                .onSuccess { Timber.d("[HomeVM] /follows OK: size=%d, ids=%s",
-                    it.size, it.joinToString { f -> f.followUserId.toString() }) }
-                .onFailure { Timber.e(it, "[HomeVM] /follows ERROR") }
+        val followIdsDef = async {
+            runCatching { mainRepository.getFollowIds().getOrThrow() }
+                .also { r ->
+                    r.onSuccess {
+                        Timber.d(
+                            "[HomeVM] /follows(ids) OK: size=%d, ids=%s",
+                            it.size, it.joinToString { f -> f.followUserId.toString() }
+                        )
+                    }.onFailure {
+                        Timber.e(it, "[HomeVM] /follows(ids) ERROR")
+                    }
+                }
         }
 
         val badgesDef = async {
             runCatching { mainRepository.getBadges().getOrThrow() }
-                .onSuccess { Timber.d("[HomeVM] /badges OK: size=%d", it.size) }
-                .onFailure { Timber.e(it, "[HomeVM] /badges ERROR") }
+                .also { r ->
+                    r.onSuccess { Timber.d("[HomeVM] /badges OK: size=%d", it.size) }
+                        .onFailure { Timber.e(it, "[HomeVM] /badges ERROR") }
+                }
         }
 
         val streaksDef = async {
             runCatching { mainRepository.getStreaks().getOrThrow() }
-                .onSuccess { Timber.d("[HomeVM] /streaks OK: size=%d", it.size) }
-                .onFailure { Timber.e(it, "[HomeVM] /streaks ERROR") }
+                .also { r ->
+                    r.onSuccess { Timber.d("[HomeVM] /streaks OK: size=%d", it.size) }
+                        .onFailure { Timber.e(it, "[HomeVM] /streaks ERROR") }
+                }
         }
 
         // 모든 네트워크 완료 대기
-        awaitAll(profileDef, dailyDef, followsDef, badgesDef, streaksDef)
+        awaitAll(profileDef, dailyDef, followIdsDef, badgesDef, streaksDef)
 
-        val profile = profileDef.await().getOrThrow()
-        val daily   = dailyDef.await().getOrThrow()
-        val follows = followsDef.await().getOrThrow()
-        val badges  = badgesDef.await().getOrThrow()
-        val streaks = streaksDef.await().getOrThrow()
+        // 부분 성공 허용: 성공한 것만 반영, 실패는 기존값 유지
+        val current = _uiState.value
 
-        _uiState.value = HomeUiState(
+        val profile = profileDef.await().getOrNull() ?: current.profile
+        val daily   = dailyDef.await().getOrNull() ?: current.myScore
+        val followInfos = followIdsDef.await().getOrNull() ?: current.followInfos
+        val badges  = badgesDef.await().getOrNull() ?: current.badges
+        val streaks = streaksDef.await().getOrNull() ?: current.streaks
+
+        _uiState.value = current.copy(
             isLoading = false,
             error = null,
             profile = profile,
             myScore = daily,
-            // spending API 대신 daily의 totalSpending 사용
-            todaySpending = SpendingEntity(daily.totalSpending),
-            follows = follows,
+            todaySpending = daily?.let { SpendingEntity(it.totalSpending) } ?: current.todaySpending,
+            followInfos = followInfos,
             badges = badges,
             streaks = streaks
         )
+
         Timber.d("[HomeVM] loadAll() done -> uiState=%s", _uiState.value.summary())
     }
 
@@ -149,12 +183,13 @@ class HomeViewModel @Inject constructor(
             }
     }
 
+    /** 팔로우 액션 후 리스트 갱신은 FollowIds 사용 */
     fun follow(targetUserId: Int) = viewModelScope.launch {
         Timber.d("[HomeVM] follow(%d) start", targetUserId)
         mainRepository.follow(targetUserId)
             .onSuccess {
-                Timber.d("[HomeVM] follow(%d) success -> reloadFollows()", targetUserId)
-                reloadFollows()
+                Timber.d("[HomeVM] follow(%d) success -> reloadFollowIds()", targetUserId)
+                reloadFollowIds()
             }
             .onFailure { e ->
                 Timber.e(e, "[HomeVM] follow(%d) failure", targetUserId)
@@ -166,8 +201,8 @@ class HomeViewModel @Inject constructor(
         Timber.d("[HomeVM] unfollow(%d) start", targetUserId)
         mainRepository.unfollow(targetUserId)
             .onSuccess {
-                Timber.d("[HomeVM] unfollow(%d) success -> reloadFollows()", targetUserId)
-                reloadFollows()
+                Timber.d("[HomeVM] unfollow(%d) success -> reloadFollowIds()", targetUserId)
+                reloadFollowIds()
             }
             .onFailure { e ->
                 Timber.e(e, "[HomeVM] unfollow(%d) failure", targetUserId)
@@ -181,13 +216,15 @@ data class HomeUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
 
-    val profile: UserProfileEntity? = null,          // /users/me
-    val myScore: DailySavingEntity? = null,          // /users/daily (savingScore, totalSpending)
-    // /users/spending 제거 → daily.totalSpending을 감싸서 제공
-    val todaySpending: SpendingEntity? = null,
-    val follows: List<FollowEntity> = emptyList(),   // /users/follows
-    val badges: List<BadgeEntity> = emptyList(),     // /users/badges
-    val streaks: List<StreakEntity> = emptyList()    // /users/streaks
+    val profile: UserProfileEntity? = null,           // /users/me
+    val myScore: DailySavingEntity? = null,           // /users/daily (savingScore, totalSpending)
+    val todaySpending: SpendingEntity? = null,        // spending API 제거 → daily.totalSpending 사용
+
+    // ✅ /users/follows 스키마에 맞춰 ID/시각만 보유
+    val followInfos: List<FollowInfoEntity> = emptyList(), // /users/follows (followeeId, followedAt)
+
+    val badges: List<BadgeEntity> = emptyList(),      // /users/badges
+    val streaks: List<StreakEntity> = emptyList()     // /users/streaks
 )
 
 /** 디버깅용 요약 문자열 */
@@ -197,6 +234,6 @@ private fun HomeUiState.summary(): String =
             "me=${profile?.userId ?: "null"}, " +
             "score=${myScore?.savingScore ?: "null"}, " +
             "spend=${todaySpending?.totalSpending ?: "null"}, " +
-            "follows=${follows.size}, " +
+            "followIds=${followInfos.size}, " +
             "badges=${badges.size}, " +
             "streaks=${streaks.size}"

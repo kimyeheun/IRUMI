@@ -3,6 +3,7 @@ package com.example.irumi.data.datasource.main
 import com.example.irumi.core.network.BaseResponse
 import com.example.irumi.data.dto.response.main.BadgeListResponse
 import com.example.irumi.data.dto.response.main.DailySavingResponse
+import com.example.irumi.data.dto.response.main.FollowIdsResponse
 import com.example.irumi.data.dto.response.main.StreaksResponse
 import com.example.irumi.data.dto.response.main.UserProfileResponse
 import com.example.irumi.data.service.MainService
@@ -18,15 +19,8 @@ class MainRemoteDataSource @Inject constructor(
     override suspend fun getDaily(): BaseResponse<DailySavingResponse> =
         service.getDailySaving()
 
-//    override suspend fun getSpending(): BaseResponse<SpendingResponse> {
-//        TODO("Not yet implemented")
-//    }
-
-//    override suspend fun getSpending(): BaseResponse<SpendingResponse> =
-//        service.getSpending()
-
-//    override suspend fun getFollows(): BaseResponse<FollowListResponse> =
-//        service.getFollows()
+    override suspend fun getFollowIds(): BaseResponse<FollowIdsResponse> =
+        service.getFollowIds()
 
     override suspend fun getBadges(): BaseResponse<BadgeListResponse> =
         service.getBadges()
