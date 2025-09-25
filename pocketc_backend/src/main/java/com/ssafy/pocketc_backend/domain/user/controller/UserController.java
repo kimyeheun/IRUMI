@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.user.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssafy.pocketc_backend.domain.user.dto.request.TokenReissueRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
@@ -29,7 +30,7 @@ public class UserController {
 
     @Operation(summary = "회원가입", description = "이름, 패스워드, 이메일, 에산")
     @PostMapping
-    public ResponseEntity<ApiResponse<?>> signup(@RequestBody UserSignupRequest request) {
+    public ResponseEntity<ApiResponse<?>> signup(@RequestBody UserSignupRequest request) throws JsonProcessingException {
 
         return ResponseEntity.ok(ApiResponse.success(SIGNUP_MEMBER_SUCCESS, userService.signup(request)));
     }

@@ -42,4 +42,8 @@ public class Mission {
     private Status status = Status.IN_PROGRESS;
 
     private Long progress;
+
+    private Long value;
+
+    private String template;
 }

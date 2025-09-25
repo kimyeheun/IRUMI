@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.mission.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionSelectedDto;
 import com.ssafy.pocketc_backend.domain.mission.dto.response.MissionResDto;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionService;
@@ -25,7 +26,7 @@ public class MissionController {
     }
 
     @GetMapping("/users/missions")
-    public ResponseEntity<ApiResponse<MissionResDto>> getMissions(Principal principal) {
+    public ResponseEntity<ApiResponse<MissionResDto>> getMissions(Principal principal) throws JsonProcessingException {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_MISSIONS,
                 missionService.getMissions(userId(principal))
@@ -33,7 +34,7 @@ public class MissionController {
     }
 
     @PostMapping("/users/missions")
-    public ResponseEntity<ApiResponse<MissionResDto>> chooseMissions(@RequestBody MissionSelectedDto dto, Principal principal) {
+    public ResponseEntity<ApiResponse<MissionResDto>> chooseMissions(@RequestBody MissionSelectedDto dto, Principal principal) throws JsonProcessingException {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_CHOOSE_MISSIONS,
                 missionService.chooseMissions(dto, userId(principal))

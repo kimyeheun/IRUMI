@@ -16,13 +16,13 @@ public class Scheduler {
 
     //매주 월요일 00시 실행
     @Scheduled(cron = "0 0 0 * * MON", zone = "Asia/Seoul")
-    public void doWeeklyJobs() {
+    public void doWeeklyJobs() throws JsonProcessingException {
         missionService.assignWeeklyMissions();
     }
 
     //매달 1일 00시 실행
     @Scheduled(cron = "0 0 0 1 * ?", zone = "Asia/Seoul")
-    public void doMonthlyJobs() {
+    public void doMonthlyJobs() throws JsonProcessingException {
         missionService.assignMonthlyMissions();
     }
 
