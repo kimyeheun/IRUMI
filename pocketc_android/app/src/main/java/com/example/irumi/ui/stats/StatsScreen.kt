@@ -58,6 +58,7 @@ import ir.ehsannarmani.compose_charts.models.DotProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
 import ir.ehsannarmani.compose_charts.models.Pie
+import java.util.Locale.KOREA
 import kotlin.properties.Delegates
 
 /** 컨테이너: ViewModel과 연결 + 로그아웃 성공 시 콜백 */
@@ -181,33 +182,28 @@ fun Header(
     stats: UiState<MonthStatsResponse>
 ) {
     val monthStatistics = stats as? UiState.Success<MonthStatsResponse>
+    /**
+     * 사용 통계 데이터
+     * currMonthExpense: 당월 지출액
+     * remainBudget: 잔여 예산
+     * usagePercentage: 예산 사용 비율
+     */
+    val budget = monthStatistics?.data?.budget!!
+    val currMonthExpense = monthStatistics.data.currMonthExpense
+    val remainBudget = (budget-currMonthExpense).coerceAtLeast(0)
+    val usagePercentage = if (budget > 0) (currMonthExpense * 100).coerceIn(0, 100) / budget else 0
     // 상단 여백
     Spacer(modifier = Modifier.height(16.dp))
 
-    // 절약한 총 금액 카드
-    ////////////////////////////// 이거 없음
-//    StatsCard(
-//        title = "절약한 총 금액",
-//        content = {
-//            Text(
-//                text = "-10,000원",
-//                fontSize = 32.sp,
-//                fontWeight = FontWeight.Bold,
-//                color = Color(0xFF191F28)
-//            )
-//        }
-//    )
-    //////////////////////////////
     StatsCard(
         title = "월간 지출 총액",
-        subtitle = "하루 예산 22,634원",
+        subtitle = "잔여 예산 ${String.format(KOREA, "%,d", remainBudget)}원",
         content = {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 목표 뱃지
                 Box(
                     modifier = Modifier
                         .background(
@@ -217,7 +213,7 @@ fun Header(
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "목표",
+                        text = "예산 대비 지출량",
                         color = Color.White,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
@@ -256,7 +252,7 @@ fun Header(
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = "96%",
+                        text = "${usagePercentage}%",
                         fontSize = 12.sp,
                         color = Color(0xFF8B95A1),
                         fontWeight = FontWeight.Medium
@@ -294,7 +290,7 @@ fun Header(
                         )
                     }
                     Text(
-                        text = "${monthStatistics?.data?.budget}원",
+                        text = "${budget}원",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF191F28)
@@ -325,7 +321,7 @@ fun Header(
                         )
                     }
                     Text(
-                        text = "${monthStatistics?.data?.currMonthExpense}원",
+                        text = "${currMonthExpense}원",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF191F28)
