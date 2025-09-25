@@ -1,5 +1,8 @@
 package com.ssafy.pocketc_backend.domain.mission.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.pocketc_backend.domain.mission.client.MissionAiClient;
 import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionItem;
 import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionRedisDto;
@@ -33,8 +36,9 @@ public class MissionService {
     private final MissionRedisService missionRedisService;
     private final MissionAiClient missionAiClient;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
-    public MissionResDto getMissions(Integer userId) {
+    public MissionResDto getMissions(Integer userId) throws JsonProcessingException {
         // userId, 오늘 날짜로 미션 조회
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         String key = missionRedisService.buildKey(userId, today);
@@ -43,16 +47,23 @@ public class MissionService {
                 .orElse(List.of());
 
         // 조회한 미션이 있으면, missionDTO로 묶어서 보낸다. (일일, 주간, 월간 미션이 포함된다.)
+
         if (!cached.isEmpty()) {
             List<MissionDto> missionDtoList = new ArrayList<>();
+
             for (MissionRedisDto m : cached) {
+                JsonNode root = objectMapper.readTree(m.getDsl().replace("'", "\""));
+                String template = root.get("template").asText();
+                Long value = root.get("value").asLong();
                 missionDtoList.add(MissionDto.of(
                         m.getMissionId(),
                         m.getSubId(),
                         m.getType(),
                         m.getMission(),
                         String.valueOf(m.getStatus()),
-                        m.getProgress()
+                        m.getProgress(),
+                        value,
+                        template
                 ));
             }
             return new MissionResDto(true, missionDtoList);
@@ -79,7 +90,9 @@ public class MissionService {
                     m.getType(),
                     m.getMission(),
                     String.valueOf(m.getStatus()),
-                    0L
+                    0L,
+                    m.getValue(),
+                    m.getTemplate()
             ));
             missionRedisDtos.add(MissionRedisDto.builder()
                             .missionId(idx)
@@ -114,7 +127,7 @@ public class MissionService {
         return new MissionResDto(false, missionDtos);
     }
 
-    public MissionResDto chooseMissions(MissionSelectedDto dto, Integer userId) {
+    public MissionResDto chooseMissions(MissionSelectedDto dto, Integer userId) throws JsonProcessingException {
         Set<Integer> selected = new HashSet<>(dto.selected());
 
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
@@ -126,6 +139,9 @@ public class MissionService {
         List<MissionDto> missionDtos = new ArrayList<>();
         for (MissionRedisDto m : cached) {
             if (selected.contains(m.getMissionId()) || m.getType() != 0) {
+                JsonNode root = objectMapper.readTree(m.getDsl().replace("'", "\""));
+                String template = root.get("template").asText();
+                Long value = root.get("value").asLong();
                 newCached.add(m);
                 missionDtos.add(MissionDto.of(
                         m.getMissionId(),
@@ -133,7 +149,9 @@ public class MissionService {
                         m.getType(),
                         m.getMission(),
                         String.valueOf(m.getStatus()),
-                        m.getProgress()
+                        m.getProgress(),
+                        value,
+                        template
                 ));
             }
         }
@@ -173,7 +191,7 @@ public class MissionService {
 
     //스케줄러용 퍼블릭 메서드
     @Transactional
-    public void assignWeeklyMissions() {
+    public void assignWeeklyMissions() throws JsonProcessingException {
         List<User> users = userRepository.findAll();
         for (User user : users) {
             getWeeklyMissions(user.getUserId()); // private 메서드 호출
@@ -182,14 +200,14 @@ public class MissionService {
 
     //스케줄러용 퍼블릭 메서드
     @Transactional
-    public void assignMonthlyMissions() {
+    public void assignMonthlyMissions() throws JsonProcessingException {
         List<User> users = userRepository.findAll();
         for (User user : users) {
             getMonthlyMissions(user.getUserId());
         }
     }
 
-    public void getWeeklyMissions(Integer userId) {
+    public void getWeeklyMissions(Integer userId) throws JsonProcessingException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
 
@@ -211,6 +229,9 @@ public class MissionService {
         if (items.isEmpty()) return;
 
         for (MissionItem item : items) {
+            JsonNode root = objectMapper.readTree(item.dsl().replace("'", "\""));
+            String template = root.get("template").asText();
+            Long value = root.get("value").asLong();
             missionRepository.save(Mission.builder()
                     .subId(item.subId())
                     .dsl(item.dsl())
@@ -219,11 +240,13 @@ public class MissionService {
                     .validTo(item.validTo())
                     .mission(item.mission())
                     .type(item.type())
+                    .template(template)
+                    .value(value)
                     .build());
         }
     }
 
-    public void getMonthlyMissions(Integer userId) {
+    public void getMonthlyMissions(Integer userId) throws JsonProcessingException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
 
@@ -245,6 +268,9 @@ public class MissionService {
         if (items.isEmpty()) return;
 
         for (MissionItem item : items) {
+            JsonNode root = objectMapper.readTree(item.dsl().replace("'", "\""));
+            String template = root.get("template").asText();
+            Long value = root.get("value").asLong();
             missionRepository.save(Mission.builder()
                     .subId(item.subId())
                     .dsl(item.dsl())
@@ -253,6 +279,8 @@ public class MissionService {
                     .validTo(item.validTo())
                     .mission(item.mission())
                     .type(item.type())
+                    .template(template)
+                    .value(value)
                     .build());
         }
     }

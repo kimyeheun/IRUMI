@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.pocketc_backend.domain.event.entity.Status;
 import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionRedisDto;
+import com.ssafy.pocketc_backend.domain.mission.dto.response.MissionInfoDto;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.DummyTransactionsDto;
@@ -191,12 +192,12 @@ public class TransactionService {
                 newCached.add(missionRedisDto);
                 continue;
             }
-            long[] check = checkMissionByTransaction(transaction, missionRedisDto);
-            if (check[0] == 0) {
+            MissionInfoDto missionInfo = checkMissionByTransaction(transaction, missionRedisDto);
+            if (!missionInfo.check()) {
                 missionRedisDto.setStatus(Status.FAILURE);
                 count++;
             }
-            missionRedisDto.setProgress(check[1]);
+            missionRedisDto.setProgress(missionInfo.progress());
             newCached.add(missionRedisDto);
         }
         missionRedisService.putList(key, newCached, missionRedisService.ttlUntilNext6am());
@@ -213,7 +214,7 @@ public class TransactionService {
         return TransactionListResDto.of(transactionResDtoList, totalSpending);
     }
 
-    public long[] checkMissionByTransaction(Transaction transaction, MissionRedisDto mission) throws JsonProcessingException {
+    public MissionInfoDto checkMissionByTransaction(Transaction transaction, MissionRedisDto mission) throws JsonProcessingException {
 
         String json = mission.getDsl().replace("'", "\"");
 
@@ -221,10 +222,10 @@ public class TransactionService {
 
         String template = root.get("template").toString().replace("\"", "");
         int subId = root.get("sub_id").asInt();
-        int value = root.get("value").asInt();
+        long value = root.get("value").asLong();
         long progress = mission.getProgress();
 
-        if (subId != transaction.getSubId()) return new long[]{1, progress};
+        if (subId != transaction.getSubId()) return MissionInfoDto.of(true, progress, value, template);
 
         LocalDateTime start = null, end = null;
         if (template.equals("TIME_BAN_DAILY")) {
@@ -253,51 +254,51 @@ public class TransactionService {
         long amount = transaction.getAmount();
         LocalDateTime transactedAt = transaction.getTransactedAt();
 
-        int check = 1;
+        boolean check = true;
         switch (template) {
             case "CATEGORY_BAN_DAILY":
-                check = 0;
+                check = false;
                 break;
             case "SPEND_CAP_DAILY":
                 if (progress + amount > value)
-                    check = 0;
+                    check = false;
                 progress += amount;
                 break;
             case "PER_TXN_DAILY":
                 if (amount > value)
-                    check = 0;
+                    check = false;
                 break;
             case "TIME_BAN_DAILY":
                 if (start.isAfter(transactedAt) && end.isBefore(transactedAt))
-                    check = 0;
+                    check = false;
                 break;
             case "COUNT_CAP_DAILY":
                 if (progress + 1 > value)
-                    check = 0;
+                    check = false;
                 progress += 1;
                 break;
             case "DAY_BAN_WEEKLY":
                 if (dayOfWeek == (LocalDate.now().getDayOfWeek().getValue() % 7))
-                    check = 0;
+                    check = false;
                 break;
             case "SPEND_CAP_WEEKLY":
-                if (progress + amount > value) check = 0;
+                if (progress + amount > value) check = false;
                 progress += amount;
                 break;
             case "COUNT_CAP_WEEKLY":
-                if (progress + 1 > value) check = 0;
+                if (progress + 1 > value) check = false;
                 progress += 1;
                 break;
             case "SPEND_CAP_MONTHLY":
-                if (progress + amount > value) check = 0;
+                if (progress + amount > value) check = false;
                 progress += amount;
                 break;
             case "COUNT_CAP_MONTHLY":
-                if (progress + 1 > value) check = 0;
+                if (progress + 1 > value) check = false;
                 progress += 1;
                 break;
         }
-        return new long[]{check, progress};
+        return MissionInfoDto.of(check, progress, value, template);
     }
 
     public void createTransactions(Integer userId, DummyTransactionsDto dto) {
