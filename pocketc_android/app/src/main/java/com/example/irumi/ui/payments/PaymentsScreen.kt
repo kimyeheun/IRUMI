@@ -52,6 +52,7 @@ import com.example.irumi.ui.payments.model.PaymentDetailUiModel
 import com.example.irumi.ui.payments.model.PaymentsByDay
 import com.example.irumi.ui.payments.model.PaymentsListItem
 import com.example.irumi.ui.payments.model.PaymentsUiState
+import com.example.irumi.ui.theme.BrandGreen
 import timber.log.Timber
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -59,7 +60,7 @@ import java.util.Locale
 
 // 토스 스타일 컬러팔레트
 object TossColors {
-    val Primary = Color(0xFF3182F6)
+    val Primary = BrandGreen//Color(0xFF3182F6)
     val Secondary = Color(0xFF1B64DA)
     val Success = Color(0xFF0E7A0B)
     val Error = Color(0xFFF04438)

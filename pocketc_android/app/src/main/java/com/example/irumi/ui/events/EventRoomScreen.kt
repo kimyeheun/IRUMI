@@ -67,10 +67,11 @@ import com.example.irumi.domain.entity.MemberEntity
 import com.example.irumi.domain.entity.PuzzleEntity
 import com.example.irumi.domain.entity.RankEntity
 import com.example.irumi.domain.entity.RoomEntity
+import com.example.irumi.ui.theme.BrandGreen
 
 // 토스 스타일 컬러 팔레트
 object SampleColors {
-    val Primary = Color(0xFF1E5EFF)
+    val Primary = BrandGreen//Color(0xFF1E5EFF)
     val PrimaryLight = Color(0xFF4D7EFF)
     val Success = Color(0xFF00C896)
     val Error = Color(0xFFFF4545)
