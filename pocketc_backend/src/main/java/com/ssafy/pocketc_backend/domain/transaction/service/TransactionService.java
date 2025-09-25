@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.pocketc_backend.domain.event.entity.Status;
 import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionRedisDto;
-import com.ssafy.pocketc_backend.domain.mission.dto.response.MissionDto;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.DummyTransactionsDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionAiReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionCreateReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionReqDto;
@@ -18,6 +18,7 @@ import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionResD
 import com.ssafy.pocketc_backend.domain.transaction.entity.Transaction;
 import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionRepository;
 import com.ssafy.pocketc_backend.domain.user.entity.Streak;
+import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
@@ -33,6 +34,7 @@ import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.*;
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
@@ -213,7 +215,7 @@ public class TransactionService {
 
     public long[] checkMissionByTransaction(Transaction transaction, MissionRedisDto mission) throws JsonProcessingException {
 
-        String json = mission.getDsl().replace("\'", "\"");
+        String json = mission.getDsl().replace("'", "\"");
 
         JsonNode root = objectMapper.readTree(json);
 
@@ -296,5 +298,37 @@ public class TransactionService {
                 break;
         }
         return new long[]{check, progress};
+    }
+
+    public void createTransactions(Integer userId, DummyTransactionsDto dto) {
+        Random random = new Random();
+        List<TransactionCreateReqDto> dtos = dto.transactions();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow();
+
+        for (TransactionCreateReqDto transaction : dtos) {
+            Streak streak = streakRepository.findByUser_userIdAndDate(userId, transaction.date().toLocalDate());
+            streak.setSpentAmount(streak.getSpentAmount() + transaction.amount());
+
+            Transaction t = Transaction.builder()
+                    .user(user)
+                    .amount(transaction.amount())
+                    .transactedAt(transaction.date())
+                    .isApplied(false)
+                    .isFixed(random.nextBoolean())
+                    .merchantName(transaction.merchantName())
+                    .majorId(random.nextInt(1, 11))
+                    .subId(random.nextInt(1, 40))
+                    .build();
+            LocalDate curMonth = transaction.date().toLocalDate().withDayOfMonth(1);
+            transactionRepository.save(t);
+            if (t.isFixed()) {
+                reportService.updateMonthlyFixedExpense(userId, curMonth, t.getAmount());
+                reportService.updateMonthlyTotalExpense(userId, curMonth, t.getAmount());
+            } else {
+                reportService.updateMonthlyTotalExpense(userId, curMonth, t.getAmount());
+            }
+        }
     }
 }
