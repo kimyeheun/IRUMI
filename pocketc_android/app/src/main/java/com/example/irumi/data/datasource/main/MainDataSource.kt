@@ -20,4 +20,6 @@ interface MainDataSource {
     suspend fun deleteFollow(targetUserId: Int): BaseResponse<Unit?>
     suspend fun getDailyWithFriend(friendId: Int): BaseResponse<FriendDailyResponse>
     suspend fun getMissions(): BaseResponse<MissionsResponse>
+    suspend fun postMissions(selected: List<Int>): BaseResponse<MissionsResponse>
+
 }

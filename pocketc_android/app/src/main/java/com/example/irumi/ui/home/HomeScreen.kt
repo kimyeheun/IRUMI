@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,9 +21,12 @@ import com.example.irumi.ui.home.component.FriendList
 import com.example.irumi.ui.home.component.MyScoreSection
 import com.example.irumi.ui.home.component.StreakSection
 import com.example.irumi.ui.home.component.TodoSection
+import com.example.irumi.ui.home.component.MissionPickSheet
 import com.example.irumi.ui.theme.BrandGreen
 import kotlin.math.min
 import androidx.compose.foundation.layout.Arrangement
+import java.time.LocalDate
+import java.time.ZoneId
 
 data class Friend(
     val id: Int,
@@ -40,7 +44,7 @@ fun HomeScreen(
     // "나" + followIds 기반 친구 목록 (닉네임 없음 → placeholder)
     val friends = remember(state.followInfos, state.profile?.profileImageUrl) {
         listOf(
-            Friend(0, "나", state.profile?.profileImageUrl)  // ✅ 내 프로필 URL
+            Friend(0, "나", state.profile?.profileImageUrl) // 내 프로필 URL
         ) + state.followInfos.map { info ->
             Friend(
                 id = info.followUserId,
@@ -62,6 +66,23 @@ fun HomeScreen(
     LaunchedEffect(selectedFriend.id) {
         if (selectedFriend.id != 0) {
             viewModel.reloadFriendDaily(selectedFriend.id) // skipIfCached = true(기본)
+        }
+    }
+
+    // --- 오늘 첫 실행: 추천 미션 모달 오픈 제어 ---
+    val dayKey = remember { LocalDate.now(ZoneId.of("Asia/Seoul")).toString() }
+    var showMissionSheet by rememberSaveable { mutableStateOf(false) }
+    var submitLoading by remember { mutableStateOf(false) }
+    var lastTriggeredByDayKey by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(state.missionReceived, state.missions, dayKey) {
+        if (!state.missionReceived && state.missions.isNotEmpty() && lastTriggeredByDayKey != dayKey) {
+            showMissionSheet = true
+            lastTriggeredByDayKey = dayKey
+        }
+        if (state.missionReceived) {
+            showMissionSheet = false
+            submitLoading = false
         }
     }
 
@@ -118,7 +139,7 @@ fun HomeScreen(
             MyScoreSection(score = state.myScore?.savingScore ?: 0)
             Spacer(Modifier.height(12.dp))
 
-            // 미션 바인딩
+            // 미션 바인딩 (오늘의 미션)
             TodoSection(
                 missionReceived = state.missionReceived,
                 missions = state.missions
@@ -136,9 +157,7 @@ fun HomeScreen(
         } else {
             // 친구 비교 데이터 (없으면 로딩 중)
             val pair = state.friendDaily[selectedFriend.id]
-
             if (pair == null) {
-                // 선택 직후 로딩 피드백
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
@@ -268,6 +287,20 @@ fun HomeScreen(
                 pendingUnfollow = null
             }
         }
+    }
+
+    // ===== 추천 미션 선택 모달 =====
+    if (showMissionSheet) {
+        MissionPickSheet(
+            missions = state.missions,           // GET 결과: 추천 미션들
+            isProcessing = submitLoading,
+            initiallySelected = emptySet(),
+            onDismiss = { showMissionSheet = false }, // "나중에" 닫기
+            onConfirm = { selected ->
+                submitLoading = true
+                viewModel.submitMissions(selected)
+            }
+        )
     }
 }
 

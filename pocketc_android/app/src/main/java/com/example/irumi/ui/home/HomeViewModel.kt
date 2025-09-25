@@ -50,7 +50,8 @@ class HomeViewModel @Inject constructor(
     /** 개별 섹션 갱신: 데일리 점수/지출 */
     fun reloadMyScore() = launchAndSet("[reloadMyScore]") {
         val daily = mainRepository.getDaily().getOrThrow().also {
-            Timber.d("[HomeVM] reloadMyScore(): savingScore=%d, totalSpending=%d",
+            Timber.d(
+                "[HomeVM] reloadMyScore(): savingScore=%d, totalSpending=%d",
                 it.savingScore, it.totalSpending
             )
         }
@@ -64,7 +65,8 @@ class HomeViewModel @Inject constructor(
     /** 개별 섹션 갱신: 스트릭 */
     fun reloadStreaks() = launchAndSet("[reloadStreaks]") {
         val streaks = mainRepository.getStreaks().getOrThrow()
-        Timber.d("[HomeVM] reloadStreaks(): size=%d, first=%s",
+        Timber.d(
+            "[HomeVM] reloadStreaks(): size=%d, first=%s",
             streaks.size, streaks.firstOrNull()?.date ?: "null"
         )
         _uiState.value = _uiState.value.copy(streaks = streaks)
@@ -73,7 +75,8 @@ class HomeViewModel @Inject constructor(
     /** 개별 섹션 갱신: 팔로우(IDs) */
     fun reloadFollowIds() = launchAndSet("[reloadFollowIds]") {
         val followInfos = mainRepository.getFollowIds().getOrThrow()
-        Timber.d("[HomeVM] reloadFollowIds(): size=%d, ids=%s",
+        Timber.d(
+            "[HomeVM] reloadFollowIds(): size=%d, ids=%s",
             followInfos.size, followInfos.joinToString { it.followUserId.toString() }
         )
         _uiState.value = _uiState.value.copy(followInfos = followInfos)
@@ -86,15 +89,30 @@ class HomeViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(badges = badges)
     }
 
-    /** 개별 섹션 갱신: 미션 */
+    /** 개별 섹션 갱신: 미션 (추천/선택 여부 포함) */
     fun reloadMissions() = launchAndSet("[reloadMissions]") {
         val missions = mainRepository.getMissions().getOrThrow()
-        Timber.d("[HomeVM] reloadMissions(): received=%s, size=%d",
+        Timber.d(
+            "[HomeVM] reloadMissions(): received=%s, size=%d",
             missions.missionReceived, missions.missions.size
         )
         _uiState.value = _uiState.value.copy(
             missionReceived = missions.missionReceived,
             missions = missions.missions
+        )
+    }
+
+    /** 추천 미션 선택 제출 -> 오늘의 미션 확정 */
+    fun submitMissions(selectedIds: List<Int>) = launchAndSet("[submitMissions]") {
+        Timber.d("[HomeVM] submitMissions() sending: %s", selectedIds.joinToString())
+        val result = mainRepository.submitMissions(selectedIds).getOrThrow()
+        Timber.d(
+            "[HomeVM] submitMissions(): received=%s, size=%d",
+            result.missionReceived, result.missions.size
+        )
+        _uiState.value = _uiState.value.copy(
+            missionReceived = result.missionReceived,
+            missions = result.missions
         )
     }
 
@@ -110,7 +128,8 @@ class HomeViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(
                 friendDaily = _uiState.value.friendDaily + (friendId to pair)
             )
-            Timber.d("[HomeVM] reloadFriendDaily(%d): me=%d/%d, friend=%d/%d",
+            Timber.d(
+                "[HomeVM] reloadFriendDaily(%d): me=%d/%d, friend=%d/%d",
                 friendId, pair.me.savingScore, pair.me.totalSpending,
                 pair.friend.savingScore, pair.friend.totalSpending
             )
@@ -135,7 +154,10 @@ class HomeViewModel @Inject constructor(
             runCatching { mainRepository.getDaily().getOrThrow() }
                 .also { r ->
                     r.onSuccess {
-                        Timber.d("[HomeVM] /daily OK: savingScore=%d, totalSpending=%d", it.savingScore, it.totalSpending)
+                        Timber.d(
+                            "[HomeVM] /daily OK: savingScore=%d, totalSpending=%d",
+                            it.savingScore, it.totalSpending
+                        )
                     }.onFailure { Timber.e(it, "[HomeVM] /daily ERROR") }
                 }
         }
@@ -144,7 +166,8 @@ class HomeViewModel @Inject constructor(
             runCatching { mainRepository.getFollowIds().getOrThrow() }
                 .also { r ->
                     r.onSuccess {
-                        Timber.d("[HomeVM] /follows(ids) OK: size=%d, ids=%s",
+                        Timber.d(
+                            "[HomeVM] /follows(ids) OK: size=%d, ids=%s",
                             it.size, it.joinToString { f -> f.followUserId.toString() }
                         )
                     }.onFailure { Timber.e(it, "[HomeVM] /follows(ids) ERROR") }
@@ -171,7 +194,8 @@ class HomeViewModel @Inject constructor(
             runCatching { mainRepository.getMissions().getOrThrow() }
                 .also { r ->
                     r.onSuccess {
-                        Timber.d("[HomeVM] /missions OK: received=%s, size=%d",
+                        Timber.d(
+                            "[HomeVM] /missions OK: received=%s, size=%d",
                             it.missionReceived, it.missions.size
                         )
                     }.onFailure { Timber.e(it, "[HomeVM] /missions ERROR") }
@@ -183,9 +207,9 @@ class HomeViewModel @Inject constructor(
         val current = _uiState.value
 
         val profile = profileDef.await().getOrNull() ?: current.profile
-        val daily   = dailyDef.await().getOrNull() ?: current.myScore
+        val daily = dailyDef.await().getOrNull() ?: current.myScore
         val followInfos = followIdsDef.await().getOrNull() ?: current.followInfos
-        val badges  = badgesDef.await().getOrNull() ?: current.badges
+        val badges = badgesDef.await().getOrNull() ?: current.badges
         val streaks = streaksDef.await().getOrNull() ?: current.streaks
         val missions = missionsDef.await().getOrNull()
 
@@ -208,7 +232,9 @@ class HomeViewModel @Inject constructor(
     private fun launchAndSet(tag: String, block: suspend () -> Unit) = viewModelScope.launch {
         Timber.d("[HomeVM] %s start", tag)
         runCatching { block() }
-            .onSuccess { Timber.d("[HomeVM] %s success -> uiState=%s", tag, _uiState.value.summary()) }
+            .onSuccess {
+                Timber.d("[HomeVM] %s success -> uiState=%s", tag, _uiState.value.summary())
+            }
             .onFailure { e ->
                 Timber.e(e, "[HomeVM] %s failure", tag)
                 _uiState.value = _uiState.value.copy(error = e.message ?: "알 수 없는 오류")
@@ -235,6 +261,10 @@ class HomeViewModel @Inject constructor(
             .onSuccess {
                 Timber.d("[HomeVM] unfollow(%d) success -> reloadFollowIds()", targetUserId)
                 reloadFollowIds()
+                // 선택적으로 친구 비교 캐시에서 제거
+                _uiState.value = _uiState.value.copy(
+                    friendDaily = _uiState.value.friendDaily - targetUserId
+                )
             }
             .onFailure { e ->
                 Timber.e(e, "[HomeVM] unfollow(%d) failure", targetUserId)

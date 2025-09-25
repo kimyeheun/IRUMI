@@ -3,7 +3,9 @@ package com.example.irumi.data.service
 
 import com.example.irumi.core.network.BaseResponse
 import com.example.irumi.core.state.UiState
+import com.example.irumi.data.dto.request.main.MissionsSelectRequest
 import com.example.irumi.data.dto.response.main.*
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -29,4 +31,8 @@ interface MainService {
 
     @GET("missions")
     suspend fun getMissions(): BaseResponse<MissionsResponse>
+
+    @POST("missions")
+    suspend fun postMissions(@Body body: MissionsSelectRequest): BaseResponse<MissionsResponse>
+
 }
