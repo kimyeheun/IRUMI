@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.irumi.domain.entity.main.MissionEntity
 
 /**
  * UI용 간단한 미션 아이템 모델.
@@ -33,7 +34,9 @@ fun TodoSection(
     isUpdatingId: Int? = null,                       // ← 갱신 중인 항목 id(선택)
     error: String? = null,                           // ← 오류 메시지(선택)
     onToggle: (id: Int, newValue: Boolean) -> Unit = { _, _ -> }, // ← 기본 no-op
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    missionReceived: Boolean,
+    missions: List<MissionEntity>
 ) {
     Column(
         modifier = modifier

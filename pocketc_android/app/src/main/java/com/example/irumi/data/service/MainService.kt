@@ -23,4 +23,10 @@ interface MainService {
 
     @POST("follows/{targetUserId}") suspend fun postFollow(@Path("targetUserId") id: Int): BaseResponse<Unit?>
     @DELETE("follows/{targetUserId}") suspend fun deleteFollow(@Path("targetUserId") id: Int): BaseResponse<Unit?>
+
+    @GET("daily/{friendId}")
+    suspend fun getDailyWithFriend(@Path("friendId") id: Int): BaseResponse<FriendDailyResponse>
+
+    @GET("missions")
+    suspend fun getMissions(): BaseResponse<MissionsResponse>
 }
