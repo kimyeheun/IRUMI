@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from sqlalchemy.orm.session import Session
@@ -30,25 +30,23 @@ class MissionService:
         self.template = MissionRepository(db)
 
     def create_daily_mission(self, user_id: int, now: datetime) -> list[Mission]:
-        # 1. 클러스터 예측
-        cluster_id = cluster_for_user(self.cluster_path, self.trans, user_id, now)
-        print(cluster_id)
-        # 2.1. 클러스터 → 소분류 top-3
-        sub_ids = self.cluster.get_sub_by_id(cluster_id)
-        print(sub_ids)
-        # 2.2. id → 이름 변환
-        subs = self.sub.get_names_by_ids(sub_ids)
-
         missions = []
-        mission_counts = [2, 2, 1]
 
-        for i, (sub_id, sub_name) in enumerate(zip(sub_ids, subs)):
-            if len(missions) >= 5: break
+        try:
+            # 1. 클러스터 예측
+            cluster_id = cluster_for_user(self.cluster_path, self.trans, user_id, now)
+            # 2.1. 클러스터 → 소분류 top-3
+            sub_ids = self.cluster.get_sub_by_id(cluster_id)
+            # 2.2. id → 이름 변환
+            subs = self.sub.get_names_by_ids(sub_ids)
 
-            stats = self.repo.get_daily_stats_for_category(user_id, sub_id, now)
-            generated_templates = []
-            for _ in range(mission_counts[i]):
-                try:
+            mission_counts = [2, 2, 1]
+            for i, (sub_id, sub_name) in enumerate(zip(sub_ids, subs)):
+                if len(missions) >= 5: break
+
+                stats = self.repo.get_daily_stats_for_category(user_id, sub_id, now)
+                generated_templates = []
+                for _ in range(mission_counts[i]):
                     # 3. 템플릿 선택
                     tmpl_name = pick_template(sub_name, user_stats=stats, epsilon=0.1, exclude=generated_templates)
                     generated_templates.append(tmpl_name)
@@ -66,9 +64,7 @@ class MissionService:
                             validTo=valid_to
                         )
                     )
-                except ValueError:
-                    break
-        if not missions:
+        except Exception as e:
             for mission in BUF_DAILY_MISSION:
                 mission["validFrom"] =  now.replace(hour=0, minute=0, second=0, microsecond=0)
                 mission["validTo"] =  now.replace(hour=23, minute=59, second=59, microsecond=999999)
@@ -78,86 +74,87 @@ class MissionService:
 
     def create_weekly_mission(self, user_id: int, now: datetime) -> list[Mission]:
         missions = []
+        try:
+            top_cats = self.repo.get_top_frequent_categories(user_id, now, days=30, top_n=1)
+            if not top_cats:
+                raise Exception
+            for top_cat in top_cats:
+                sub_id = top_cat["sub_id"]
+                sub_name = self.sub.get_name_by_id(sub_id)
+                # 4주간의 데이터를 바탕으로 주간 평균 소비 계산
+                weekly_sum = top_cat["total_tx_sum"] / 4.0
+                weekly_count = top_cat["total_tx_count"] / 4.0
+                stats = {"weekly_sum": weekly_sum, "weekly_count": weekly_count}
 
-        top_cats = self.repo.get_top_frequent_categories(user_id, now, days=30, top_n=1)
-        if not top_cats:
-            for mission in BUF_WEEKLY_MISSION:
-                mission["validFrom"] = now.replace(hour=0, minute=0, second=0, microsecond=0)
-                mission["validTo"] = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-                missions.append(mission)
-            return missions
-        for top_cat in top_cats:
-            sub_id = top_cat["sub_id"]
-            sub_name = self.sub.get_name_by_id(sub_id)
-            # 4주간의 데이터를 바탕으로 주간 평균 소비 계산
-            weekly_sum = top_cat["total_tx_sum"] / 4.0
-            weekly_count = top_cat["total_tx_count"] / 4.0
-            stats = {"weekly_sum": weekly_sum, "weekly_count": weekly_count}
-
-            # 위클리 템플릿 중 하나를 무작위로 선택
-            weekly_templates = ["SPEND_CAP_WEEKLY", "COUNT_CAP_WEEKLY", "DAY_BAN_WEEKLY"]
-            # TODO: DAY_BAN_WEEKLY 요일 분석 추가
-            tmpl_name = random.choice(weekly_templates)
-            # 미션 생성
-            mission_text, dsl, (valid_from, valid_to) = build_mission_details(
-                tmpl_name, sub_id, sub_name, stats, now, self.template
-            )
-            missions.append(
-                Mission(
-                    mission=mission_text,
-                    subId=sub_id,
-                    dsl=str(dsl),
-                    type=1,
-                    validFrom=valid_from,
-                    validTo=valid_to
+                # 위클리 템플릿 중 하나를 무작위로 선택
+                weekly_templates = ["SPEND_CAP_WEEKLY", "COUNT_CAP_WEEKLY", "DAY_BAN_WEEKLY"]
+                # TODO: DAY_BAN_WEEKLY 요일 분석 추가
+                tmpl_name = random.choice(weekly_templates)
+                # 미션 생성
+                mission_text, dsl, (valid_from, valid_to) = build_mission_details(
+                    tmpl_name, sub_id, sub_name, stats, now, self.template
                 )
-            )
-        if not missions:
+                missions.append(
+                    Mission(
+                        mission=mission_text,
+                        subId=sub_id,
+                        dsl=str(dsl),
+                        type=1,
+                        validFrom=valid_from,
+                        validTo=valid_to
+                    )
+                )
+        except Exception as e:
+            start_of_week = now - timedelta(days=now.weekday())
+            end_of_week = start_of_week + timedelta(days=6)
+            valid_from = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+            valid_to = end_of_week.replace(hour=23, minute=59, second=59, microsecond=999999)
             for mission in BUF_WEEKLY_MISSION:
-                mission["validFrom"] =  now.replace(hour=0, minute=0, second=0, microsecond=0)
-                mission["validTo"] =  now.replace(hour=23, minute=59, second=59, microsecond=999999)
+                mission["validFrom"] = valid_from
+                mission["validTo"] = valid_to
                 missions.append(mission)
         return missions
 
 
     def create_monthly_mission(self, user_id: int, now: datetime) -> list[Mission]:
         missions = []
+        try:
+            top_cats = self.repo.get_top_frequent_categories(user_id, now, days=90, top_n=1)
+            if not top_cats:
+                raise Exception
 
-        top_cats = self.repo.get_top_frequent_categories(user_id, now, days=90, top_n=1)
-        if not top_cats:
-            for mission in BUF_MONTHLY_MISSION:
-                mission["validFrom"] = now.replace(hour=0, minute=0, second=0, microsecond=0)
-                mission["validTo"] = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-                missions.append(mission)
-            return missions
+            for top_cat in top_cats:
+                sub_id = top_cat["sub_id"]
+                sub_name = self.sub.get_name_by_id(sub_id)
+                # 월간 평균 소비 계산
+                monthly_sum = top_cat["total_tx_sum"] / 3.0
+                monthly_count = top_cat["total_tx_count"] / 3.0
+                stats = {"monthly_sum": monthly_sum, "monthly_count": monthly_count,}
 
-        for top_cat in top_cats:
-            sub_id = top_cat["sub_id"]
-            sub_name = self.sub.get_name_by_id(sub_id)
-            # 월간 평균 소비 계산
-            monthly_sum = top_cat["total_tx_sum"] / 3.0
-            monthly_count = top_cat["total_tx_count"] / 3.0
-            stats = {"monthly_sum": monthly_sum, "monthly_count": monthly_count,}
-
-            # 먼슬리 템플릿 선택
-            tmpl_name = random.choice(["SPEND_CAP_MONTHLY", "COUNT_CAP_MONTHLY"])
-            # 미션 생성
-            mission_text, dsl, (valid_from, valid_to) = build_mission_details(
-                tmpl_name, sub_id, sub_name, stats, now, self.template
-            )
-            missions.append(
-                Mission(
-                    mission=mission_text,
-                    subId=sub_id,
-                    dsl=str(dsl),
-                    type=2,
-                    validFrom=valid_from,
-                    validTo=valid_to
+                # 먼슬리 템플릿 선택
+                tmpl_name = random.choice(["SPEND_CAP_MONTHLY", "COUNT_CAP_MONTHLY"])
+                # 미션 생성
+                mission_text, dsl, (valid_from, valid_to) = build_mission_details(
+                    tmpl_name, sub_id, sub_name, stats, now, self.template
                 )
-            )
-        if not missions:
+                missions.append(
+                    Mission(
+                        mission=mission_text,
+                        subId=sub_id,
+                        dsl=str(dsl),
+                        type=2,
+                        validFrom=valid_from,
+                        validTo=valid_to
+                    )
+                )
+        except Exception as e:
+            start_of_month = now.replace(day=1)
+            next_month = (start_of_month.replace(day=28) + timedelta(days=4)).replace(day=1)
+            end_of_month = next_month - timedelta(days=1)
+            valid_from = start_of_month.replace(hour=0, minute=0, second=0, microsecond=0)
+            valid_to = end_of_month.replace(hour=23, minute=59, second=59, microsecond=999999)
             for mission in BUF_MONTHLY_MISSION:
-                mission["validFrom"] =  now.replace(hour=0, minute=0, second=0, microsecond=0)
-                mission["validTo"] =  now.replace(hour=23, minute=59, second=59, microsecond=999999)
+                mission["validFrom"] = valid_from
+                mission["validTo"] = valid_to
                 missions.append(mission)
         return missions
