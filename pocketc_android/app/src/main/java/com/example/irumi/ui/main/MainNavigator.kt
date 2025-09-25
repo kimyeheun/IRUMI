@@ -8,6 +8,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.irumi.core.navigation.Events
 import com.example.irumi.core.navigation.Home
+import com.example.irumi.core.navigation.MyPage
 import com.example.irumi.core.navigation.Payments
 import com.example.irumi.core.navigation.Route
 import com.example.irumi.core.navigation.Stats
@@ -18,7 +19,8 @@ val bottomNavScreens: List<KClass<out Route>> = listOf(
     Home::class,
     Payments::class,
     Stats::class,
-    Events::class
+    Events::class,
+    MyPage::class
 )
 
 class MainNavigator(
