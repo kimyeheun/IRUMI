@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.user.service;
 
+import com.ssafy.pocketc_backend.domain.mission.service.MissionService;
 import com.ssafy.pocketc_backend.domain.report.entity.Report;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
@@ -21,11 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-
-import java.time.LocalDate;
 
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.*;
 
@@ -39,6 +38,7 @@ public class UserService {
     private final RefreshTokenService refreshTokenService;
     private final ReportService reportService;
     private final StreakRepository streakRepository;
+    private final MissionService missionService;
 
     private static final List<String> DEFAULT_PROFILE_IMAGES = List.of(
             "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/profile/default1.jpg",
@@ -86,6 +86,9 @@ public class UserService {
                 .spentAmount(0L)
                 .status(false)
                 .build());
+
+        missionService.getWeeklyMissions(user.getUserId());
+        missionService.getMonthlyMissions(user.getUserId());
     }
 
     public UserLoginResponse login(UserLoginRequest request) {

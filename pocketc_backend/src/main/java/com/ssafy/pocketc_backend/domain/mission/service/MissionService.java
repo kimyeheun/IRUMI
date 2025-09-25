@@ -189,7 +189,7 @@ public class MissionService {
         }
     }
 
-    private void getWeeklyMissions(Integer userId) {
+    public void getWeeklyMissions(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
 
@@ -199,7 +199,7 @@ public class MissionService {
                     if (res.status() != 201) throw new CustomException(ERROR_GET_WEEKLY_MISSIONS);
 
                     var data = res.data();
-                    var missions = (data != null) ? data.missions() : null; // List<MissionItem> 가정
+                    var missions = (data != null) ? data.missions() : null;
                     return missions == null ? List.<MissionItem>of() : missions;
                 })
                 .timeout(Duration.ofSeconds(7))
@@ -223,7 +223,7 @@ public class MissionService {
         }
     }
 
-    private void getMonthlyMissions(Integer userId) {
+    public void getMonthlyMissions(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
 
