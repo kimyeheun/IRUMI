@@ -325,11 +325,17 @@ fun EditableAmountText(
 
                 OutlinedTextField(
                     value = inputText,
-                    onValueChange = { inputText = it.filter { ch -> ch.isDigit() } },
+                    onValueChange = { newValue ->
+                        val filtered = newValue.filter { it.isDigit() }
+                        val numericValue = filtered.toLongOrNull() ?: 0L
+                        if (numericValue <= 10_000_000) { // 1000만원 제한
+                            inputText = filtered
+                        }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("금액을 입력하세요") },
+                    label = { Text("금액을 입력하세요 (최대 1,000만원)") },
                     colors = TextFieldDefaults.colors(
                         TossColors.Primary
                     )
