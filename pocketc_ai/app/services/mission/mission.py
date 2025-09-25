@@ -15,7 +15,7 @@ from app.schemas.mission import Mission
 from app.services.mission.clustering import cluster_for_user
 from app.services.mission.template.template import pick_template
 from app.services.mission.templates_to_mission import build_mission_details
-from app.utils.buf_data import BUF_MISSION
+from app.utils.buf_data import BUF_DAILY_MISSION, BUF_WEEKLY_MISSION, BUF_MONTHLY_MISSION
 
 
 class MissionService:
@@ -69,7 +69,7 @@ class MissionService:
                 except ValueError:
                     break
         if not missions:
-            for mission in BUF_MISSION:
+            for mission in BUF_DAILY_MISSION:
                 mission["validFrom"] =  now.replace(hour=0, minute=0, second=0, microsecond=0)
                 mission["validTo"] =  now.replace(hour=23, minute=59, second=59, microsecond=999999)
                 missions.append(mission)
@@ -77,10 +77,15 @@ class MissionService:
 
 
     def create_weekly_mission(self, user_id: int, now: datetime) -> list[Mission]:
+        missions = []
+
         top_cats = self.repo.get_top_frequent_categories(user_id, now, days=30, top_n=1)
         if not top_cats:
-            return []
-        missions = []
+            for mission in BUF_WEEKLY_MISSION:
+                mission["validFrom"] = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                mission["validTo"] = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+                missions.append(mission)
+            return missions
         for top_cat in top_cats:
             sub_id = top_cat["sub_id"]
             sub_name = self.sub.get_name_by_id(sub_id)
@@ -107,15 +112,25 @@ class MissionService:
                     validTo=valid_to
                 )
             )
+        if not missions:
+            for mission in BUF_WEEKLY_MISSION:
+                mission["validFrom"] =  now.replace(hour=0, minute=0, second=0, microsecond=0)
+                mission["validTo"] =  now.replace(hour=23, minute=59, second=59, microsecond=999999)
+                missions.append(mission)
         return missions
 
 
     def create_monthly_mission(self, user_id: int, now: datetime) -> list[Mission]:
+        missions = []
+
         top_cats = self.repo.get_top_frequent_categories(user_id, now, days=90, top_n=1)
         if not top_cats:
-            return []
+            for mission in BUF_MONTHLY_MISSION:
+                mission["validFrom"] = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                mission["validTo"] = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+                missions.append(mission)
+            return missions
 
-        missions = []
         for top_cat in top_cats:
             sub_id = top_cat["sub_id"]
             sub_name = self.sub.get_name_by_id(sub_id)
@@ -140,4 +155,9 @@ class MissionService:
                     validTo=valid_to
                 )
             )
+        if not missions:
+            for mission in BUF_MONTHLY_MISSION:
+                mission["validFrom"] =  now.replace(hour=0, minute=0, second=0, microsecond=0)
+                mission["validTo"] =  now.replace(hour=23, minute=59, second=59, microsecond=999999)
+                missions.append(mission)
         return missions
