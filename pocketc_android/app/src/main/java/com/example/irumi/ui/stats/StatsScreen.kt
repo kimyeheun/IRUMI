@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -51,6 +52,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.core.mapper.CategoryMapper
@@ -84,6 +87,20 @@ fun StatsRoute(
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val stats by statsViewModel.statsUiState.collectAsStateWithLifecycle(lifecycleOwner)
+
+    // 화면이 다시 보여질 때마다 새로고침
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                statsViewModel.refresh()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     // 로그아웃 성공 감지 → 외부로 알림
     LaunchedEffect(isLoggedIn) {
@@ -443,7 +460,7 @@ fun MonthChart(
 
     StatsCard(
         title = "절약 점수 추이",
-        subtitle = "최근 7개월 절약 성과를 확인해보세요",
+        subtitle = "최근 6개월 절약 점수 성과를 확인해보세요",
         content = {
             Column {
                 // 차트 영역
