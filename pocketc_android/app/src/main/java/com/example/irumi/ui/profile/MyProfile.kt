@@ -1,5 +1,6 @@
 package com.example.irumi.ui.profile
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,22 +23,45 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.irumi.domain.entity.main.DailySavingEntity
 import com.example.irumi.domain.entity.main.MissionEntity
 import com.example.irumi.domain.entity.main.UserProfileEntity
+import com.example.irumi.ui.auth.AuthViewModel
+import com.example.irumi.ui.component.button.PrimaryButton
 import com.example.irumi.ui.home.HomeViewModel
+import com.example.irumi.ui.theme.BrandGreen
 import java.text.DecimalFormat
 
 @Composable
 fun MyProfile(
-    homeViewModel: HomeViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    onLoggedOut: () -> Unit, // 인트로 화면으로 이동
 ) {
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val money = remember { DecimalFormat("#,##0원") }
-    val BrandGreen = Color(0xFF4CAF93)
+
+    val loading = authViewModel.loading
+    val error = authViewModel.error
+    val isLoggedIn = authViewModel.isLoggedIn
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // 로그아웃 성공 감지 → 외부로 알림
+    LaunchedEffect(isLoggedIn) {
+        if (!isLoggedIn) onLoggedOut()
+    }
+
+    // 에러 토스트
+    val ctx = LocalContext.current
+    LaunchedEffect(error) {
+        error?.let { Toast.makeText(ctx, it, Toast.LENGTH_SHORT).show() }
+    }
+
     // 프로필 헤더 카드
     ProfileHeaderCard(
         profile = uiState.profile,
@@ -55,6 +80,14 @@ fun MyProfile(
 
     // 설정 메뉴
     SettingsSection()
+
+    PrimaryButton(
+        text = if (loading) "로그아웃 중..." else "로그아웃",
+        onClick = onLoggedOut,
+        modifier = Modifier.fillMaxWidth(),
+        enabled = !loading,
+        loading = loading
+    )
 }
 
 @Composable

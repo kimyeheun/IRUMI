@@ -136,8 +136,6 @@ fun StatsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        MyProfile()
-
         Header(stats = stats)
 
         MonthChart(stats = stats)
