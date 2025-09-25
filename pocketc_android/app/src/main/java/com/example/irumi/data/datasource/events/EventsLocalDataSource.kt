@@ -52,7 +52,8 @@ class EventsLocalDataSource @Inject constructor() : EventsDataSource {
                     badgeName = "절약왕 뱃지",
                     badgeDescription = "절약 챌린지 성공 시 획득",
                     startAt = "2025-09-01T00:00:00Z",
-                    endAt = "2025-09-30T23:59:59Z"
+                    endAt = "2025-09-30T23:59:59Z",
+                    badgeImageUrl = ""
                 )
             )
         )
@@ -96,7 +97,8 @@ class EventsLocalDataSource @Inject constructor() : EventsDataSource {
                         badgeName = "절약왕 뱃지",
                         badgeDescription = "절약 챌린지 성공 시 획득",
                         startAt = "2025-09-01T00:00:00Z",
-                        endAt = "2025-09-30T23:59:59Z"
+                        endAt = "2025-09-30T23:59:59Z",
+                        badgeImageUrl = ""
                     )
                 )
         )
@@ -141,7 +143,8 @@ class EventsLocalDataSource @Inject constructor() : EventsDataSource {
                         badgeName = "절약왕 뱃지",
                         badgeDescription = "절약 챌린지 성공 시 획득",
                         startAt = "2025-09-01T00:00:00Z",
-                        endAt = "2025-09-30T23:59:59Z"
+                        endAt = "2025-09-30T23:59:59Z",
+                        badgeImageUrl = ""
                     )
                 )
         )
@@ -160,7 +163,8 @@ class EventsLocalDataSource @Inject constructor() : EventsDataSource {
                         badgeName = "절약왕 뱃지",
                         badgeDescription = "절약 챌린지 성공 시 획득",
                         startAt = "2025-09-01T00:00:00Z",
-                        endAt = "2025-09-30T23:59:59Z"
+                        endAt = "2025-09-30T23:59:59Z",
+                    badgeImageUrl = ""
 
                 )
             )
