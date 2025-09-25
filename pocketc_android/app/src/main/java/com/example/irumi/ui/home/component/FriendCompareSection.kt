@@ -1,17 +1,21 @@
 package com.example.irumi.ui.home.component
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.irumi.ui.theme.BrandGreen
@@ -28,24 +32,32 @@ fun FriendCompareSection(
     modifier: Modifier = Modifier
 ) {
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    val positive = Color(0xFF16A34A) // 브랜드 그린 톤
-    val negative = Color(0xFFEF4444) // 레드 톤
+    val myColor = Color(0xFF16A34A)      // 브랜드 그린 톤
+    val friendColor = Color(0xFF3B82F6)  // 블루 톤 (가독성 향상)
     val bgNeutral = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .35f)
 
+    // 값 보정(0~100), 로딩 구분
     val my = myScore?.coerceIn(0, 100)
     val friend = friendScore?.coerceIn(0, 100)
+    val isMyLoading = my == null
+    val isFriendLoading = friend == null
 
+    // 숫자 애니메이션 (로딩이면 0으로)
+    val myAnimated by animateIntAsState(targetValue = my ?: 0, label = "myScoreAnim")
+    val friendAnimated by animateIntAsState(targetValue = friend ?: 0, label = "friendScoreAnim")
+
+    // 요약문(애니메이션 값을 기반으로)
     val summary = when {
-        my != null && friend != null -> {
-            val diff = my - friend
+        !isMyLoading && !isFriendLoading -> {
+            val diff = myAnimated - friendAnimated
             when {
                 diff > 0  -> "내가 ${diff}점 앞서요 🔼"
                 diff < 0  -> "$friendName 이(가) ${abs(diff)}점 앞서요 🔽"
                 else      -> "동점이에요 🤝"
             }
         }
-        my != null && friend == null -> "친구 점수를 불러오는 중…"
-        else                         -> "점수 불러오는 중…"
+        !isMyLoading && isFriendLoading -> "친구 점수를 불러오는 중…"
+        else                            -> "점수 불러오는 중…"
     }
 
     Column(
@@ -59,7 +71,9 @@ fun FriendCompareSection(
             text = "$friendName 와의 비교",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = titleColor
+            color = titleColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         Spacer(Modifier.height(12.dp))
 
@@ -70,24 +84,30 @@ fun FriendCompareSection(
         ) {
             ScorePill(
                 label = "나",
-                score = my,
-                bg = positive.copy(alpha = .10f),
-                fg = positive
+                score = if (isMyLoading) null else myAnimated,
+                bg = myColor.copy(alpha = .10f),
+                fg = myColor
             )
             ScorePill(
                 label = friendName,
-                score = friend,
-                bg = if (friend == null) bgNeutral else negative.copy(alpha = .10f),
-                fg = if (friend == null) onSurfaceVariant else negative
+                score = if (isFriendLoading) null else friendAnimated,
+                bg = if (isFriendLoading) bgNeutral else friendColor.copy(alpha = .10f),
+                fg = if (isFriendLoading) onSurfaceVariant else friendColor
             )
         }
 
         Spacer(Modifier.height(10.dp))
-        Text(summary, fontSize = 12.sp, color = onSurfaceVariant)
+        Text(summary, fontSize = 12.sp, color = onSurfaceVariant, maxLines = 2)
         Spacer(Modifier.height(8.dp))
 
-        if (my != null && friend != null) {
-            MiniBarCompare(my, friend, myColor = positive, friendColor = negative)
+        // 둘 다 있을 때만 막대 비교(가독 + 애니메이션)
+        if (!isMyLoading && !isFriendLoading) {
+            MiniBarCompare(
+                my = myAnimated,
+                friend = friendAnimated,
+                myColor = myColor,
+                friendColor = friendColor
+            )
         }
     }
 }
@@ -100,7 +120,12 @@ private fun ScorePill(
     fg: Color
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, fontWeight = FontWeight.SemiBold)
+        Text(
+            label,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
         Spacer(Modifier.height(6.dp))
         Box(
             modifier = Modifier
@@ -133,8 +158,18 @@ private fun MiniBarCompare(
     friendColor: Color
 ) {
     val total = max(1, my + friend)
-    val myWeight = my.toFloat() / total
-    val friendWeight = friend.toFloat() / total
+    val myTarget = my.toFloat() / total
+    val friendTarget = friend.toFloat() / total
+
+    // 비율 애니메이션
+    val myWeight by animateFloatAsState(
+        targetValue = max(0.05f, min(0.95f, myTarget)),
+        label = "myWeightAnim"
+    )
+    val friendWeight by animateFloatAsState(
+        targetValue = max(0.05f, min(0.95f, friendTarget)),
+        label = "friendWeightAnim"
+    )
 
     Row(
         modifier = Modifier
@@ -146,13 +181,13 @@ private fun MiniBarCompare(
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(max(0.05f, min(0.95f, myWeight)))
+                .weight(myWeight)
                 .background(myColor)
         )
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(max(0.05f, min(0.95f, friendWeight)))
+                .weight(friendWeight)
                 .background(friendColor)
         )
     }
