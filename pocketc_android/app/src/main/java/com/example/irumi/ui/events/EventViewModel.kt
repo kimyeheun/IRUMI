@@ -6,9 +6,13 @@ import com.example.irumi.data.dto.response.events.RoomStatus
 import com.example.irumi.domain.entity.EventEntity
 import com.example.irumi.domain.entity.RoomEntity
 import com.example.irumi.domain.repository.EventsRepository
+import com.example.irumi.domain.repository.MainRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -16,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EventViewModel @Inject constructor(
-    private val eventRepository: EventsRepository
+    private val eventRepository: EventsRepository,
+    private val mainRepository: MainRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EventUiState>(EventUiState.Loading)
@@ -25,6 +30,9 @@ class EventViewModel @Inject constructor(
     private val _puzzleImageUrl = MutableStateFlow<String?>(null)
     val puzzleImageUrl: StateFlow<String?> =
         _puzzleImageUrl.asStateFlow()
+
+    private val _toastEvent = MutableSharedFlow<String>()
+    val toastEvent: SharedFlow<String> = _toastEvent.asSharedFlow()
 
     // 방 생성
     fun createRoom(maxMembers: Int) {
@@ -142,12 +150,54 @@ class EventViewModel @Inject constructor(
 
     fun followUser(userId: Int) {
         viewModelScope.launch {
-                // TODO: 여기에 실제 팔로우 API 호출 로직을 구현
-                // 예를 들어, userRepository.followUser(userId)
-                Timber.d("!!! EventViewModel Attempting to follow user: $userId")
-                // _followResult.value = Result.success(Unit) // 예시: 성공 상태 업데이트
-            // snackber
+                // 낙관적 업데이트
+                updateMemberFriendStatus(userId, true)
+                mainRepository.follow(userId)
+                    .onSuccess {
+                        Timber.d("!!! EventViewModel followUser${userId} 성공: $it")
+                        _toastEvent.emit("팔로우에 성공했습니다")
+                    }
+                    .onFailure {
+                        Timber.d("!!! EventViewModel followUser${userId} 실패: $it")
+                        _toastEvent.emit("팔로우에 실패했습니다")
+                        updateMemberFriendStatus(userId, false)
+                    }
         }
+    }
+
+    private fun updateMemberFriendStatus(userId: Int, isFriend: Boolean) {
+        val currentState = _uiState.value
+
+        // InRoom 또는 GameEnd 상태일 때만 멤버 목록을 업데이트합니다.
+        val updatedState = when (currentState) {
+            is EventUiState.InRoom -> {
+                val updatedMembers = currentState.roomEntity.members.map { member ->
+                    if (member.userId == userId) {
+                        member.copy(isFriend = isFriend) // 해당 유저의 isFriend 상태만 변경
+                    } else {
+                        member
+                    }
+                }
+                val updatedRoom = currentState.roomEntity.copy(members = updatedMembers)
+                currentState.copy(roomEntity = updatedRoom)
+            }
+
+            is EventUiState.GameEnd -> {
+                val updatedMembers = currentState.roomEntity.members.map { member ->
+                    if (member.userId == userId) {
+                        member.copy(isFriend = isFriend)
+                    } else {
+                        member
+                    }
+                }
+                val updatedRoom = currentState.roomEntity.copy(members = updatedMembers)
+                currentState.copy(roomEntity = updatedRoom)
+            }
+            // 다른 상태일 경우 변경하지 않음
+            else -> currentState
+        }
+
+        _uiState.value = updatedState
     }
 }
 

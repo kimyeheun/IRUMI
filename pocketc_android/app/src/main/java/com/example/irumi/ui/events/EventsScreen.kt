@@ -30,12 +30,29 @@ fun EventsScreen(brand: Color, viewModel: EventViewModel = hiltViewModel()) {
             NoEventScreen(eventEntity = eventEntity)
         }
         is EventUiState.InRoom -> {
-            val (roomEntity, eventEntity) = uiState as EventUiState.InRoom
-            EventRoomScreen(roomEntity = roomEntity, eventEntity = eventEntity)
+            val currentState = uiState as EventUiState.InRoom
+
+            EventRoomScreen(
+                roomEntity = currentState.roomEntity,
+                eventEntity = currentState.eventEntity,
+                isSuccess = null,
+                onRefresh = { viewModel.getEventsRoomData() },
+                onLeaveClick = viewModel::leaveRoom,
+                onFollowClick = viewModel::followUser,
+                onMatchButtonClick = viewModel::fillPuzzle
+            )
         }
         is EventUiState.GameEnd -> {
-            val (isSuccess, roomEntity, eventEntity) = uiState as EventUiState.GameEnd
-            EventRoomScreen(roomEntity = roomEntity, eventEntity = eventEntity, isSuccess = isSuccess)
+            val currentState = uiState as EventUiState.GameEnd
+            EventRoomScreen(
+                roomEntity = currentState.roomEntity,
+                eventEntity = currentState.eventEntity,
+                isSuccess = currentState.isSuccess,
+                onRefresh = { viewModel.getEventsRoomData() },
+                onLeaveClick = viewModel::leaveRoom,
+                onFollowClick = viewModel::followUser,
+                onMatchButtonClick = viewModel::fillPuzzle
+            )
         }
         is EventUiState.Error -> {
             TODO()
