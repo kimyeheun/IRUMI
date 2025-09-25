@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.user.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionService;
 import com.ssafy.pocketc_backend.domain.report.entity.Report;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
@@ -55,7 +56,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse signup(UserSignupRequest request) {
+    public UserResponse signup(UserSignupRequest request) throws JsonProcessingException {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(UserErrorType.ALREADY_EXISTS);
         }

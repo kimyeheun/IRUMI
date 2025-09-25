@@ -6,9 +6,11 @@ public record MissionDto(
         Integer type,
         String mission,
         String status,
-        Long progress
+        Long progress,
+        Long value,
+        String template
 ) {
-    public static MissionDto of(Integer missionId, Integer subId, Integer type, String mission, String status, Long progress) {
-        return new MissionDto(missionId, subId, type, mission, status, progress);
+    public static MissionDto of(Integer missionId, Integer subId, Integer type, String mission, String status, Long progress, Long value, String template) {
+        return new MissionDto(missionId, subId, type, mission, status, progress, value, template);
     }
 }
