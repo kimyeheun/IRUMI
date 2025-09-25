@@ -39,6 +39,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +60,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.core.mapper.CategoryMapper
 import com.example.irumi.core.state.UiState
 import com.example.irumi.domain.entity.payments.PaymentEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
 import timber.log.Timber
 import java.text.NumberFormat
 import java.util.Locale
@@ -325,11 +327,17 @@ fun EditableAmountText(
 
                 OutlinedTextField(
                     value = inputText,
-                    onValueChange = { inputText = it.filter { ch -> ch.isDigit() } },
+                    onValueChange = { newValue ->
+                        val filtered = newValue.filter { it.isDigit() }
+                        val numericValue = filtered.toLongOrNull() ?: 0L
+                        if (numericValue <= 10_000_000) { // 1000만원 제한
+                            inputText = filtered
+                        }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("금액을 입력하세요") },
+                    label = { Text("금액을 입력하세요 (최대 1,000만원)") },
                     colors = TextFieldDefaults.colors(
                         TossColors.Primary
                     )
@@ -380,6 +388,7 @@ fun EditableAmountText(
 
 @Composable
 fun CategoryCard(
+    paymentViewModel: PaymentsViewModel = hiltViewModel(),
     majorCategoryNames: List<String>,
     minorCategoryNameOptions: List<String>,
     selectedMajorCategoryName: String,
@@ -387,6 +396,8 @@ fun CategoryCard(
     onMajorCategoryNameSelected: (String) -> Unit,
     onMinorCategoryNameSelected: (String) -> Unit,
 ) {
+    val paymentDetail = paymentViewModel.paymentDetailState.collectAsState()
+    // paymentDetail에서 기존 카테고리 정보를 가져와서 초기값으로 사용
     Column(
         modifier = Modifier.padding(horizontal = 24.dp)
     ) {
