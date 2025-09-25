@@ -35,6 +35,14 @@ public class MainController {
         DailyCompareResponse response = new DailyCompareResponse(myStats, friendStats);
         return ResponseEntity.ok(ApiResponse.success(SUCCESS_GET_DAILY_STAT,response));
     }
+    @Operation(summary = "내 절약점수+총 지출 조회")
+    @GetMapping("/daily")
+    public ResponseEntity<ApiResponse<MainResponse>> getDailyStats(
+            Principal principal) {
+        Integer myId = Integer.valueOf(principal.getName());
+        MainResponse response = mainService.getDailyScoreAndTotal(myId);
+        return ResponseEntity.ok(ApiResponse.success(SUCCESS_GET_DAILY_STAT,response));
+    }
 
     @Operation(summary = "스트릭 조회")
     @GetMapping("/streaks")
