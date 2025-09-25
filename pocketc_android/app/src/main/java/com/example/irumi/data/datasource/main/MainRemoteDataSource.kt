@@ -1,6 +1,7 @@
 package com.example.irumi.data.datasource.main
 
 import com.example.irumi.core.network.BaseResponse
+import com.example.irumi.data.dto.request.main.MissionsSelectRequest
 import com.example.irumi.data.dto.response.main.BadgeListResponse
 import com.example.irumi.data.dto.response.main.DailySavingResponse
 import com.example.irumi.data.dto.response.main.FollowIdsResponse
@@ -44,4 +45,7 @@ class MainRemoteDataSource @Inject constructor(
 
     override suspend fun getMissions(): BaseResponse<MissionsResponse> =
         service.getMissions()
+
+    override suspend fun postMissions(selected: List<Int>): BaseResponse<MissionsResponse> =
+        service.postMissions(MissionsSelectRequest(selected))
 }
