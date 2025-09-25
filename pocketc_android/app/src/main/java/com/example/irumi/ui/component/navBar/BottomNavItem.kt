@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -38,6 +39,7 @@ sealed class BottomNavItem(val label: String, val icon: ImageVector, val route: 
     data object Payments : BottomNavItem("결제 내역", Icons.Filled.List, com.example.irumi.core.navigation.Payments)
     data object Stats : BottomNavItem("통계", Icons.Filled.BarChart, com.example.irumi.core.navigation.Stats)
     data object Events : BottomNavItem("이벤트", Icons.Filled.Event, com.example.irumi.core.navigation.Events)
+    data object MyPage : BottomNavItem("마이페이지", Icons.Filled.Person, com.example.irumi.core.navigation.MyPage)
 }
 
 @Composable
@@ -50,7 +52,8 @@ fun BottomNavBar(
         BottomNavItem.Home,
         BottomNavItem.Payments,
         BottomNavItem.Stats,
-        BottomNavItem.Events
+        BottomNavItem.Events,
+        BottomNavItem.MyPage
     ),
     visible: Boolean,
 //    currentTab: MainTab,
