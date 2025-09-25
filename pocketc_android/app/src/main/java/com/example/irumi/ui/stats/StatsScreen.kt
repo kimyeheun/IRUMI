@@ -59,6 +59,7 @@ import com.example.irumi.data.dto.response.stats.MonthStatsResponse
 import com.example.irumi.ui.auth.AuthViewModel
 import com.example.irumi.ui.component.button.PrimaryButton
 import com.example.irumi.ui.events.LoadingPlaceholder
+import com.example.irumi.ui.profile.MyProfile
 import ir.ehsannarmani.compose_charts.LineChart
 import ir.ehsannarmani.compose_charts.PieChart
 import ir.ehsannarmani.compose_charts.models.DotProperties
@@ -135,6 +136,8 @@ fun StatsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.Start
     ) {
+        MyProfile()
+
         Header(stats = stats)
 
         MonthChart(stats = stats)
