@@ -65,4 +65,14 @@ class MainRepositoryImpl @Inject constructor(
         dataSource.deleteFollow(targetUserId)
         Unit
     }
+
+    override suspend fun getDailyWithFriend(friendId: Int): Result<FriendDailyEntity> = runCatching {
+        val res = dataSource.getDailyWithFriend(friendId)
+        requireData(res.data, "getDailyWithFriend").toEntity()
+    }
+
+    override suspend fun getMissions(): Result<MissionsEntity> = runCatching {
+        val res = dataSource.getMissions()
+        requireData(res.data, "getMissions").toEntity()
+    }
 }
