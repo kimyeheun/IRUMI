@@ -7,8 +7,10 @@ import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserLoginResponse;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserProfileResponse;
+import com.ssafy.pocketc_backend.domain.user.entity.Streak;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.exception.UserErrorType;
+import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import com.ssafy.pocketc_backend.global.auth.jwt.JwtProvider;
 import com.ssafy.pocketc_backend.global.auth.service.RefreshTokenService;
@@ -36,6 +38,7 @@ public class UserService {
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
     private final ReportService reportService;
+    private final StreakRepository streakRepository;
 
     private static final List<String> DEFAULT_PROFILE_IMAGES = List.of(
             "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/profile/default1.jpg",
@@ -75,6 +78,14 @@ public class UserService {
         report.setMonthlyBudget(user.getBudget());
 
         reportService.save(report);
+
+        streakRepository.save(Streak.builder()
+                .user(user)
+                .date(LocalDate.now())
+                .missionCompletedCount(0)
+                .spentAmount(0L)
+                .status(false)
+                .build());
     }
 
     public UserLoginResponse login(UserLoginRequest request) {
