@@ -50,14 +50,13 @@ class HomeViewModel @Inject constructor(
     /** 개별 섹션 갱신: 데일리 점수/지출 */
     fun reloadMyScore() = launchAndSet("[reloadMyScore]") {
         val daily = mainRepository.getDaily().getOrThrow().also {
-            Timber.d(
-                "[HomeVM] reloadMyScore(): savingScore=%d, totalSpending=%d",
+            Timber.d("[HomeVM] reloadMyScore(): savingScore=%d, totalSpending=%d",
                 it.savingScore, it.totalSpending
             )
         }
         _uiState.value = _uiState.value.copy(
             myScore = daily,
-            todaySpending = SpendingEntity(daily.totalSpending) // spending API 제거
+            todaySpending = SpendingEntity(daily.totalSpending)
         )
         Timber.d("[HomeVM] reloadMyScore() -> uiState=%s", _uiState.value.summary())
     }
@@ -65,8 +64,7 @@ class HomeViewModel @Inject constructor(
     /** 개별 섹션 갱신: 스트릭 */
     fun reloadStreaks() = launchAndSet("[reloadStreaks]") {
         val streaks = mainRepository.getStreaks().getOrThrow()
-        Timber.d(
-            "[HomeVM] reloadStreaks(): size=%d, first=%s",
+        Timber.d("[HomeVM] reloadStreaks(): size=%d, first=%s",
             streaks.size, streaks.firstOrNull()?.date ?: "null"
         )
         _uiState.value = _uiState.value.copy(streaks = streaks)
@@ -75,8 +73,7 @@ class HomeViewModel @Inject constructor(
     /** 개별 섹션 갱신: 팔로우(IDs) */
     fun reloadFollowIds() = launchAndSet("[reloadFollowIds]") {
         val followInfos = mainRepository.getFollowIds().getOrThrow()
-        Timber.d(
-            "[HomeVM] reloadFollowIds(): size=%d, ids=%s",
+        Timber.d("[HomeVM] reloadFollowIds(): size=%d, ids=%s",
             followInfos.size, followInfos.joinToString { it.followUserId.toString() }
         )
         _uiState.value = _uiState.value.copy(followInfos = followInfos)
@@ -89,6 +86,36 @@ class HomeViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(badges = badges)
     }
 
+    /** 개별 섹션 갱신: 미션 */
+    fun reloadMissions() = launchAndSet("[reloadMissions]") {
+        val missions = mainRepository.getMissions().getOrThrow()
+        Timber.d("[HomeVM] reloadMissions(): received=%s, size=%d",
+            missions.missionReceived, missions.missions.size
+        )
+        _uiState.value = _uiState.value.copy(
+            missionReceived = missions.missionReceived,
+            missions = missions.missions
+        )
+    }
+
+    /** 친구 비교 데이터 로드(캐시) */
+    fun reloadFriendDaily(friendId: Int, skipIfCached: Boolean = true) =
+        launchAndSet("[reloadFriendDaily:$friendId]") {
+            if (friendId == 0) return@launchAndSet
+            if (skipIfCached && _uiState.value.friendDaily.containsKey(friendId)) {
+                Timber.d("[HomeVM] reloadFriendDaily(%d) skipped (cached)", friendId)
+                return@launchAndSet
+            }
+            val pair = mainRepository.getDailyWithFriend(friendId).getOrThrow()
+            _uiState.value = _uiState.value.copy(
+                friendDaily = _uiState.value.friendDaily + (friendId to pair)
+            )
+            Timber.d("[HomeVM] reloadFriendDaily(%d): me=%d/%d, friend=%d/%d",
+                friendId, pair.me.savingScore, pair.me.totalSpending,
+                pair.friend.savingScore, pair.friend.totalSpending
+            )
+        }
+
     // ---------- 내부 ----------
 
     /** 병렬 로딩 + 부분 성공 허용 */
@@ -100,9 +127,7 @@ class HomeViewModel @Inject constructor(
                 .also { r ->
                     r.onSuccess {
                         Timber.d("[HomeVM] /me OK: id=%d, name=%s, budget=%d", it.userId, it.name, it.budget)
-                    }.onFailure {
-                        Timber.e(it, "[HomeVM] /me ERROR")
-                    }
+                    }.onFailure { Timber.e(it, "[HomeVM] /me ERROR") }
                 }
         }
 
@@ -111,9 +136,7 @@ class HomeViewModel @Inject constructor(
                 .also { r ->
                     r.onSuccess {
                         Timber.d("[HomeVM] /daily OK: savingScore=%d, totalSpending=%d", it.savingScore, it.totalSpending)
-                    }.onFailure {
-                        Timber.e(it, "[HomeVM] /daily ERROR")
-                    }
+                    }.onFailure { Timber.e(it, "[HomeVM] /daily ERROR") }
                 }
         }
 
@@ -121,13 +144,10 @@ class HomeViewModel @Inject constructor(
             runCatching { mainRepository.getFollowIds().getOrThrow() }
                 .also { r ->
                     r.onSuccess {
-                        Timber.d(
-                            "[HomeVM] /follows(ids) OK: size=%d, ids=%s",
+                        Timber.d("[HomeVM] /follows(ids) OK: size=%d, ids=%s",
                             it.size, it.joinToString { f -> f.followUserId.toString() }
                         )
-                    }.onFailure {
-                        Timber.e(it, "[HomeVM] /follows(ids) ERROR")
-                    }
+                    }.onFailure { Timber.e(it, "[HomeVM] /follows(ids) ERROR") }
                 }
         }
 
@@ -147,10 +167,19 @@ class HomeViewModel @Inject constructor(
                 }
         }
 
-        // 모든 네트워크 완료 대기
-        awaitAll(profileDef, dailyDef, followIdsDef, badgesDef, streaksDef)
+        val missionsDef = async {
+            runCatching { mainRepository.getMissions().getOrThrow() }
+                .also { r ->
+                    r.onSuccess {
+                        Timber.d("[HomeVM] /missions OK: received=%s, size=%d",
+                            it.missionReceived, it.missions.size
+                        )
+                    }.onFailure { Timber.e(it, "[HomeVM] /missions ERROR") }
+                }
+        }
 
-        // 부분 성공 허용: 성공한 것만 반영, 실패는 기존값 유지
+        awaitAll(profileDef, dailyDef, followIdsDef, badgesDef, streaksDef, missionsDef)
+
         val current = _uiState.value
 
         val profile = profileDef.await().getOrNull() ?: current.profile
@@ -158,6 +187,7 @@ class HomeViewModel @Inject constructor(
         val followInfos = followIdsDef.await().getOrNull() ?: current.followInfos
         val badges  = badgesDef.await().getOrNull() ?: current.badges
         val streaks = streaksDef.await().getOrNull() ?: current.streaks
+        val missions = missionsDef.await().getOrNull()
 
         _uiState.value = current.copy(
             isLoading = false,
@@ -167,7 +197,9 @@ class HomeViewModel @Inject constructor(
             todaySpending = daily?.let { SpendingEntity(it.totalSpending) } ?: current.todaySpending,
             followInfos = followInfos,
             badges = badges,
-            streaks = streaks
+            streaks = streaks,
+            missionReceived = missions?.missionReceived ?: current.missionReceived,
+            missions = missions?.missions ?: current.missions
         )
 
         Timber.d("[HomeVM] loadAll() done -> uiState=%s", _uiState.value.summary())
@@ -216,15 +248,20 @@ data class HomeUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
 
-    val profile: UserProfileEntity? = null,           // /users/me
-    val myScore: DailySavingEntity? = null,           // /users/daily (savingScore, totalSpending)
-    val todaySpending: SpendingEntity? = null,        // spending API 제거 → daily.totalSpending 사용
+    val profile: UserProfileEntity? = null,                 // /users/me
+    val myScore: DailySavingEntity? = null,                 // /users/daily
+    val todaySpending: SpendingEntity? = null,
 
-    // ✅ /users/follows 스키마에 맞춰 ID/시각만 보유
-    val followInfos: List<FollowInfoEntity> = emptyList(), // /users/follows (followeeId, followedAt)
+    val followInfos: List<FollowInfoEntity> = emptyList(),  // /users/follows
+    val badges: List<BadgeEntity> = emptyList(),            // /users/badges
+    val streaks: List<StreakEntity> = emptyList(),          // /users/streaks
 
-    val badges: List<BadgeEntity> = emptyList(),      // /users/badges
-    val streaks: List<StreakEntity> = emptyList()     // /users/streaks
+    // ✅ /users/missions
+    val missionReceived: Boolean = false,
+    val missions: List<MissionEntity> = emptyList(),
+
+    // ✅ 친구 비교 캐시: friendId → (me, friend)
+    val friendDaily: Map<Int, FriendDailyEntity> = emptyMap()
 )
 
 /** 디버깅용 요약 문자열 */
@@ -236,4 +273,6 @@ private fun HomeUiState.summary(): String =
             "spend=${todaySpending?.totalSpending ?: "null"}, " +
             "followIds=${followInfos.size}, " +
             "badges=${badges.size}, " +
-            "streaks=${streaks.size}"
+            "streaks=${streaks.size}, " +
+            "missions=${missions.size} (${missionReceived}), " +
+            "friendDaily=${friendDaily.size}"
