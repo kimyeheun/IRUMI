@@ -16,10 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.ssafy.pocketc_backend.domain.event.exception.EventErrorType.*;
@@ -55,6 +52,15 @@ public class EventService {
 
         if (user.getRoom() != null) throw new CustomException(ERROR_ALREADY_INCLUDED_ROOM);
 
+        if (room.getStatus() != Status.IN_PROGRESS) {
+            throw new CustomException(ERROR_ROOM_NOT_JOINABLE);
+        }
+
+        if (room.getUsers().size() >= room.getMaxNumber()) {
+            throw new CustomException(ERROR_ROOM_IS_FULL);
+        }
+
+        room.getUsers().add(user);
         user.setRoom(room);
         return getRoomResDto(user);
     }
@@ -188,10 +194,11 @@ public class EventService {
 
         List<User> members = userRepository.findAllByRoom(user.getRoom());
         List<MemberDto> memberDtos = new ArrayList<>();
-
+        memberDtos.add(MemberDto.of(user.getUserId(), user.getName(), user.getProfileImageUrl(), false));
         for (User member : members) {
+            if (Objects.equals(member.getUserId(), user.getUserId())) continue;
             boolean isFriend = followRepository.existsByFollower_UserIdAndFollowee_UserId(user.getUserId(), member.getUserId());
-            memberDtos.add(MemberDto.of(member.getUserId(), member.getName(), "ProfileImageUrl", isFriend));
+            memberDtos.add(MemberDto.of(member.getUserId(), member.getName(), member.getProfileImageUrl(), isFriend));
         }
 
         PuzzleResDto puzzleResDto = getPuzzleResDto(user, members);

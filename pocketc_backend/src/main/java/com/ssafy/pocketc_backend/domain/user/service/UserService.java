@@ -160,7 +160,5 @@ public class UserService {
 
             user.updateProfileImage(profileUrl);
         }
-
-
     }
 }
