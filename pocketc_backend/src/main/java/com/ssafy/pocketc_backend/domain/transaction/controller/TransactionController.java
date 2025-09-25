@@ -1,6 +1,7 @@
 package com.ssafy.pocketc_backend.domain.transaction.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.DummyTransactionsDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionCreateReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionCreatedResDto;
@@ -78,6 +79,14 @@ public class TransactionController {
         transactionService.appliedTransaction(transactionId, userId(principal));
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_APPLIED_TRANSACTION
+        ));
+    }
+
+    @PostMapping("/admin/create/transactions/users/{userId}")
+    public ResponseEntity<ApiResponse<?>> createUserTransaction(@PathVariable("userId") Integer userId, @RequestBody DummyTransactionsDto dto) {
+        transactionService.createTransactions(userId, dto);
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_CREATE_TRANSACTIONS
         ));
     }
 }

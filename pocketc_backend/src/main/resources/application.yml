@@ -71,7 +71,7 @@ spring:
       mode: always
       platform: h2
       data-locations:
-        - classpath:db/init_v1.sql
+        - classpath:db/init_v2.sql
   data:
     redis:
       host: localhost

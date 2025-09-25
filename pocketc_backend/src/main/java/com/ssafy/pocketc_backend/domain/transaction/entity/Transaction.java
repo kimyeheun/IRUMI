@@ -3,16 +3,14 @@ package com.ssafy.pocketc_backend.domain.transaction.entity;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "transactions")
@@ -28,7 +26,7 @@ public class Transaction extends BaseTimeEntity {
     private LocalDateTime transactedAt;
     private Long amount;
 
-    @Column(length = 255)
+    @Column
     private String merchantName;
 
     private Integer majorId;
