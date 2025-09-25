@@ -10,6 +10,7 @@ data class FollowListResponse(
     data class FollowDto(
         val followUserId: Int,
         val nickname: String,
-        val profileImageUrl: String
+        val profileImageUrl: String,
+        val followedAt: String
     )
 }

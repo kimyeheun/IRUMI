@@ -28,4 +28,4 @@ fun StreaksResponse.toEntity(): List<StreakEntity> =
     streaks.map { StreakEntity(it.date, it.missionsCompleted, it.spending, it.isActive) }
 
 fun FollowIdsResponse.toEntity(): List<FollowInfoEntity> =
-    follows.map { FollowInfoEntity(it.followeeId, it.followedAt) }
+    follows.map { FollowInfoEntity(it.followUserId, it.followedAt) }

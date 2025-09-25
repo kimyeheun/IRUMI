@@ -30,15 +30,14 @@ fun HomeScreen(
     brand: Color = BrandGreen,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    // 🔹 lifecycle-aware 수집
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // 1) 상단 친구 목록: "나" + 서버 팔로우 목록
-    val friends = remember(state.follows) {
-        listOf(Friend(0, "나")) + state.follows.map { Friend(it.followUserId, it.nickname) }
+    // ✅ "나" + followIds 기반 친구 목록 (닉네임 없음 → placeholder)
+    val friends = remember(state.followInfos) {
+        listOf(Friend(0, "나")) +
+                state.followInfos.map { Friend(it.followUserId, "친구 ${it.followUserId}") }
     }
 
-    // 2) 선택된 친구 (목록 변경 시 안전 보정)
     var selectedFriend by remember { mutableStateOf(Friend(0, "나")) }
     LaunchedEffect(friends) {
         if (friends.none { it.id == selectedFriend.id }) {
@@ -46,18 +45,15 @@ fun HomeScreen(
         }
     }
 
-    // 3) 친구 추가 바텀시트 상태
     var showAddSheet by remember { mutableStateOf(false) }
     var followLoading by remember { mutableStateOf(false) }
     var followError by remember { mutableStateOf<String?>(null) }
     var pendingFollowTargetId by remember { mutableStateOf<Int?>(null) }
 
-    // 4) 롱프레스 언팔 상태
     var pendingUnfollow by remember { mutableStateOf<Friend?>(null) }
     var unfollowLoading by remember { mutableStateOf(false) }
     var unfollowError by remember { mutableStateOf<String?>(null) }
 
-    // ===== 본문 =====
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -90,14 +86,8 @@ fun HomeScreen(
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(12.dp))
         }
-        state.error?.let { err ->
-//            AssistChip(
-//                onClick = { viewModel.refresh() },
-//                label = {
-//                    Text(err.ifBlank { "오류가 발생했어요. 다시 시도" })
-//                }
-//            )
-//            Spacer(Modifier.height(12.dp))
+        state.error?.let { _ ->
+            // 필요 시 에러 UI 노출
         }
 
         // --- 본문: 내 화면 / 친구 화면 ---
@@ -119,7 +109,7 @@ fun HomeScreen(
         } else {
             FriendCompareSection(
                 myScore = state.myScore?.savingScore,
-                friendScore = null, // TODO: 친구 점수 API 나오면 바인딩
+                friendScore = null, // TODO: 친구 점수 API 연동 시 바인딩
                 friendName = selectedFriend.name
             )
             Spacer(Modifier.height(12.dp))
@@ -153,7 +143,8 @@ fun HomeScreen(
             }
         )
 
-        LaunchedEffect(state.follows, state.error, followLoading, showAddSheet, pendingFollowTargetId) {
+        // ✅ followInfos 기준으로 성공 여부 감지
+        LaunchedEffect(state.followInfos, state.error, followLoading, showAddSheet, pendingFollowTargetId) {
             if (!showAddSheet || !followLoading) return@LaunchedEffect
             if (state.error != null) {
                 followLoading = false
@@ -161,7 +152,7 @@ fun HomeScreen(
                 return@LaunchedEffect
             }
             pendingFollowTargetId?.let { id ->
-                val exists = state.follows.any { it.followUserId == id }
+                val exists = state.followInfos.any { it.followUserId == id }
                 if (exists) {
                     followLoading = false
                     followError = null
@@ -221,14 +212,15 @@ fun HomeScreen(
             }
         )
 
-        LaunchedEffect(state.follows, state.error, unfollowLoading, pendingUnfollow) {
+        // ✅ followInfos 기준으로 언팔 성공 감지
+        LaunchedEffect(state.followInfos, state.error, unfollowLoading, pendingUnfollow) {
             if (!unfollowLoading) return@LaunchedEffect
             if (state.error != null) {
                 unfollowLoading = false
                 unfollowError = state.error
                 return@LaunchedEffect
             }
-            val removed = state.follows.none { it.followUserId == friend.id }
+            val removed = state.followInfos.none { it.followUserId == friend.id }
             if (removed) {
                 unfollowLoading = false
                 unfollowError = null
