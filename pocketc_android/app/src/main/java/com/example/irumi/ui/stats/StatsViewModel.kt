@@ -22,6 +22,9 @@ class StatsViewModel @Inject constructor(
         MutableStateFlow(UiState.Loading)
     val statsUiState = _statsUiState.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
     init {
         getMonthStatistics()
     }
@@ -44,4 +47,24 @@ class StatsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 새로고침
+     */
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            statsRepository.getMonthStatistics(LocalDate.now().toString())
+                .onSuccess { response ->
+                    Timber.d("!!! refresh 성공: $response")
+                    _statsUiState.value = UiState.Success(response)
+                }
+                .onFailure {
+                    Timber.d("!!! refresh 실패: $it")
+                    _statsUiState.value = UiState.Failure(it.message ?: "")
+                }
+                .also {
+                    _isRefreshing.value = false
+                }
+        }
+    }
 }
