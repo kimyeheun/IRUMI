@@ -34,7 +34,9 @@ class EventViewModel @Inject constructor(
     private val _toastEvent = MutableSharedFlow<String>()
     val toastEvent: SharedFlow<String> = _toastEvent.asSharedFlow()
 
-    // 방 생성
+    /**
+     * 방 생성
+     */
     fun createRoom(maxMembers: Int) {
         viewModelScope.launch {
             eventRepository.createEventsRoom(maxMembers)
@@ -46,12 +48,15 @@ class EventViewModel @Inject constructor(
                 }
                 .onFailure {
                     Timber.d("!!! ${maxMembers} createRoom 실패: $it")
+                    _toastEvent.emit("방 생성에 실패했습니다")
                     // TODO: Handle error
                 }
         }
     }
 
-    // 방 입장
+    /**
+     * 방 입장
+     */
     fun enterRoom(roomCode: String) {
         viewModelScope.launch {
             eventRepository.enterEventsRoom(roomCode)
@@ -64,10 +69,14 @@ class EventViewModel @Inject constructor(
                 .onFailure {
                     // TODO: Handle error
                     Timber.d("!!! ${roomCode}enterRoom 실패: $it")
+                    _toastEvent.emit("방 입장에 실패했습니다")
                 }
         }
     }
 
+    /**
+     * 방 나가기
+     */
     fun leaveRoom() {
         viewModelScope.launch {
             val currentEventEntity = when (val currentState = _uiState.value) {
@@ -86,11 +95,15 @@ class EventViewModel @Inject constructor(
                     }
             } else {
                 Timber.d("!!! leaveRoom 실패: currentEventEntity is null")
+                _toastEvent.emit("방 나가기에 실패했습니다")
                 getEventsRoomData() // NoRoom 상태로 만들면서 최신 eventEntity도 가져오도록 유도
             }
         }
     }
 
+    /**
+     * 퍼즐 맞추기
+     */
     fun fillPuzzle() {
         viewModelScope.launch {
             eventRepository.fillPuzzle()
@@ -113,10 +126,14 @@ class EventViewModel @Inject constructor(
                 .onFailure {
                     // TODO: Handle error
                     Timber.d("!!! fillPuzzle 실패: $it")
+                    _toastEvent.emit("퍼즐 맞추기에 실패했습니다")
                 }
         }
     }
 
+    /**
+     * 이벤트 방 조회
+     */
     fun getEventsRoomData() {
         viewModelScope.launch {
             eventRepository.getEventsRoom()
@@ -144,6 +161,7 @@ class EventViewModel @Inject constructor(
                 .onFailure {
                     Timber.d("!!! getEventsRoomData 실패: $it")
                     // TODO: Handle error
+                    _toastEvent.emit("이벤트 방 조회에 실패했습니다")
                 }
         }
     }

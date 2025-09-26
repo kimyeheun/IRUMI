@@ -75,7 +75,13 @@ fun MyPageScreen(
         }
 
         // 설정 메뉴
-        item { SettingsSection(onLoggedOut) }
+        item {
+            SettingsSection(
+                onLoggedOut = {
+                    authViewModel.logout()
+                }
+            )
+        }
 
 //        item {
 //            PrimaryButton(

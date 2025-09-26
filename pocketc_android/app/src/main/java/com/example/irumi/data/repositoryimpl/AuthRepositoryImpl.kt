@@ -16,7 +16,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val ds: AuthDataSource
 ) : AuthRepository {
 
-    override suspend fun signUp(req: SignUpRequest): Result<BaseEntity<Void>> =
+    override suspend fun signUp(req: SignUpRequest): Result<BaseEntity<LoginEnvelope>> =
         runCatching { ds.signUp(req).toBaseEntity() }
 
     override suspend fun login(req: LoginRequest): Result<LoginEnvelope> =

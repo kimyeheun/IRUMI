@@ -9,7 +9,7 @@ import com.example.irumi.data.dto.response.auth.MemberProfileResponse
 import com.example.irumi.data.dto.response.auth.TokenEnvelope
 
 interface AuthDataSource {
-    suspend fun signUp(body: SignUpRequest): BaseResponse<Void>
+    suspend fun signUp(body: SignUpRequest): BaseResponse<LoginEnvelope>
     suspend fun login(body: LoginRequest): BaseResponse<LoginEnvelope>
     suspend fun logout(): BaseResponse<Unit?>
     suspend fun reissue(): BaseResponse<TokenEnvelope>

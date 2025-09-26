@@ -9,7 +9,7 @@ import com.example.irumi.domain.entity.BaseEntity
 import com.example.irumi.domain.entity.MemberProfileEntity
 
 interface AuthRepository {
-    suspend fun signUp(req: SignUpRequest): Result<BaseEntity<Void>>
+    suspend fun signUp(req: SignUpRequest): Result<BaseEntity<LoginEnvelope>>
     suspend fun login(req: LoginRequest): Result<LoginEnvelope>
     suspend fun logout(): Result<Unit>
     suspend fun reissue(): Result<TokenEnvelope>
