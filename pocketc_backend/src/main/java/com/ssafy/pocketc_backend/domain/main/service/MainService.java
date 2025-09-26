@@ -84,7 +84,7 @@ public class MainService {
     //예산 준수점수
     //1-(오늘 소비-하루 평균 에산)/하루 평균예산
     private Long calcBudgetScore(Long total, Long dailyBudget) {
-        if (dailyBudget == 0) return 100L;
+        if (dailyBudget == 0) return 0L;
         double ratio = (double) (total - dailyBudget) / dailyBudget;
         double score = Math.min(100, (Math.max(0, (1 - ratio) * 100)));
         return (long) score;
