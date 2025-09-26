@@ -1,5 +1,6 @@
 package com.example.irumi.ui.home.component
 
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -108,15 +109,12 @@ fun TodoSection(
         }
 
         // 실제 미션 리스트
-        LazyColumn(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 260.dp),
+                .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            itemsIndexed(items, key = { index, item ->
-                "${item.id}_$index"
-            }) { index, item ->
+            items.forEach {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -125,17 +123,17 @@ fun TodoSection(
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val disabled = isUpdatingId == item.id
+                    val disabled = isUpdatingId == it.id
                     Checkbox(
-                        checked = item.checked,
+                        checked = it.checked,
                         onCheckedChange = { checked ->
-                            if (!disabled) onToggle(item.id, checked)
+                            if (!disabled) onToggle(it.id, checked)
                         },
                         enabled = !disabled
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        text = item.title,
+                        text = it.title,
                         fontSize = 15.sp,
                         color = if (disabled) Color(0xFF9CA3AF) else Color.Unspecified
                     )
