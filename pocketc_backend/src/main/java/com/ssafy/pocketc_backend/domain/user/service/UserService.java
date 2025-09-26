@@ -127,17 +127,8 @@ public class UserService {
     public void updateUser(Integer userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(UserErrorType.NOT_FOUND_MEMBER_ERROR));
-        if (request.email() != null && !request.email().equals(user.getEmail())) {
-            if (userRepository.existsByEmail(request.email())) {
-                throw new CustomException(UserErrorType.ALREADY_EXISTS);
-            }
-            user.updateEmail(request.email());
-        }
         user.updateName(request.name());
         user.updateBudget(request.budget());
-        if (request.password() != null) {
-            user.updatePassword(passwordEncoder.encode(request.password()));
-        }
     }
 
     //db에 키 저장, 이미지 업로드에 문제가 생겨 이미지가 저장되지 못하고 db에 키만 저장되는 문제 방지
