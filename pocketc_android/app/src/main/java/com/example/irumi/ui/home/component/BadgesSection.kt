@@ -25,6 +25,8 @@ import com.example.irumi.domain.entity.main.BadgeEntity
 import com.example.irumi.ui.theme.BrandGreen
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -64,13 +66,12 @@ fun BadgesSection(
             return@Column
         }
 
-        // 4) 콘텐츠
-        FlowRow(
+        // 4) 콘텐츠 (가로 스크롤)
+        LazyRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            badges.forEach { badge ->
+            items(badges) { badge ->
                 BadgeItem(
                     badge = badge,
                     modifier = Modifier.width(100.dp)
