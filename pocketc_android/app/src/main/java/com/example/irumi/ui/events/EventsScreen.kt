@@ -1,21 +1,30 @@
 package com.example.irumi.ui.events
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import timber.log.Timber
 
 @Composable
 fun EventsScreen(brand: Color, viewModel: EventViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     // TODO viewmodel 을 안넘기고,, 데이터만 넘기는건?
     LaunchedEffect(Unit) {
         Timber.d("!!! EventsScreen LaunchedEffect")
         viewModel.getEventsRoomData()
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.toastEvent.collect {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
     }
 
 
