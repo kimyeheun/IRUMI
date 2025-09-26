@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -113,7 +114,9 @@ fun TodoSection(
                 .heightIn(max = 260.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(items, key = { it.id }) { item ->
+            itemsIndexed(items, key = { index, item ->
+                "${item.id}_$index"
+            }) { index, item ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
