@@ -10,7 +10,6 @@ import com.ssafy.pocketc_backend.domain.mission.repository.MissionRepository;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
 import com.ssafy.pocketc_backend.domain.report.repository.ReportRepository;
 import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionRepository;
-import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -21,7 +20,6 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-import java.util.List;
 
 @Service
 @Transactional
