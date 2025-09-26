@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.content.edit
 
 @Singleton
 class SharedPrefsTokenStore @Inject constructor(
@@ -33,12 +34,9 @@ class SharedPrefsTokenStore @Inject constructor(
     }
 
     override fun clear() {
-        prefs.edit()
-            .remove(KEY_ACCESS)
-            .remove(KEY_REFRESH)
-            .remove(KEY_EMAIL)
-            .remove(KEY_AUTO_LOGIN)
-            .apply()
+        prefs.edit {
+            clear()
+        }
     }
 
     private companion object {

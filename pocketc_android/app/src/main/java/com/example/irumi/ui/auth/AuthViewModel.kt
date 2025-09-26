@@ -36,7 +36,7 @@ class AuthViewModel @Inject constructor(
                     Timber.d("!!! 회원가입 성공 remember=${remember} email=${email}")
                     // TODO 로그인 화면으로 돌리기
                     // TODO 200인지도 확인 필요
-//                    tokenStore.save(it.accessToken, it.refreshToken)
+                    tokenStore.save(it.data!!.accessToken, it.data.refreshToken)
                     tokenStore.autoLogin = remember
                     tokenStore.email = email
                     isLoggedIn = true
@@ -52,7 +52,7 @@ class AuthViewModel @Inject constructor(
             repo.login(LoginRequest(email, pw))
                 .onSuccess { env ->
                     // 로그인 응답이 access 단일 토큰인 스펙
-                    tokenStore.save(env.accessToken, tokenStore.refreshToken)
+                    tokenStore.save(env.accessToken, env.refreshToken)
                     tokenStore.autoLogin = remember
                     tokenStore.email = email
                     isLoggedIn = true
@@ -69,7 +69,10 @@ class AuthViewModel @Inject constructor(
                 tokenStore.clear()
                 isLoggedIn = false
             }
-            .onFailure { error = it.message }
+            .onFailure {
+                Timber.d("!!! 로그아웃 실패 $it")
+                error = it.message
+            }
     }
 
     fun reissue() = launch {
