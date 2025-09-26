@@ -48,7 +48,6 @@ fun HomeScreen(
     val view = LocalView.current
     SideEffect {
         val window = (view.context as Activity).window
-        // ▼ 여기 두 줄을 LightGray로 변경
         window.statusBarColor = LightGray.toArgb()
         window.navigationBarColor = LightGray.toArgb()
 
@@ -327,8 +326,6 @@ fun HomeScreen(
             }
         }
     }
-
-    Log.d("HomeScreen", "사고지점3")
 }
 
 /** StreakEntity -> 고정 길이 Boolean 리스트 */
