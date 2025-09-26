@@ -5,6 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AuthEditRequest(
     val name: String,
-    val profileImageUrl: String,
     val budget: Int
 )

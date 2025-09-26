@@ -59,7 +59,6 @@ fun MyPageScreen(
         uri?.let { selectedUri ->
             authViewModel.updateMe(AuthEditRequest(
                 uiState.profile?.name!!,
-                uiState.profile?.profileImageUrl!!,
                 uiState.profile?.budget!!
                 ))
         }
@@ -140,8 +139,7 @@ private fun ProfileHeaderCard(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(BrandGreen.copy(alpha = 0.1f))
-                    .clickable { onProfileImageClick() },
+                    .background(BrandGreen.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 if (profile?.profileImageUrl?.isNotEmpty() == true) {
@@ -349,6 +347,7 @@ private fun StatItem(
 
 @Composable
 private fun SettingsSection(onLoggedOut: () -> Unit) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -383,9 +382,42 @@ private fun SettingsSection(onLoggedOut: () -> Unit) {
                 icon = Icons.Default.ExitToApp,
                 title = "로그아웃",
                 subtitle = "",
-                onClick = onLoggedOut,
+                onClick = { showLogoutDialog = true }, // 모달 표시
                 textColor = Color(0xFFE53E3E)
             )
+
+            // 로그아웃 확인 다이얼로그
+            if (showLogoutDialog) {
+                AlertDialog(
+                    onDismissRequest = { showLogoutDialog = false },
+                    title = {
+                        Text("로그아웃")
+                    },
+                    text = {
+                        Text("정말 로그아웃 하시겠습니까?")
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showLogoutDialog = false
+                                onLoggedOut()
+                            }
+                        ) {
+                            Text(
+                                "로그아웃",
+                                color = Color(0xFFE53E3E)
+                            )
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showLogoutDialog = false }
+                        ) {
+                            Text("취소")
+                        }
+                    }
+                )
+            }
         }
     }
 }

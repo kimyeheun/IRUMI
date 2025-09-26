@@ -89,7 +89,7 @@ fun PaymentDetailRoute(
         is UiState.Failure -> ErrorScreen()
         is UiState.Success -> {
             PaymentDetailScreen(
-                modifier = Modifier.padding(paddingValues),
+//                modifier = Modifier.padding(paddingValues),
                 paymentDetail = (state as UiState.Success<PaymentEntity>).data,
                 majorCategoryNames = viewModel.majorCategoryNames,
                 minorCategoryNameOptions = minorCategoryNameOptions,
