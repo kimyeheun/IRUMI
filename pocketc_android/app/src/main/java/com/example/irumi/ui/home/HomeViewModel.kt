@@ -7,6 +7,7 @@ import com.example.irumi.domain.entity.main.DailySavingEntity
 import com.example.irumi.domain.entity.main.FollowInfoEntity
 import com.example.irumi.domain.entity.main.FriendDailyEntity
 import com.example.irumi.domain.entity.main.MissionEntity
+import com.example.irumi.domain.entity.main.MissionsEntity
 import com.example.irumi.domain.entity.main.SpendingEntity
 import com.example.irumi.domain.entity.main.StreakEntity
 import com.example.irumi.domain.entity.main.UserProfileEntity

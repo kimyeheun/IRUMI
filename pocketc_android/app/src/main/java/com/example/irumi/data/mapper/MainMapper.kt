@@ -80,7 +80,9 @@ fun FollowIdsResponse.toEntity(): List<FollowInfoEntity> =
     follows.map { dto ->
         FollowInfoEntity(
             followUserId = dto.followUserId,
-            followedAt = dto.followedAt
+            followedAt = dto.followedAt,
+            followeeName = dto.followeeName,
+            followeeProfile = dto.followeeProfile
         )
     }
 
