@@ -59,6 +59,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.core.mapper.CategoryMapper
 import com.example.irumi.core.state.UiState
+import com.example.irumi.core.util.extension.toPaymentDate
 import com.example.irumi.domain.entity.payments.PaymentEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import timber.log.Timber
@@ -542,7 +543,7 @@ fun PaymentDetailsCard(paymentDetail: PaymentEntity) {
         ) {
             DetailItem(
                 label = "결제일시",
-                value = paymentDetail.date
+                value = paymentDetail.date.toPaymentDate()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
