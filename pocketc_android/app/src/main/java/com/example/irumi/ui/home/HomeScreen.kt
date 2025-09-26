@@ -18,6 +18,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,12 +40,15 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.domain.entity.main.StreakEntity
-import com.example.irumi.ui.home.component.*
+import com.example.irumi.ui.home.component.BadgesSection
+import com.example.irumi.ui.home.component.FriendAddSheet
+import com.example.irumi.ui.home.component.FriendCompareSection
+import com.example.irumi.ui.home.component.FriendList
+import com.example.irumi.ui.home.component.MissionPickSheet
+import com.example.irumi.ui.home.component.MyScoreSection
+import com.example.irumi.ui.home.component.StreakSection
+import com.example.irumi.ui.home.component.TodoSection
 import com.example.irumi.ui.theme.BrandGreen
-import kotlin.math.min
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.min
@@ -75,7 +80,11 @@ fun HomeScreen(
     val friends = remember(state.followInfos, state.profile?.profileImageUrl) {
         listOf(Friend(0, "나", state.profile?.profileImageUrl)) +
                 state.followInfos.map { info ->
-                    Friend(id = info.followUserId, name = "친구 ${info.followUserId}", avatarUrl = null)
+                    Friend(
+                        id = info.followUserId,
+                        name = info.followeeName,
+                        avatarUrl = info.followeeProfile
+                    )
                 }
     }
 
