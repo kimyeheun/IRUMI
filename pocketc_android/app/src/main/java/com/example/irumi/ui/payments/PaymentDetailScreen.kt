@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -163,7 +164,7 @@ fun PaymentDetailScreen(
     }
 
     Surface(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         color = TossColors.Surface
     ) {
         Column {
