@@ -1,6 +1,5 @@
 package com.example.irumi.ui.events
 
-import android.view.Surface
 import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
@@ -13,8 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.example.irumi.ui.theme.LightGray
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.irumi.ui.events.SampleColors.Surface
-import com.example.irumi.ui.payments.TossColors.Surface
 import timber.log.Timber
 
 @Composable
@@ -36,7 +33,6 @@ fun EventsScreen(brand: Color, viewModel: EventViewModel = hiltViewModel()) {
 
     Timber.d("EventScreen -> uiState: $uiState")
 
-    // ★ 전체를 LightGray 배경으로 감싸기
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = LightGray
