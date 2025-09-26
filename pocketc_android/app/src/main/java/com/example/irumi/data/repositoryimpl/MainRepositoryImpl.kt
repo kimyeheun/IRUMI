@@ -75,23 +75,14 @@ class MainRepositoryImpl @Inject constructor(
     }
 
     // ----- Missions -----
-    override suspend fun getDailyMissions(userId: Int): Result<MissionsEntity> = runCatching {
-        val res = dataSource.getDailyMissions(userId)
-        requireData(res.data, "getDailyMissions").toEntity()
-    }
-
-    override suspend fun getWeeklyMissions(userId: Int): Result<MissionsEntity> = runCatching {
-        val res = dataSource.getWeeklyMissions(userId)
-        requireData(res.data, "getWeeklyMissions").toEntity()
-    }
-
-    override suspend fun getMonthlyMissions(userId: Int): Result<MissionsEntity> = runCatching {
-        val res = dataSource.getMonthlyMissions(userId)
-        requireData(res.data, "getMonthlyMissions").toEntity()
+    override suspend fun getMissions(): Result<MissionsEntity> = runCatching {
+        val res = dataSource.getMissions()
+        requireData(res.data, "getMissions").toEntity()
     }
 
     override suspend fun submitMissions(selected: List<Int>): Result<MissionsEntity> = runCatching {
         val res = dataSource.postMissions(selected)
         requireData(res.data, "postMissions").toEntity()
     }
+
 }

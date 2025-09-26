@@ -2,34 +2,12 @@
 package com.example.irumi.ui.home
 
 import android.util.Log
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,14 +18,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.domain.entity.main.StreakEntity
-import com.example.irumi.ui.home.component.BadgesSection
-import com.example.irumi.ui.home.component.FriendAddSheet
-import com.example.irumi.ui.home.component.FriendCompareSection
-import com.example.irumi.ui.home.component.FriendList
-import com.example.irumi.ui.home.component.MissionPickSheet
-import com.example.irumi.ui.home.component.MyScoreSection
-import com.example.irumi.ui.home.component.StreakSection
-import com.example.irumi.ui.home.component.TodoSection
+import com.example.irumi.ui.home.component.*
 import com.example.irumi.ui.theme.BrandGreen
 import java.time.LocalDate
 import java.time.ZoneId
@@ -76,14 +47,14 @@ fun HomeScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // "나" + 팔로우 ID로 친구 리스트 구성(닉네임 미확정 → placeholder)
+    // "나" + 팔로우 ID로 친구 리스트 구성
     val friends = remember(state.followInfos, state.profile?.profileImageUrl) {
         listOf(Friend(0, "나", state.profile?.profileImageUrl)) +
                 state.followInfos.map { info ->
                     Friend(
                         id = info.followUserId,
-                        name = info.followeeName,
-                        avatarUrl = info.followeeProfile
+                        name = info.followeeName,        // 엔티티에 필드가 있다면 사용
+                        avatarUrl = info.followeeProfile // 엔티티에 필드가 없다면 null 처리하세요
                     )
                 }
     }
@@ -101,27 +72,18 @@ fun HomeScreen(
         if (selectedFriend.id != 0) viewModel.reloadFriendDaily(selectedFriend.id)
     }
 
-    // ===== 미션 탭(일/주/월) =====
-    var selectedTab by rememberSaveable { mutableStateOf(MissionPeriod.DAILY) }
-    // VM 값과 동기화
-    LaunchedEffect(state.missionPeriod) {
-        if (selectedTab != state.missionPeriod) selectedTab = state.missionPeriod
-    }
-    // 탭 변경 시 해당 기간 미션 로드
-    LaunchedEffect(selectedTab, state.profile?.userId) {
-        viewModel.reloadMissions(selectedTab)
-    }
-
-    // ===== 오늘 첫 실행: 추천 미션 시트 자동 노출(데일리 탭 한정, 하루 1회) =====
+    // ===== 오늘 첫 실행: 추천 미션 시트 자동 노출(하루 1회) =====
     val dayKey = remember { LocalDate.now(ZoneId.of("Asia/Seoul")).toString() }
     var showMissionSheet by rememberSaveable { mutableStateOf(false) }
     var lastTriggeredByDayKey by rememberSaveable { mutableStateOf("") }
 
-    LaunchedEffect(state.missions, dayKey, selectedTab) {
-        val isDaily = selectedTab == MissionPeriod.DAILY
-        if (isDaily && state.missions.isNotEmpty() && lastTriggeredByDayKey != dayKey) {
+    LaunchedEffect(state.missionReceived, state.missions, dayKey) {
+        if (!state.missionReceived && state.missions.isNotEmpty() && lastTriggeredByDayKey != dayKey) {
             showMissionSheet = true
             lastTriggeredByDayKey = dayKey
+        }
+        if (state.missionReceived) {
+            showMissionSheet = false
         }
     }
 
@@ -164,7 +126,7 @@ fun HomeScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // --- 로딩 & 에러 ---
+        // --- 로딩 ---
         if (state.isLoading && state.profile == null) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(12.dp))
@@ -175,16 +137,9 @@ fun HomeScreen(
             MyScoreSection(score = state.myScore?.savingScore ?: 0)
             Spacer(Modifier.height(12.dp))
 
-            // 미션 탭
-            MissionTabRow(
-                selected = selectedTab,
-                onSelect = { selectedTab = it }
-            )
-            Spacer(Modifier.height(10.dp))
-
-            // 오늘의 미션(새 스키마: missionReceived 제거) — 기존 컴포넌트 시그니처 유지 위해 false 전달
+            // 오늘의 미션
             TodoSection(
-                missionReceived = false,
+                missionReceived = state.missionReceived,
                 missions = state.missions
             )
             Spacer(Modifier.height(12.dp))
@@ -332,41 +287,7 @@ fun HomeScreen(
         }
     }
 
-    // ===== 미션 시트(성공/실패 자동 표기, 기간 토글 가능) =====
-    if (showMissionSheet) {
-        MissionPickSheet(
-            period = state.missionPeriod,
-            onChangePeriod = { p -> viewModel.reloadMissions(p) },
-            missions = state.missions,
-            isProcessing = false,
-            onDismiss = { showMissionSheet = false }
-        )
-    }
-
     Log.d("HomeScreen", "사고지점3")
-}
-
-/** 미션 탭 UI */
-@Composable
-private fun MissionTabRow(
-    selected: MissionPeriod,
-    onSelect: (MissionPeriod) -> Unit
-) {
-    val items = listOf(
-        MissionPeriod.DAILY to "일간",
-        MissionPeriod.WEEKLY to "주간",
-        MissionPeriod.MONTHLY to "월간"
-    )
-    val selectedIndex = items.indexOfFirst { it.first == selected }.coerceAtLeast(0)
-    TabRow(selectedTabIndex = selectedIndex) {
-        items.forEachIndexed { index, (period, label) ->
-            Tab(
-                selected = index == selectedIndex,
-                onClick = { onSelect(period) },
-                text = { Text(label) }
-            )
-        }
-    }
 }
 
 /** StreakEntity -> 고정 길이 Boolean 리스트 */
