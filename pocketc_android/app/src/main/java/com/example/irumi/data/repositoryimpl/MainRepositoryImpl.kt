@@ -2,8 +2,16 @@ package com.example.irumi.data.repositoryimpl
 
 import com.example.irumi.data.datasource.main.MainDataSource
 import com.example.irumi.data.dto.response.main.SpendingResponse
-import com.example.irumi.data.mapper.*
-import com.example.irumi.domain.entity.main.*
+import com.example.irumi.data.mapper.toEntity
+import com.example.irumi.domain.entity.main.BadgeEntity
+import com.example.irumi.domain.entity.main.DailySavingEntity
+import com.example.irumi.domain.entity.main.FollowEntity
+import com.example.irumi.domain.entity.main.FollowInfoEntity
+import com.example.irumi.domain.entity.main.FriendDailyEntity
+import com.example.irumi.domain.entity.main.MissionsEntity
+import com.example.irumi.domain.entity.main.SpendingEntity
+import com.example.irumi.domain.entity.main.StreakEntity
+import com.example.irumi.domain.entity.main.UserProfileEntity
 import com.example.irumi.domain.repository.MainRepository
 import javax.inject.Inject
 
@@ -52,8 +60,7 @@ class MainRepositoryImpl @Inject constructor(
 
     // 실제 엔드포인트에 맞춘 팔로우 아이디/시각 목록
     override suspend fun getFollowIds(): Result<List<FollowInfoEntity>> = runCatching {
-        val res = dataSource.getFollowIds()
-        requireData(res.data, "getFollowIds").toEntity()
+        dataSource.getFollowIds().data!!.toEntity()
     }
 
     override suspend fun follow(targetUserId: Int): Result<Unit> = runCatching {

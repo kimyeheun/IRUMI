@@ -2,10 +2,16 @@ package com.example.irumi.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.irumi.domain.entity.main.*
+import com.example.irumi.domain.entity.main.BadgeEntity
+import com.example.irumi.domain.entity.main.DailySavingEntity
+import com.example.irumi.domain.entity.main.FollowInfoEntity
+import com.example.irumi.domain.entity.main.FriendDailyEntity
+import com.example.irumi.domain.entity.main.MissionEntity
+import com.example.irumi.domain.entity.main.SpendingEntity
+import com.example.irumi.domain.entity.main.StreakEntity
+import com.example.irumi.domain.entity.main.UserProfileEntity
 import com.example.irumi.domain.repository.MainRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -14,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -74,12 +81,17 @@ class HomeViewModel @Inject constructor(
 
     /** 개별 섹션 갱신: 팔로우(IDs) */
     fun reloadFollowIds() = launchAndSet("[reloadFollowIds]") {
-        val followInfos = mainRepository.getFollowIds().getOrThrow()
-        Timber.d(
-            "[HomeVM] reloadFollowIds(): size=%d, ids=%s",
-            followInfos.size, followInfos.joinToString { it.followUserId.toString() }
-        )
-        _uiState.value = _uiState.value.copy(followInfos = followInfos)
+        mainRepository.getFollowIds()
+            .onSuccess {
+                Timber.d(
+                    "[HomeVM] reloadFollowIds(): size=%d, ids=%s",
+                    it.size, it.joinToString { it.followUserId.toString() }
+                )
+                _uiState.value = _uiState.value.copy(followInfos = it)
+            }
+            .onFailure {
+                Timber.d("[HomeVM] reloadFollowIds() ERROR")
+            }
     }
 
     /** 개별 섹션 갱신: 뱃지 */
@@ -170,6 +182,7 @@ class HomeViewModel @Inject constructor(
                             "[HomeVM] /follows(ids) OK: size=%d, ids=%s",
                             it.size, it.joinToString { f -> f.followUserId.toString() }
                         )
+
                     }.onFailure { Timber.e(it, "[HomeVM] /follows(ids) ERROR") }
                 }
         }
