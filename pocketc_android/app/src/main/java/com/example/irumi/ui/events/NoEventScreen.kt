@@ -51,7 +51,7 @@ import coil.request.ImageRequest
 import com.example.irumi.domain.entity.EventEntity
 import java.text.SimpleDateFormat
 import java.util.Locale
-import com.example.irumi.ui.theme.LightGray   // ★ LightGray import
+import com.example.irumi.ui.theme.LightGray
 
 @Composable
 fun NoEventScreen(viewModel: EventViewModel = hiltViewModel(), eventEntity: EventEntity) {
@@ -67,7 +67,7 @@ fun NoEventScreen(viewModel: EventViewModel = hiltViewModel(), eventEntity: Even
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),  // 여기서 더 이상 background(Color.White) ❌
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(

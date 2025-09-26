@@ -138,7 +138,7 @@ fun PaymentsScreen(
         modifier = Modifier
             .fillMaxSize(),
         //.padding(paddingValues),
-        color = LightGray   // ★ LightGray 배경 적용
+        color = LightGray
     ) {
         Column {
             // 상단바

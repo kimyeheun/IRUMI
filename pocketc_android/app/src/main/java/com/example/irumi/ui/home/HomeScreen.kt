@@ -1,21 +1,22 @@
 package com.example.irumi.ui.home
 
-import android.app.Activity                     // ★ 추가
+import android.app.Activity
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb       // ★ 추가
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.LocalView    // ★ 추가
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat          // ★ 추가
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -34,6 +35,7 @@ data class Friend(
     val avatarUrl: String? = null
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     brand: Color = BrandGreen,
@@ -49,8 +51,8 @@ fun HomeScreen(
         window.statusBarColor = Color.White.toArgb()
         window.navigationBarColor = Color.White.toArgb()
         WindowCompat.getInsetsController(window, view).apply {
-            isAppearanceLightStatusBars = true      // 상태바 아이콘을 어둡게
-            isAppearanceLightNavigationBars = true  // 내비바 아이콘을 어둡게
+            isAppearanceLightStatusBars = true
+            isAppearanceLightNavigationBars = true
         }
     }
 
@@ -113,90 +115,110 @@ fun HomeScreen(
     var unfollowLoading by remember { mutableStateOf(false) }
     var unfollowError by remember { mutableStateOf<String?>(null) }
 
-    // ---------------- 메인 컨텐츠: 흰 배경 Surface로 래핑 ----------------
-    Surface(color = LightGray) {   // ★ 직접 정의한 LightGray 사용
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.Start
+    // ===== Pull-to-refresh 상태 =====
+    var isRefreshing by remember { mutableStateOf(false) }
+    LaunchedEffect(state.isLoading) {
+        if (!state.isLoading) isRefreshing = false
+    }
+
+    // ---------------- 메인 컨텐츠: LightGray 배경 + PullToRefresh ----------------
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = LightGray
+    ) {
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                viewModel.refresh()
+                // 필요 시 친구 비교 데이터도 리프레시하려면 선택된 친구가 있을 때 호출
+                if (selectedFriend.id != 0) viewModel.reloadFriendDaily(selectedFriend.id)
+            },
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
         ) {
-            // --- 친구 리스트 ---
-            FriendList(
-                friends = friends,
-                selected = selectedFriend,
-                brand = brand,
-                onSelect = { selectedFriend = it },
-                onAddClick = {
-                    followError = null
-                    pendingFollowTargetId = null
-                    showAddSheet = true
-                },
-                onLongPress = { friend ->
-                    if (friend.id != 0) {
-                        unfollowError = null
-                        pendingUnfollow = friend
-                    }
-                },
-                getAvatarUrl = { f -> f.avatarUrl }
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // --- 로딩 ---
-            if (state.isLoading && state.profile == null) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                Spacer(Modifier.height(12.dp))
-            }
-
-            // --- 본문: 내 화면 / 친구 화면 ---
-            if (selectedFriend.id == 0) {
-                MyScoreSection(score = state.myScore?.savingScore ?: 0)
-                Spacer(Modifier.height(12.dp))
-
-                // 오늘의 미션
-                TodoSection(
-                    missionReceived = state.missionReceived,
-                    missions = state.missions
-                )
-                Spacer(Modifier.height(12.dp))
-
-                BadgesSection(badges = state.badges)
-                Spacer(Modifier.height(12.dp))
-
-                StreakSection(
-                    friendName = null,
-                    days = state.streaks.toDays(),
-                    totalDays = 365
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                // --- 친구 리스트 ---
+                FriendList(
+                    friends = friends,
+                    selected = selectedFriend,
+                    brand = brand,
+                    onSelect = { selectedFriend = it },
+                    onAddClick = {
+                        followError = null
+                        pendingFollowTargetId = null
+                        showAddSheet = true
+                    },
+                    onLongPress = { friend ->
+                        if (friend.id != 0) {
+                            unfollowError = null
+                            pendingUnfollow = friend
+                        }
+                    },
+                    getAvatarUrl = { f -> f.avatarUrl }
                 )
 
-                Log.d("HomeScreen", "사고지점2")
-            } else {
-                // 친구 비교 데이터 (없으면 로딩 중)
-                val pair = state.friendDaily[selectedFriend.id]
-                if (pair == null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) { CircularProgressIndicator() }
-                    Spacer(Modifier.height(12.dp))
-                } else {
-                    FriendCompareSection(
-                        myScore = pair.me.savingScore,
-                        friendScore = pair.friend.savingScore,
-                        friendName = selectedFriend.name
-                    )
+                Spacer(Modifier.height(16.dp))
+
+                // --- 로딩 ---
+                if (state.isLoading && state.profile == null) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(12.dp))
                 }
 
-                StreakSection(
-                    friendName = selectedFriend.name,
-                    days = state.streaks.toDays(),
-                    totalDays = 365
-                )
+                // --- 본문: 내 화면 / 친구 화면 ---
+                if (selectedFriend.id == 0) {
+                    MyScoreSection(score = state.myScore?.savingScore ?: 0)
+                    Spacer(Modifier.height(12.dp))
+
+                    // 오늘의 미션
+                    TodoSection(
+                        missionReceived = state.missionReceived,
+                        missions = state.missions
+                    )
+                    Spacer(Modifier.height(12.dp))
+
+                    BadgesSection(badges = state.badges)
+                    Spacer(Modifier.height(12.dp))
+
+                    StreakSection(
+                        friendName = null,
+                        days = state.streaks.toDays(),
+                        totalDays = 365
+                    )
+
+                    Log.d("HomeScreen", "사고지점2")
+                } else {
+                    val pair = state.friendDaily[selectedFriend.id]
+                    if (pair == null) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) { CircularProgressIndicator() }
+                        Spacer(Modifier.height(12.dp))
+                    } else {
+                        FriendCompareSection(
+                            myScore = pair.me.savingScore,
+                            friendScore = pair.friend.savingScore,
+                            friendName = selectedFriend.name
+                        )
+                        Spacer(Modifier.height(12.dp))
+                    }
+
+                    StreakSection(
+                        friendName = selectedFriend.name,
+                        days = state.streaks.toDays(),
+                        totalDays = 365
+                    )
+                }
+                Spacer(Modifier.height(24.dp))
             }
-            Spacer(Modifier.height(24.dp))
         }
     }
 
@@ -220,7 +242,6 @@ fun HomeScreen(
             }
         )
 
-        // followInfos 기준 성공 여부 감지
         LaunchedEffect(state.followInfos, state.error, followLoading, showAddSheet, pendingFollowTargetId) {
             if (!showAddSheet || !followLoading) return@LaunchedEffect
             if (state.error != null) {
@@ -289,7 +310,6 @@ fun HomeScreen(
             }
         )
 
-        // followInfos 기준 언팔 성공 감지
         LaunchedEffect(state.followInfos, state.error, unfollowLoading, pendingUnfollow) {
             if (!unfollowLoading) return@LaunchedEffect
             if (state.error != null) {

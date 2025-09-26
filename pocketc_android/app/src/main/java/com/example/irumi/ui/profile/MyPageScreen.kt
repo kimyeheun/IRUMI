@@ -66,8 +66,7 @@ import com.example.irumi.ui.home.HomeViewModel
 import com.example.irumi.ui.payments.TossColors
 import com.example.irumi.ui.theme.BrandGreen
 import java.text.DecimalFormat
-
-import com.example.irumi.ui.theme.LightGray   // ★ 추가
+import com.example.irumi.ui.theme.LightGray
 
 @Composable
 fun MyPageScreen(
@@ -105,13 +104,12 @@ fun MyPageScreen(
         error?.let { Toast.makeText(ctx, it, Toast.LENGTH_SHORT).show() }
     }
 
-    // ★ 전체 배경 LightGray 적용
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = LightGray
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(16.dp) // 여백도 줄 수 있음
+            modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
             item {
                 ProfileHeaderCard(
