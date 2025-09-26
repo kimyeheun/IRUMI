@@ -3,6 +3,7 @@ package com.example.irumi.ui.home.component
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -37,7 +38,7 @@ fun MissionPickSheet(
                     .heightIn(max = 360.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(missions, key = { it.missionId }) { m ->
+                itemsIndexed(missions, key = { index, _ -> "mission_$index" }) { index, m ->
                     ListItem(
                         headlineContent = { Text(m.mission) },
                         supportingContent = { Text("진행도 ${m.progress}% / 타입 ${m.type} / subId ${m.subId}") },
