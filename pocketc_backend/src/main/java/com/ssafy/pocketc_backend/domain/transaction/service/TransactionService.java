@@ -304,14 +304,16 @@ public class TransactionService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow();
-
         for (Dummy transaction : dtos) {
+
+            long amount = transaction.amount() / 100 * 100;
+
             Streak streak = streakRepository.findByUser_userIdAndDate(userId, transaction.date().toLocalDate());
-            streak.setSpentAmount(streak.getSpentAmount() + transaction.amount());
+            streak.setSpentAmount(streak.getSpentAmount() + amount);
 
             Transaction t = Transaction.builder()
                     .user(user)
-                    .amount(transaction.amount())
+                    .amount(amount)
                     .transactedAt(transaction.date())
                     .isApplied(false)
                     .isFixed(random.nextBoolean())
@@ -322,10 +324,10 @@ public class TransactionService {
             LocalDate curMonth = transaction.date().toLocalDate().withDayOfMonth(1);
             transactionRepository.save(t);
             if (t.isFixed()) {
-                reportService.updateMonthlyFixedExpense(userId, curMonth, t.getAmount());
-                reportService.updateMonthlyTotalExpense(userId, curMonth, t.getAmount());
+                reportService.updateMonthlyFixedExpense(userId, curMonth, amount);
+                reportService.updateMonthlyTotalExpense(userId, curMonth, amount);
             } else {
-                reportService.updateMonthlyTotalExpense(userId, curMonth, t.getAmount());
+                reportService.updateMonthlyTotalExpense(userId, curMonth, amount);
             }
         }
     }
