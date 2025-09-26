@@ -14,6 +14,11 @@ interface MainRepository {
     suspend fun follow(targetUserId: Int): Result<Unit>
     suspend fun unfollow(targetUserId: Int): Result<Unit>
     suspend fun getDailyWithFriend(friendId: Int): Result<FriendDailyEntity>
-    suspend fun getMissions(): Result<MissionsEntity>
+
+    // ✅ 미션: userId 받도록 분리
+    suspend fun getDailyMissions(userId: Int): Result<MissionsEntity>
+    suspend fun getWeeklyMissions(userId: Int): Result<MissionsEntity>
+    suspend fun getMonthlyMissions(userId: Int): Result<MissionsEntity>
+
     suspend fun submitMissions(selected: List<Int>): Result<MissionsEntity>
 }

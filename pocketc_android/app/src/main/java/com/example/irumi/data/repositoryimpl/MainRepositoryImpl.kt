@@ -25,20 +25,17 @@ class MainRepositoryImpl @Inject constructor(
         requireData(res.data, "getDaily").toEntity()
     }
 
-    /**
-     * /users/spending 는 403 → daily.totalSpending으로 래핑해서 돌려준다
-     */
     override suspend fun getSpending(): Result<SpendingEntity> = runCatching {
         val daily = requireData(dataSource.getDaily().data, "getDaily(for spending)")
         SpendingResponse(daily.totalSpending).toEntity()
     }
 
-    /**
-     * 서버 스키마: { follows: [{followeeId, followedAt}] }
-     * 닉네임/이미지는 없음 → UI에선 id 기반으로 표시(예: "친구 23") 또는 별도 프로필 조회 필요
-     */
     override suspend fun getFollows(): Result<List<FollowEntity>> =
-        Result.failure(UnsupportedOperationException("현재 /users/follows는 닉네임/이미지가 없어 FollowEntity로 매핑할 수 없습니다. getFollowIds()를 사용하세요."))
+        Result.failure(
+            UnsupportedOperationException(
+                "현재 /users/follows는 닉네임/이미지가 없어 FollowEntity로 매핑할 수 없습니다. getFollowIds()를 사용하세요."
+            )
+        )
 
     override suspend fun getBadges(): Result<List<BadgeEntity>> = runCatching {
         val res = dataSource.getBadges()
@@ -50,14 +47,13 @@ class MainRepositoryImpl @Inject constructor(
         requireData(res.data, "getStreaks").toEntity()
     }
 
-    // 실제 엔드포인트에 맞춘 팔로우 아이디/시각 목록
     override suspend fun getFollowIds(): Result<List<FollowInfoEntity>> = runCatching {
         val res = dataSource.getFollowIds()
         requireData(res.data, "getFollowIds").toEntity()
     }
 
     override suspend fun follow(targetUserId: Int): Result<Unit> = runCatching {
-        dataSource.postFollow(targetUserId) // data는 사용 안 함
+        dataSource.postFollow(targetUserId)
         Unit
     }
 
@@ -71,9 +67,20 @@ class MainRepositoryImpl @Inject constructor(
         requireData(res.data, "getDailyWithFriend").toEntity()
     }
 
-    override suspend fun getMissions(): Result<MissionsEntity> = runCatching {
-        val res = dataSource.getMissions()
-        requireData(res.data, "getMissions").toEntity()
+    // ----- Missions -----
+    override suspend fun getDailyMissions(userId: Int): Result<MissionsEntity> = runCatching {
+        val res = dataSource.getDailyMissions(userId)
+        requireData(res.data, "getDailyMissions").toEntity()
+    }
+
+    override suspend fun getWeeklyMissions(userId: Int): Result<MissionsEntity> = runCatching {
+        val res = dataSource.getWeeklyMissions(userId)
+        requireData(res.data, "getWeeklyMissions").toEntity()
+    }
+
+    override suspend fun getMonthlyMissions(userId: Int): Result<MissionsEntity> = runCatching {
+        val res = dataSource.getMonthlyMissions(userId)
+        requireData(res.data, "getMonthlyMissions").toEntity()
     }
 
     override suspend fun submitMissions(selected: List<Int>): Result<MissionsEntity> = runCatching {

@@ -15,18 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.domain.entity.main.StreakEntity
-import com.example.irumi.ui.home.component.BadgesSection
-import com.example.irumi.ui.home.component.FriendAddSheet
-import com.example.irumi.ui.home.component.FriendCompareSection
-import com.example.irumi.ui.home.component.FriendList
-import com.example.irumi.ui.home.component.MyScoreSection
-import com.example.irumi.ui.home.component.StreakSection
-import com.example.irumi.ui.home.component.TodoSection
-import com.example.irumi.ui.home.component.MissionPickSheet
+import com.example.irumi.ui.home.component.*
 import com.example.irumi.ui.theme.BrandGreen
 import kotlin.math.min
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -47,31 +38,21 @@ fun HomeScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // 화면이 다시 보여질 때마다 새로고침
+    // 화면 재진입 시 새로고침
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.refresh()
-            }
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refresh()
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // "나" + followIds 기반 친구 목록 (닉네임 없음 → placeholder)
+    // "나" + 팔로우 ID로 친구 리스트 구성(닉네임 미확정 → placeholder)
     val friends = remember(state.followInfos, state.profile?.profileImageUrl) {
-        listOf(
-            Friend(0, "나", state.profile?.profileImageUrl) // 내 프로필 URL
-        ) + state.followInfos.map { info ->
-            Friend(
-                id = info.followUserId,
-                name = "친구 ${info.followUserId}",
-                avatarUrl = null // TODO: friendProfileUrls[info.followUserId] 로 매핑
-            )
-        }
+        listOf(Friend(0, "나", state.profile?.profileImageUrl)) +
+                state.followInfos.map { info ->
+                    Friend(id = info.followUserId, name = "친구 ${info.followUserId}", avatarUrl = null)
+                }
     }
 
     // 선택된 친구
@@ -82,31 +63,36 @@ fun HomeScreen(
         }
     }
 
-    // 선택된 친구가 바뀌면 비교 데이터 로드 (캐시 사용)
+    // 선택된 친구가 바뀌면 비교 데이터 로드(캐시 사용)
     LaunchedEffect(selectedFriend.id) {
-        if (selectedFriend.id != 0) {
-            viewModel.reloadFriendDaily(selectedFriend.id) // skipIfCached = true(기본)
-        }
+        if (selectedFriend.id != 0) viewModel.reloadFriendDaily(selectedFriend.id)
     }
 
-    // --- 오늘 첫 실행: 추천 미션 모달 오픈 제어 ---
+    // ===== 미션 탭(일/주/월) =====
+    var selectedTab by rememberSaveable { mutableStateOf(MissionPeriod.DAILY) }
+    // VM 값과 동기화
+    LaunchedEffect(state.missionPeriod) {
+        if (selectedTab != state.missionPeriod) selectedTab = state.missionPeriod
+    }
+    // 탭 변경 시 해당 기간 미션 로드
+    LaunchedEffect(selectedTab, state.profile?.userId) {
+        viewModel.reloadMissions(selectedTab)
+    }
+
+    // ===== 오늘 첫 실행: 추천 미션 시트 자동 노출(데일리 탭 한정, 하루 1회) =====
     val dayKey = remember { LocalDate.now(ZoneId.of("Asia/Seoul")).toString() }
     var showMissionSheet by rememberSaveable { mutableStateOf(false) }
-    var submitLoading by remember { mutableStateOf(false) }
     var lastTriggeredByDayKey by rememberSaveable { mutableStateOf("") }
 
-    LaunchedEffect(state.missionReceived, state.missions, dayKey) {
-        if (!state.missionReceived && state.missions.isNotEmpty() && lastTriggeredByDayKey != dayKey) {
+    LaunchedEffect(state.missions, dayKey, selectedTab) {
+        val isDaily = selectedTab == MissionPeriod.DAILY
+        if (isDaily && state.missions.isNotEmpty() && lastTriggeredByDayKey != dayKey) {
             showMissionSheet = true
             lastTriggeredByDayKey = dayKey
         }
-        if (state.missionReceived) {
-            showMissionSheet = false
-            submitLoading = false
-        }
     }
 
-    // 친구 추가/삭제 UI 상태
+    // ===== 친구 추가/삭제 UI 상태 =====
     var showAddSheet by remember { mutableStateOf(false) }
     var followLoading by remember { mutableStateOf(false) }
     var followError by remember { mutableStateOf<String?>(null) }
@@ -150,18 +136,22 @@ fun HomeScreen(
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(12.dp))
         }
-        state.error?.let { _ ->
-            // 필요 시 에러 UI 노출
-        }
 
         // --- 본문: 내 화면 / 친구 화면 ---
         if (selectedFriend.id == 0) {
             MyScoreSection(score = state.myScore?.savingScore ?: 0)
             Spacer(Modifier.height(12.dp))
 
-            // 미션 바인딩 (오늘의 미션)
+            // 미션 탭
+            MissionTabRow(
+                selected = selectedTab,
+                onSelect = { selectedTab = it }
+            )
+            Spacer(Modifier.height(10.dp))
+
+            // 오늘의 미션(새 스키마: missionReceived 제거) — 기존 컴포넌트 시그니처 유지 위해 false 전달
             TodoSection(
-                missionReceived = state.missionReceived,
+                missionReceived = false,
                 missions = state.missions
             )
             Spacer(Modifier.height(12.dp))
@@ -175,7 +165,7 @@ fun HomeScreen(
                 totalDays = 365
             )
 
-            Log.d("", "사고지점2")
+            Log.d("HomeScreen", "사고지점2")
         } else {
             // 친구 비교 데이터 (없으면 로딩 중)
             val pair = state.friendDaily[selectedFriend.id]
@@ -183,14 +173,12 @@ fun HomeScreen(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+                ) { CircularProgressIndicator() }
                 Spacer(Modifier.height(12.dp))
             } else {
                 FriendCompareSection(
-                    myScore = pair.me.savingScore,          // 내 점수(엔드포인트에서 함께 제공)
-                    friendScore = pair.friend.savingScore,  // 친구 점수
+                    myScore = pair.me.savingScore,
+                    friendScore = pair.friend.savingScore,
                     friendName = selectedFriend.name
                 )
                 Spacer(Modifier.height(12.dp))
@@ -225,7 +213,7 @@ fun HomeScreen(
             }
         )
 
-        // followInfos 기준으로 성공 여부 감지
+        // followInfos 기준 성공 여부 감지
         LaunchedEffect(state.followInfos, state.error, followLoading, showAddSheet, pendingFollowTargetId) {
             if (!showAddSheet || !followLoading) return@LaunchedEffect
             if (state.error != null) {
@@ -294,7 +282,7 @@ fun HomeScreen(
             }
         )
 
-        // followInfos 기준으로 언팔 성공 감지
+        // followInfos 기준 언팔 성공 감지
         LaunchedEffect(state.followInfos, state.error, unfollowLoading, pendingUnfollow) {
             if (!unfollowLoading) return@LaunchedEffect
             if (state.error != null) {
@@ -311,21 +299,41 @@ fun HomeScreen(
         }
     }
 
-    // ===== 추천 미션 선택 모달 =====
+    // ===== 미션 시트(성공/실패 자동 표기, 기간 토글 가능) =====
     if (showMissionSheet) {
         MissionPickSheet(
-            missions = state.missions,           // GET 결과: 추천 미션들
-            isProcessing = submitLoading,
-            initiallySelected = emptySet(),
-            onDismiss = { showMissionSheet = false }, // "나중에" 닫기
-            onConfirm = { selected ->
-                submitLoading = true
-                viewModel.submitMissions(selected)
-            }
+            period = state.missionPeriod,
+            onChangePeriod = { p -> viewModel.reloadMissions(p) },
+            missions = state.missions,
+            isProcessing = false,
+            onDismiss = { showMissionSheet = false }
         )
     }
 
-    Log.d("", "사고지점3")
+    Log.d("HomeScreen", "사고지점3")
+}
+
+/** 미션 탭 UI */
+@Composable
+private fun MissionTabRow(
+    selected: MissionPeriod,
+    onSelect: (MissionPeriod) -> Unit
+) {
+    val items = listOf(
+        MissionPeriod.DAILY to "일간",
+        MissionPeriod.WEEKLY to "주간",
+        MissionPeriod.MONTHLY to "월간"
+    )
+    val selectedIndex = items.indexOfFirst { it.first == selected }.coerceAtLeast(0)
+    TabRow(selectedTabIndex = selectedIndex) {
+        items.forEachIndexed { index, (period, label) ->
+            Tab(
+                selected = index == selectedIndex,
+                onClick = { onSelect(period) },
+                text = { Text(label) }
+            )
+        }
+    }
 }
 
 /** StreakEntity -> 고정 길이 Boolean 리스트 */
