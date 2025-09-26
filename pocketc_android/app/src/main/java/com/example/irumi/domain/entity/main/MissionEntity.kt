@@ -1,15 +1,16 @@
 package com.example.irumi.domain.entity.main
 
 data class MissionEntity(
-    val missionId: Int,
-    val subId: Int,
-    val type: Int,
     val mission: String,
-    val status: String,
-    val progress: Int
+    val subId: Int,
+    val dsl: String,
+    val type: Int,
+    val validFrom: String,
+    val validTo: String
 )
 
 data class MissionsEntity(
-    val missionReceived: Boolean,
+    val userId: Int,
+    val date: String,
     val missions: List<MissionEntity>
 )
