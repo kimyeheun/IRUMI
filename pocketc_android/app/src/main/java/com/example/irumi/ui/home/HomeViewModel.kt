@@ -2,15 +2,7 @@ package com.example.irumi.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.irumi.domain.entity.main.BadgeEntity
-import com.example.irumi.domain.entity.main.DailySavingEntity
-import com.example.irumi.domain.entity.main.FollowInfoEntity
-import com.example.irumi.domain.entity.main.FriendDailyEntity
-import com.example.irumi.domain.entity.main.MissionEntity
-import com.example.irumi.domain.entity.main.MissionsEntity
-import com.example.irumi.domain.entity.main.SpendingEntity
-import com.example.irumi.domain.entity.main.StreakEntity
-import com.example.irumi.domain.entity.main.UserProfileEntity
+import com.example.irumi.domain.entity.main.*
 import com.example.irumi.domain.repository.MainRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -22,8 +14,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-
-enum class MissionPeriod { DAILY, WEEKLY, MONTHLY }
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -60,10 +50,7 @@ class HomeViewModel @Inject constructor(
     /** 개별 섹션 갱신: 데일리 점수/지출 */
     fun reloadMyScore() = launchAndSet("[reloadMyScore]") {
         val daily = mainRepository.getDaily().getOrThrow().also {
-            Timber.d(
-                "[HomeVM] reloadMyScore(): savingScore=%d, totalSpending=%d",
-                it.savingScore, it.totalSpending
-            )
+            Timber.d("[HomeVM] reloadMyScore(): savingScore=%d, totalSpending=%d", it.savingScore, it.totalSpending)
         }
         _uiState.value = _uiState.value.copy(
             myScore = daily,
@@ -75,10 +62,7 @@ class HomeViewModel @Inject constructor(
     /** 개별 섹션 갱신: 스트릭 */
     fun reloadStreaks() = launchAndSet("[reloadStreaks]") {
         val streaks = mainRepository.getStreaks().getOrThrow()
-        Timber.d(
-            "[HomeVM] reloadStreaks(): size=%d, first=%s",
-            streaks.size, streaks.firstOrNull()?.date ?: "null"
-        )
+        Timber.d("[HomeVM] reloadStreaks(): size=%d, first=%s", streaks.size, streaks.firstOrNull()?.date ?: "null")
         _uiState.value = _uiState.value.copy(streaks = streaks)
     }
 
@@ -86,15 +70,10 @@ class HomeViewModel @Inject constructor(
     fun reloadFollowIds() = launchAndSet("[reloadFollowIds]") {
         mainRepository.getFollowIds()
             .onSuccess {
-                Timber.d(
-                    "[HomeVM] reloadFollowIds(): size=%d, ids=%s",
-                    it.size, it.joinToString { it.followUserId.toString() }
-                )
+                Timber.d("[HomeVM] reloadFollowIds(): size=%d, ids=%s", it.size, it.joinToString { f -> f.followUserId.toString() })
                 _uiState.value = _uiState.value.copy(followInfos = it)
             }
-            .onFailure {
-                Timber.d("[HomeVM] reloadFollowIds() ERROR")
-            }
+            .onFailure { Timber.d("[HomeVM] reloadFollowIds() ERROR") }
     }
 
     /** 개별 섹션 갱신: 뱃지 */
@@ -104,35 +83,23 @@ class HomeViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(badges = badges)
     }
 
-    /** 개별 섹션 갱신: 미션 (일/주/월) */
-    fun reloadMissions(period: MissionPeriod = _uiState.value.missionPeriod) =
-        launchAndSet("[reloadMissions:$period]") {
-            val uid = _uiState.value.profile?.userId
-            if (uid == null) {
-                Timber.w("[HomeVM] reloadMissions skipped: profile null")
-                return@launchAndSet
-            }
-            val missionsEntity = when (period) {
-                MissionPeriod.DAILY -> mainRepository.getDailyMissions(uid).getOrThrow()
-                MissionPeriod.WEEKLY -> mainRepository.getWeeklyMissions(uid).getOrThrow()
-                MissionPeriod.MONTHLY -> mainRepository.getMonthlyMissions(uid).getOrThrow()
-            }
-            Timber.d(
-                "[HomeVM] reloadMissions(%s): date=%s, size=%d",
-                period, missionsEntity.date, missionsEntity.missions.size
-            )
-            _uiState.value = _uiState.value.copy(
-                missionPeriod = period,
-                missions = missionsEntity.missions
-            )
-        }
+    /** 개별 섹션 갱신: 미션 (단일 엔드포인트) */
+    fun reloadMissions() = launchAndSet("[reloadMissions]") {
+        val missions = mainRepository.getMissions().getOrThrow()
+        Timber.d("[HomeVM] reloadMissions(): received=%s, size=%d", missions.missionReceived, missions.missions.size)
+        _uiState.value = _uiState.value.copy(
+            missionReceived = missions.missionReceived,
+            missions = missions.missions
+        )
+    }
 
-    /** 선택한 미션 제출 (응답의 missions 로 갱신) */
+    /** 선택한 미션 제출 -> 응답으로 갱신 */
     fun submitMissions(selectedIds: List<Int>) = launchAndSet("[submitMissions]") {
         Timber.d("[HomeVM] submitMissions() sending: %s", selectedIds.joinToString())
         val result = mainRepository.submitMissions(selectedIds).getOrThrow()
-        Timber.d("[HomeVM] submitMissions(): date=%s, size=%d", result.date, result.missions.size)
+        Timber.d("[HomeVM] submitMissions(): received=%s, size=%d", result.missionReceived, result.missions.size)
         _uiState.value = _uiState.value.copy(
+            missionReceived = result.missionReceived,
             missions = result.missions
         )
     }
@@ -158,48 +125,31 @@ class HomeViewModel @Inject constructor(
 
     // ---------- 내부 ----------
 
-    /**
-     * 병렬 로딩(2단계)
-     * 1) /me 먼저 받아 userId 확보
-     * 2) 나머지 섹션 + 미션(period)에 userId 적용하여 병렬 호출
-     */
+    /** 병렬 로딩 */
     private suspend fun loadAll() = coroutineScope {
         Timber.d("[HomeVM] loadAll() start")
 
-        // 1) 프로필 선취득
-        val profile = runCatching { mainRepository.getUserProfile().getOrThrow() }
-            .onSuccess {
-                Timber.d("[HomeVM] /me OK: id=%d, name=%s, budget=%d", it.userId, it.name, it.budget)
-            }
-            .onFailure { Timber.e(it, "[HomeVM] /me ERROR") }
-            .getOrNull()
+        val profileDef = async {
+            runCatching { mainRepository.getUserProfile().getOrThrow() }
+                .also { r ->
+                    r.onSuccess { Timber.d("[HomeVM] /me OK: id=%d, name=%s, budget=%d", it.userId, it.name, it.budget) }
+                        .onFailure { Timber.e(it, "[HomeVM] /me ERROR") }
+                }
+        }
 
-        // 미리 반영
-        _uiState.value = _uiState.value.copy(profile = profile)
-
-        // 2) 병렬 호출
         val dailyDef = async {
             runCatching { mainRepository.getDaily().getOrThrow() }
                 .also { r ->
-                    r.onSuccess {
-                        Timber.d(
-                            "[HomeVM] /daily OK: savingScore=%d, totalSpending=%d",
-                            it.savingScore, it.totalSpending
-                        )
-                    }.onFailure { Timber.e(it, "[HomeVM] /daily ERROR") }
+                    r.onSuccess { Timber.d("[HomeVM] /daily OK: savingScore=%d, totalSpending=%d", it.savingScore, it.totalSpending) }
+                        .onFailure { Timber.e(it, "[HomeVM] /daily ERROR") }
                 }
         }
 
         val followIdsDef = async {
             runCatching { mainRepository.getFollowIds().getOrThrow() }
                 .also { r ->
-                    r.onSuccess {
-                        Timber.d(
-                            "[HomeVM] /follows(ids) OK: size=%d, ids=%s",
-                            it.size, it.joinToString { f -> f.followUserId.toString() }
-                        )
-
-                    }.onFailure { Timber.e(it, "[HomeVM] /follows(ids) ERROR") }
+                    r.onSuccess { Timber.d("[HomeVM] /follows(ids) OK: size=%d, ids=%s", it.size, it.joinToString { f -> f.followUserId.toString() }) }
+                        .onFailure { Timber.e(it, "[HomeVM] /follows(ids) ERROR") }
                 }
         }
 
@@ -219,35 +169,18 @@ class HomeViewModel @Inject constructor(
                 }
         }
 
-        // 미션: 프로필이 있으면 해당 userId로, 없으면 스킵
         val missionsDef = async {
-            val uid = profile?.userId
-            if (uid == null) {
-                Timber.w("[HomeVM] /missions skipped: profile null")
-                Result.failure<MissionsEntity>(IllegalStateException("profile null"))
-            } else {
-                val period = _uiState.value.missionPeriod
-                val res = runCatching {
-                    when (period) {
-                        MissionPeriod.DAILY -> mainRepository.getDailyMissions(uid).getOrThrow()
-                        MissionPeriod.WEEKLY -> mainRepository.getWeeklyMissions(uid).getOrThrow()
-                        MissionPeriod.MONTHLY -> mainRepository.getMonthlyMissions(uid).getOrThrow()
-                    }
+            runCatching { mainRepository.getMissions().getOrThrow() }
+                .also { r ->
+                    r.onSuccess { Timber.d("[HomeVM] /missions OK: received=%s, size=%d", it.missionReceived, it.missions.size) }
+                        .onFailure { Timber.e(it, "[HomeVM] /missions ERROR") }
                 }
-                res.also { r ->
-                    r.onSuccess {
-                        Timber.d(
-                            "[HomeVM] /missions(%s) OK: date=%s, size=%d",
-                            period, it.date, it.missions.size
-                        )
-                    }.onFailure { Timber.e(it, "[HomeVM] /missions ERROR") }
-                }
-            }
         }
 
-        awaitAll(dailyDef, followIdsDef, badgesDef, streaksDef, missionsDef)
+        awaitAll(profileDef, dailyDef, followIdsDef, badgesDef, streaksDef, missionsDef)
 
         val current = _uiState.value
+        val profile = profileDef.await().getOrNull() ?: current.profile
         val daily = dailyDef.await().getOrNull() ?: current.myScore
         val followInfos = followIdsDef.await().getOrNull() ?: current.followInfos
         val badges = badgesDef.await().getOrNull() ?: current.badges
@@ -257,12 +190,13 @@ class HomeViewModel @Inject constructor(
         _uiState.value = current.copy(
             isLoading = false,
             error = null,
-            profile = profile ?: current.profile,
+            profile = profile,
             myScore = daily,
             todaySpending = daily?.let { SpendingEntity(it.totalSpending) } ?: current.todaySpending,
             followInfos = followInfos,
             badges = badges,
             streaks = streaks,
+            missionReceived = missions?.missionReceived ?: current.missionReceived,
             missions = missions?.missions ?: current.missions
         )
 
@@ -323,8 +257,8 @@ data class HomeUiState(
     val badges: List<BadgeEntity> = emptyList(),            // /users/badges
     val streaks: List<StreakEntity> = emptyList(),          // /users/streaks
 
-    // 미션
-    val missionPeriod: MissionPeriod = MissionPeriod.DAILY,
+    // 미션 (단일 엔드포인트)
+    val missionReceived: Boolean = false,
     val missions: List<MissionEntity> = emptyList(),
 
     // 친구 비교 캐시: friendId → (me, friend)
@@ -341,5 +275,5 @@ private fun HomeUiState.summary(): String =
             "followIds=${followInfos.size}, " +
             "badges=${badges.size}, " +
             "streaks=${streaks.size}, " +
-            "missions(${missionPeriod})=${missions.size}, " +
+            "missions(received=$missionReceived)=${missions.size}, " +
             "friendDaily=${friendDaily.size}"
