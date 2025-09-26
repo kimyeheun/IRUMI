@@ -1,7 +1,26 @@
 package com.example.irumi.data.mapper
 
-import com.example.irumi.data.dto.response.main.*
-import com.example.irumi.domain.entity.main.*
+import com.example.irumi.data.dto.response.main.BadgeListResponse
+import com.example.irumi.data.dto.response.main.DailySavingResponse
+import com.example.irumi.data.dto.response.main.FollowIdsResponse
+import com.example.irumi.data.dto.response.main.FollowItem
+import com.example.irumi.data.dto.response.main.FollowListResponse
+import com.example.irumi.data.dto.response.main.FriendDailyResponse
+import com.example.irumi.data.dto.response.main.MissionResponse
+import com.example.irumi.data.dto.response.main.MissionsResponse
+import com.example.irumi.data.dto.response.main.SpendingResponse
+import com.example.irumi.data.dto.response.main.StreaksResponse
+import com.example.irumi.data.dto.response.main.UserProfileResponse
+import com.example.irumi.domain.entity.main.BadgeEntity
+import com.example.irumi.domain.entity.main.DailySavingEntity
+import com.example.irumi.domain.entity.main.FollowEntity
+import com.example.irumi.domain.entity.main.FollowInfoEntity
+import com.example.irumi.domain.entity.main.FriendDailyEntity
+import com.example.irumi.domain.entity.main.MissionEntity
+import com.example.irumi.domain.entity.main.MissionsEntity
+import com.example.irumi.domain.entity.main.SpendingEntity
+import com.example.irumi.domain.entity.main.StreakEntity
+import com.example.irumi.domain.entity.main.UserProfileEntity
 
 /** 유저 프로필 매핑 */
 fun UserProfileResponse.toEntity() = UserProfileEntity(
