@@ -6,29 +6,41 @@ import com.example.irumi.data.dto.response.main.*
 import retrofit2.http.*
 
 interface MainService {
-    @GET("me") suspend fun getUserProfile(): BaseResponse<UserProfileResponse>
-    @GET("daily") suspend fun getDailySaving(): BaseResponse<DailySavingResponse>
+    @GET("me")
+    suspend fun getUserProfile(): BaseResponse<UserProfileResponse>
 
-    @GET("follows") suspend fun getFollowIds(): BaseResponse<FollowIdsResponse>
-    @GET("badges") suspend fun getBadges(): BaseResponse<BadgeListResponse>
-    @GET("streaks") suspend fun getStreaks(): BaseResponse<StreaksResponse>
+    @GET("daily")
+    suspend fun getDailySaving(): BaseResponse<DailySavingResponse>
 
-    @POST("follows/{targetUserId}") suspend fun postFollow(@Path("targetUserId") id: Int): BaseResponse<Unit?>
-    @DELETE("follows/{targetUserId}") suspend fun deleteFollow(@Path("targetUserId") id: Int): BaseResponse<Unit?>
+    @GET("follows")
+    suspend fun getFollowIds(): BaseResponse<FollowIdsResponse>
 
-    @GET("daily/{friendId}") suspend fun getDailyWithFriend(@Path("friendId") id: Int): BaseResponse<FriendDailyResponse>
+    @GET("badges")
+    suspend fun getBadges(): BaseResponse<BadgeListResponse>
 
-    // ✅ 미션 3종
-    @GET("ai/missions/{userId}/daily")
+    @GET("streaks")
+    suspend fun getStreaks(): BaseResponse<StreaksResponse>
+
+    @POST("follows/{targetUserId}")
+    suspend fun postFollow(@Path("targetUserId") id: Int): BaseResponse<Unit?>
+
+    @DELETE("follows/{targetUserId}")
+    suspend fun deleteFollow(@Path("targetUserId") id: Int): BaseResponse<Unit?>
+
+    @GET("daily/{friendId}")
+    suspend fun getDailyWithFriend(@Path("friendId") id: Int): BaseResponse<FriendDailyResponse>
+
+    // ✅ 미션 API (절대 경로 사용!)
+    @GET("/api/v1/ai/missions/{userId}/daily")
     suspend fun getDailyMissions(@Path("userId") userId: Int): BaseResponse<MissionsResponse>
 
-    @GET("ai/missions/{userId}/weekly")
+    @GET("/api/v1/ai/missions/{userId}/weekly")
     suspend fun getWeeklyMissions(@Path("userId") userId: Int): BaseResponse<MissionsResponse>
 
-    @GET("ai/missions/{userId}/monthly")
+    @GET("/api/v1/ai/missions/{userId}/monthly")
     suspend fun getMonthlyMissions(@Path("userId") userId: Int): BaseResponse<MissionsResponse>
 
-    // 선택 제출 (엔드포인트가 /ai/missions 인게 스펙이면 그대로 유지)
-    @POST("ai/missions")
+    // 선택 제출
+    @POST("/api/v1/ai/missions")
     suspend fun postMissions(@Body body: MissionsSelectRequest): BaseResponse<MissionsResponse>
 }
