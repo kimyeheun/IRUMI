@@ -13,7 +13,7 @@ import javax.inject.Inject
 class AuthRemoteDataSource @Inject constructor(
     private val service: AuthService
 ) : AuthDataSource {
-    override suspend fun signUp(body: SignUpRequest): BaseResponse<Void> =
+    override suspend fun signUp(body: SignUpRequest): BaseResponse<LoginEnvelope> =
         service.signUp(body)
 
     override suspend fun login(body: LoginRequest): BaseResponse<LoginEnvelope> =

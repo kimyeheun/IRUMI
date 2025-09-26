@@ -32,11 +32,11 @@ private val AuthEditRequest.profileImage: String?
 
 class AuthLocalDataSource @Inject constructor() : AuthDataSource {
 
-    override suspend fun signUp(body: SignUpRequest): BaseResponse<Void> =
+    override suspend fun signUp(body: SignUpRequest): BaseResponse<LoginEnvelope> =
         BaseResponse(
             status = 201,
             message = "회원가입이 완료되었습니다",
-            data = null
+            data = LoginEnvelope(accessToken = "access_dummy", refreshToken = "refresh_dummy")
         )
 
     override suspend fun login(body: LoginRequest): BaseResponse<LoginEnvelope> =
