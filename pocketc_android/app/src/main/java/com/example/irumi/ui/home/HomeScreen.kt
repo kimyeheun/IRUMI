@@ -48,8 +48,10 @@ fun HomeScreen(
     val view = LocalView.current
     SideEffect {
         val window = (view.context as Activity).window
-        window.statusBarColor = Color.White.toArgb()
-        window.navigationBarColor = Color.White.toArgb()
+        // ▼ 여기 두 줄을 LightGray로 변경
+        window.statusBarColor = LightGray.toArgb()
+        window.navigationBarColor = LightGray.toArgb()
+
         WindowCompat.getInsetsController(window, view).apply {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
