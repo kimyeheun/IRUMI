@@ -72,7 +72,6 @@ fun MainScreen(navigator: MainNavigator = rememberMainNavigator()) {
             composable<Stats> {
                 val ctx = LocalContext.current
                 StatsRoute(
-                    brand = brand,
                     onLoggedOut = {
                         val intent = Intent(ctx, IntroActivity::class.java).apply {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

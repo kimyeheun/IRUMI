@@ -3,7 +3,10 @@ package com.example.irumi.ui.profile
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,14 +31,18 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,7 +57,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.irumi.domain.entity.main.DailySavingEntity
+import com.example.irumi.data.dto.request.auth.AuthEditRequest
 import com.example.irumi.domain.entity.main.UserProfileEntity
 import com.example.irumi.ui.auth.AuthViewModel
 import com.example.irumi.ui.events.SampleColors
@@ -71,6 +78,18 @@ fun MyPageScreen(
     val error = authViewModel.error
     val isLoggedIn = authViewModel.isLoggedIn
 
+    // 이미지 선택을 위한 launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            authViewModel.updateMe(AuthEditRequest(
+                uiState.profile?.name!!,
+                uiState.profile?.budget!!
+                ))
+        }
+    }
+
     // 로그아웃 성공 감지 → 외부로 알림
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) onLoggedOut()
@@ -86,8 +105,10 @@ fun MyPageScreen(
             // 프로필 헤더 카드
             ProfileHeaderCard(
                 profile = uiState.profile,
-                myScore = uiState.myScore,
                 money = money,
+                onLoggedOut = { // 콜백으로 전달
+                    imagePickerLauncher.launch("image/*")
+                }
             )
         }
 
@@ -124,8 +145,8 @@ fun MyPageScreen(
 @Composable
 private fun ProfileHeaderCard(
     profile: UserProfileEntity?,
-    myScore: DailySavingEntity?,
     money: DecimalFormat,
+    onLoggedOut: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -388,6 +409,7 @@ private fun StatItem(
 
 @Composable
 private fun SettingsSection(onLoggedOut: () -> Unit) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -422,9 +444,42 @@ private fun SettingsSection(onLoggedOut: () -> Unit) {
                 icon = Icons.Default.ExitToApp,
                 title = "로그아웃",
                 subtitle = "",
-                onClick = onLoggedOut,
+                onClick = { showLogoutDialog = true },
                 textColor = Color(0xFFE53E3E)
             )
+
+            // 로그아웃 확인 다이얼로그
+            if (showLogoutDialog) {
+                AlertDialog(
+                    onDismissRequest = { showLogoutDialog = false },
+                    title = {
+                        Text("로그아웃")
+                    },
+                    text = {
+                        Text("정말 로그아웃 하시겠습니까?")
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showLogoutDialog = false
+                                onLoggedOut()
+                            }
+                        ) {
+                            Text(
+                                "로그아웃",
+                                color = Color(0xFFE53E3E)
+                            )
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showLogoutDialog = false }
+                        ) {
+                            Text("취소")
+                        }
+                    }
+                )
+            }
         }
     }
 }

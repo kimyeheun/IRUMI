@@ -1,5 +1,7 @@
 package com.example.irumi.ui.payments
 
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.irumi.core.mapper.CategoryMapper
@@ -64,6 +66,8 @@ class PaymentsViewModel @Inject constructor(
     private val _selectedMonth = MutableStateFlow(YearMonth.now())
     val selectedMonth: StateFlow<YearMonth> = _selectedMonth.asStateFlow()
 
+    private val _toastEvent = MutableSharedFlow<String>()
+    val toastEvent: SharedFlow<String> = _toastEvent.asSharedFlow()
 
     init {
         // TODO detail로 옮기기
@@ -168,6 +172,8 @@ class PaymentsViewModel @Inject constructor(
                 .onFailure {
                     Timber.d("!!! getPaymentDetail ${paymentId} 실패: ${it.message}")
                     _paymentDetailState.value = UiState.Failure("서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.")
+                    _toastEvent.emit("결제 내역 조회에 실패했습니다")
+
                 }
         }
     }

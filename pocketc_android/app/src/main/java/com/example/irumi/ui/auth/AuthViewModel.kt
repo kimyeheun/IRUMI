@@ -11,6 +11,9 @@ import com.example.irumi.data.dto.request.auth.LoginRequest
 import com.example.irumi.data.dto.request.auth.SignUpRequest
 import com.example.irumi.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -24,6 +27,9 @@ class AuthViewModel @Inject constructor(
     var loading by mutableStateOf(false); private set
     var error by mutableStateOf<String?>(null); private set
     var isLoggedIn by mutableStateOf(!tokenStore.accessToken.isNullOrBlank()); private set
+
+    private val _toastEvent = MutableSharedFlow<String>()
+    val toastEvent: SharedFlow<String> = _toastEvent.asSharedFlow()
 
     /** 앱 시작 시 자동 로그인 조건 확인 */
     fun tryAutoLogin(): Boolean =
@@ -44,6 +50,7 @@ class AuthViewModel @Inject constructor(
                 .onFailure {
                     Timber.d("!!! 회원가입 실패 ${it}")
                     error = it.message
+                    _toastEvent.emit("회원가입에 실패했습니다.")
                 }
         }
 
@@ -60,6 +67,7 @@ class AuthViewModel @Inject constructor(
                 .onFailure {
                     Timber.d("로그인 실패 ${it.message}")
                     error = it.message
+                    _toastEvent.emit("아이디와 비밀번호를 확인하세요.")
                 }
         }
 
@@ -68,10 +76,12 @@ class AuthViewModel @Inject constructor(
             .onSuccess {
                 tokenStore.clear()
                 isLoggedIn = false
+
             }
             .onFailure {
                 Timber.d("!!! 로그아웃 실패 $it")
                 error = it.message
+                _toastEvent.emit("로그아웃 실패")
             }
     }
 
@@ -82,7 +92,10 @@ class AuthViewModel @Inject constructor(
     }
 
     fun updateMe(req: AuthEditRequest) = launch {
-        repo.updateMe(req).onFailure { error = it.message }
+        repo.updateMe(req).onFailure {
+            error = it.message
+            _toastEvent.emit("업데이트 실패")
+        }
     }
 
     private fun launch(block: suspend () -> Unit) = viewModelScope.launch {
