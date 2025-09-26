@@ -53,6 +53,7 @@ import com.example.irumi.ui.payments.model.PaymentsByDay
 import com.example.irumi.ui.payments.model.PaymentsListItem
 import com.example.irumi.ui.payments.model.PaymentsUiState
 import com.example.irumi.ui.theme.BrandGreen
+import com.example.irumi.ui.theme.LightGray
 import timber.log.Timber
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -136,8 +137,8 @@ fun PaymentsScreen(
     Surface(
         modifier = Modifier
             .fillMaxSize(),
-            //.padding(paddingValues),
-        color = TossColors.Surface
+        //.padding(paddingValues),
+        color = LightGray   // ★ LightGray 배경 적용
     ) {
         Column {
             // 상단바

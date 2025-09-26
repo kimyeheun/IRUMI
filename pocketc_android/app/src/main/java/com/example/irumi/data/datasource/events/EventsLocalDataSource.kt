@@ -191,7 +191,7 @@ class EventsLocalDataSource @Inject constructor() : EventsDataSource {
                             Rank(2, 2, 3)
                         ),
                         puzzleAttempts = 4
-                    )
+                )
         )
     }
 }

@@ -24,5 +24,4 @@ class PaymentsRemoteDataSource @Inject constructor(
 
     override suspend fun checkPaymentDetail(transactionId: Int): BaseResponse<Void> =
         paymentsService.checkPaymentDetail(transactionId)
-
 }

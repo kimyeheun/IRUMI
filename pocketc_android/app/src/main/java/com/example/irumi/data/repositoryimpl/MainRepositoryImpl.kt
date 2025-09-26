@@ -74,7 +74,6 @@ class MainRepositoryImpl @Inject constructor(
         requireData(res.data, "getDailyWithFriend").toEntity()
     }
 
-    // ----- Missions -----
     override suspend fun getMissions(): Result<MissionsEntity> = runCatching {
         val res = dataSource.getMissions()
         requireData(res.data, "getMissions").toEntity()
@@ -84,5 +83,4 @@ class MainRepositoryImpl @Inject constructor(
         val res = dataSource.postMissions(selected)
         requireData(res.data, "postMissions").toEntity()
     }
-
 }

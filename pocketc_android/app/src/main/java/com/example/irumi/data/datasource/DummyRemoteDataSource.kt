@@ -8,5 +8,4 @@ class DummyRemoteDataSource @Inject constructor(
     private val dummyService: DummyService
 ) : DummyDataSource {
     override suspend fun getDummy(page: Int): DummyResponse = dummyService.getDummy(page)
-
 }

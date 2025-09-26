@@ -25,15 +25,15 @@ import kotlin.math.min
 
 @Composable
 fun FriendCompareSection(
-    myScore: Int?,                 // 내 점수 (서버에서 아직 안 왔으면 null)
-    friendScore: Int?,             // 친구 점수 (미제공/로딩 시 null)
+    myScore: Int?,
+    friendScore: Int?,
     friendName: String,
     titleColor: Color = BrandGreen,
     modifier: Modifier = Modifier
 ) {
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    val myColor = Color(0xFF16A34A)      // 브랜드 그린 톤
-    val friendColor = Color(0xFF3B82F6)  // 블루 톤 (가독성 향상)
+    val myColor = Color(0xFF16A34A)
+    val friendColor = Color(0xFF3B82F6)
     val bgNeutral = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .35f)
 
     // 값 보정(0~100), 로딩 구분
@@ -115,7 +115,7 @@ fun FriendCompareSection(
 @Composable
 private fun ScorePill(
     label: String,
-    score: Int?,        // null → 플레이스홀더
+    score: Int?,
     bg: Color,
     fg: Color
 ) {

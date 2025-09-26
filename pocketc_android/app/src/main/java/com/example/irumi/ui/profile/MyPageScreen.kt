@@ -35,6 +35,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -66,6 +67,8 @@ import com.example.irumi.ui.payments.TossColors
 import com.example.irumi.ui.theme.BrandGreen
 import java.text.DecimalFormat
 
+import com.example.irumi.ui.theme.LightGray   // ★ 추가
+
 @Composable
 fun MyPageScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
@@ -78,19 +81,20 @@ fun MyPageScreen(
     val error = authViewModel.error
     val isLoggedIn = authViewModel.isLoggedIn
 
-    // 이미지 선택을 위한 launcher
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { selectedUri ->
-            authViewModel.updateMe(AuthEditRequest(
-                uiState.profile?.name!!,
-                uiState.profile?.budget!!
-                ))
+        uri?.let {
+            authViewModel.updateMe(
+                AuthEditRequest(
+                    uiState.profile?.name!!,
+                    uiState.profile?.budget!!
+                )
+            )
         }
     }
 
-    // 로그아웃 성공 감지 → 외부로 알림
+    // 로그아웃 성공 감지
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) onLoggedOut()
     }
@@ -100,45 +104,41 @@ fun MyPageScreen(
     LaunchedEffect(error) {
         error?.let { Toast.makeText(ctx, it, Toast.LENGTH_SHORT).show() }
     }
-    LazyColumn() {
-        item {
-            // 프로필 헤더 카드
-            ProfileHeaderCard(
-                profile = uiState.profile,
-                money = money,
-                onLoggedOut = { // 콜백으로 전달
-                    imagePickerLauncher.launch("image/*")
-                }
-            )
-        }
 
-        item {
-            // 활동 통계 카드
-            ActivityStatsCard(
-                followCount = uiState.followInfos.size,
-                badgeCount = uiState.badges.size,
-                streakCount = uiState.streaks.size
-            )
-        }
+    // ★ 전체 배경 LightGray 적용
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = LightGray
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(16.dp) // 여백도 줄 수 있음
+        ) {
+            item {
+                ProfileHeaderCard(
+                    profile = uiState.profile,
+                    money = money,
+                    onLoggedOut = {
+                        imagePickerLauncher.launch("image/*")
+                    }
+                )
+            }
 
-        // 설정 메뉴
-        item {
-            SettingsSection(
-                onLoggedOut = {
-                    authViewModel.logout()
-                }
-            )
-        }
+            item {
+                ActivityStatsCard(
+                    followCount = uiState.followInfos.size,
+                    badgeCount = uiState.badges.size,
+                    streakCount = uiState.streaks.size
+                )
+            }
 
-//        item {
-//            PrimaryButton(
-//                text = if (loading) "로그아웃 중..." else "로그아웃",
-//                onClick = onLoggedOut,
-//                modifier = Modifier.fillMaxWidth(),
-//                enabled = !loading,
-//                loading = loading
-//            )
-//        }
+            item {
+                SettingsSection(
+                    onLoggedOut = {
+                        authViewModel.logout()
+                    }
+                )
+            }
+        }
     }
 }
 

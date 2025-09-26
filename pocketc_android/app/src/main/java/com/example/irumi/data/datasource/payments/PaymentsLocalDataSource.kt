@@ -6,7 +6,6 @@ import com.example.irumi.data.dto.response.payments.Payment
 import com.example.irumi.data.dto.response.payments.PaymentsResponse
 import javax.inject.Inject
 
-
 class PaymentsLocalDataSource @Inject constructor() : PaymentsDataSource {
     override suspend fun getPaymentDetail(transactionId: Int): BaseResponse<Payment> {
         return BaseResponse(status = 200,

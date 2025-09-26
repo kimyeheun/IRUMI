@@ -1,4 +1,3 @@
-// ui/home/component/FriendList.kt
 package com.example.irumi.ui.home.component
 
 import androidx.compose.foundation.background

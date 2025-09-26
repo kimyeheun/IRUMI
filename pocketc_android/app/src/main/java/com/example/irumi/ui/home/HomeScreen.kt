@@ -1,6 +1,6 @@
-// ui/home/HomeScreen.kt
 package com.example.irumi.ui.home
 
+import android.app.Activity                     // ★ 추가
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,15 +11,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb       // ★ 추가
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView    // ★ 추가
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat          // ★ 추가
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.domain.entity.main.StreakEntity
 import com.example.irumi.ui.home.component.*
 import com.example.irumi.ui.theme.BrandGreen
+import com.example.irumi.ui.theme.LightGray
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.min
@@ -38,6 +42,18 @@ fun HomeScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    // ---- 상태바/내비게이션바: 흰 배경 + 어두운 아이콘 설정 ----
+    val view = LocalView.current
+    SideEffect {
+        val window = (view.context as Activity).window
+        window.statusBarColor = Color.White.toArgb()
+        window.navigationBarColor = Color.White.toArgb()
+        WindowCompat.getInsetsController(window, view).apply {
+            isAppearanceLightStatusBars = true      // 상태바 아이콘을 어둡게
+            isAppearanceLightNavigationBars = true  // 내비바 아이콘을 어둡게
+        }
+    }
+
     // 화면 재진입 시 새로고침
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -53,8 +69,8 @@ fun HomeScreen(
                 state.followInfos.map { info ->
                     Friend(
                         id = info.followUserId,
-                        name = info.followeeName,        // 엔티티에 필드가 있다면 사용
-                        avatarUrl = info.followeeProfile // 엔티티에 필드가 없다면 null 처리하세요
+                        name = info.followeeName,
+                        avatarUrl = info.followeeProfile
                     )
                 }
     }
@@ -67,7 +83,7 @@ fun HomeScreen(
         }
     }
 
-    // 선택된 친구가 바뀌면 비교 데이터 로드(캐시 사용)
+    // 선택된 친구 바뀌면 비교 데이터 로드(캐시 사용)
     LaunchedEffect(selectedFriend.id) {
         if (selectedFriend.id != 0) viewModel.reloadFriendDaily(selectedFriend.id)
     }
@@ -97,88 +113,91 @@ fun HomeScreen(
     var unfollowLoading by remember { mutableStateOf(false) }
     var unfollowError by remember { mutableStateOf<String?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalAlignment = Alignment.Start
-    ) {
-        // --- 친구 리스트 ---
-        FriendList(
-            friends = friends,
-            selected = selectedFriend,
-            brand = brand,
-            onSelect = { selectedFriend = it },
-            onAddClick = {
-                followError = null
-                pendingFollowTargetId = null
-                showAddSheet = true
-            },
-            onLongPress = { friend ->
-                if (friend.id != 0) {
-                    unfollowError = null
-                    pendingUnfollow = friend
-                }
-            },
-            getAvatarUrl = { f -> f.avatarUrl }
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        // --- 로딩 ---
-        if (state.isLoading && state.profile == null) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            Spacer(Modifier.height(12.dp))
-        }
-
-        // --- 본문: 내 화면 / 친구 화면 ---
-        if (selectedFriend.id == 0) {
-            MyScoreSection(score = state.myScore?.savingScore ?: 0)
-            Spacer(Modifier.height(12.dp))
-
-            // 오늘의 미션
-            TodoSection(
-                missionReceived = state.missionReceived,
-                missions = state.missions
-            )
-            Spacer(Modifier.height(12.dp))
-
-            BadgesSection(badges = state.badges)
-            Spacer(Modifier.height(12.dp))
-
-            StreakSection(
-                friendName = null,
-                days = state.streaks.toDays(),
-                totalDays = 365
+    // ---------------- 메인 컨텐츠: 흰 배경 Surface로 래핑 ----------------
+    Surface(color = LightGray) {   // ★ 직접 정의한 LightGray 사용
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            // --- 친구 리스트 ---
+            FriendList(
+                friends = friends,
+                selected = selectedFriend,
+                brand = brand,
+                onSelect = { selectedFriend = it },
+                onAddClick = {
+                    followError = null
+                    pendingFollowTargetId = null
+                    showAddSheet = true
+                },
+                onLongPress = { friend ->
+                    if (friend.id != 0) {
+                        unfollowError = null
+                        pendingUnfollow = friend
+                    }
+                },
+                getAvatarUrl = { f -> f.avatarUrl }
             )
 
-            Log.d("HomeScreen", "사고지점2")
-        } else {
-            // 친구 비교 데이터 (없으면 로딩 중)
-            val pair = state.friendDaily[selectedFriend.id]
-            if (pair == null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) { CircularProgressIndicator() }
-                Spacer(Modifier.height(12.dp))
-            } else {
-                FriendCompareSection(
-                    myScore = pair.me.savingScore,
-                    friendScore = pair.friend.savingScore,
-                    friendName = selectedFriend.name
-                )
+            Spacer(Modifier.height(16.dp))
+
+            // --- 로딩 ---
+            if (state.isLoading && state.profile == null) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(12.dp))
             }
 
-            StreakSection(
-                friendName = selectedFriend.name,
-                days = state.streaks.toDays(),
-                totalDays = 365
-            )
+            // --- 본문: 내 화면 / 친구 화면 ---
+            if (selectedFriend.id == 0) {
+                MyScoreSection(score = state.myScore?.savingScore ?: 0)
+                Spacer(Modifier.height(12.dp))
+
+                // 오늘의 미션
+                TodoSection(
+                    missionReceived = state.missionReceived,
+                    missions = state.missions
+                )
+                Spacer(Modifier.height(12.dp))
+
+                BadgesSection(badges = state.badges)
+                Spacer(Modifier.height(12.dp))
+
+                StreakSection(
+                    friendName = null,
+                    days = state.streaks.toDays(),
+                    totalDays = 365
+                )
+
+                Log.d("HomeScreen", "사고지점2")
+            } else {
+                // 친구 비교 데이터 (없으면 로딩 중)
+                val pair = state.friendDaily[selectedFriend.id]
+                if (pair == null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) { CircularProgressIndicator() }
+                    Spacer(Modifier.height(12.dp))
+                } else {
+                    FriendCompareSection(
+                        myScore = pair.me.savingScore,
+                        friendScore = pair.friend.savingScore,
+                        friendName = selectedFriend.name
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
+
+                StreakSection(
+                    friendName = selectedFriend.name,
+                    days = state.streaks.toDays(),
+                    totalDays = 365
+                )
+            }
+            Spacer(Modifier.height(24.dp))
         }
-        Spacer(Modifier.height(24.dp))
     }
 
     // ===== 친구 추가 바텀시트 =====

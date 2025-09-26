@@ -1,6 +1,6 @@
+// ui/home/component/StreakSection.kt
 package com.example.irumi.ui.home.component
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,10 +22,11 @@ import kotlin.math.min
 /**
  * 서버에서 내려준 스트릭 Boolean 배열로만 렌더링.
  *
- * @param friendName   섹션 타이틀 우측에 표시할 친구 이름(없으면 "나의 스트릭")
- * @param days         달성 여부(true/false) 리스트. 반드시 실제 데이터 전달
- * @param startWeekdayOffset 첫 주 시작 요일 오프셋(0=일, 1=월 …) 필요한 경우에만 지정
- * @param footerText   하단 설명 문구(연속 N일 등). null이면 숨김
+ * @param friendName   친구 선택 시 이름(있으면 친구 뷰로 간주)
+ * @param days         달성 여부(true/false) 리스트
+ * @param startWeekdayOffset 첫 주 시작 요일 오프셋(0=일, 1=월 …)
+ * @param footerText   하단 설명 문구
+ * @param totalDays    그릴 총 칸 수(예: 365). days가 더 짧으면 잘라서 사용
  */
 @Composable
 fun StreakSection(
@@ -38,9 +39,9 @@ fun StreakSection(
     footerText: String? = null,
     totalDays: Int
 ) {
-    // days 가 비어있을 때는 빈 상태 UI만 출력
-    val totalDays = days.size
-    val weeks = ceil(totalDays / 7.0).toInt().coerceAtLeast(1)
+    // days와 totalDays 중 더 작은 길이만 사용 (버그 수정: 파라미터 덮어쓰기 제거)
+    val effectiveTotal = min(totalDays, days.size)
+    val weeks = ceil(effectiveTotal / 7.0).toInt().coerceAtLeast(1)
 
     Column(
         modifier = Modifier
@@ -49,11 +50,9 @@ fun StreakSection(
             .background(Color.White)
             .padding(16.dp)
     ) {
-        Text(
-            text = friendName?.let { "$it 의 스트릭" } ?: "나의 스트릭",
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
-        )
+        // 친구가 선택된 경우 고정 문구로 “친구의 스트릭” 표시
+        val title = if (friendName != null) "친구의 스트릭" else "나의 스트릭"
+        Text(text = title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         Spacer(Modifier.height(10.dp))
 
         LazyRow(
@@ -63,11 +62,11 @@ fun StreakSection(
             horizontalArrangement = Arrangement.spacedBy(weekSpacing)
         ) {
             items(
-                count=weeks,
-                key= { weekIndex -> "week_$weekIndex"}
+                count = weeks,
+                key = { weekIndex -> "week_$weekIndex" }
             ) { weekIndex ->
                 val start = weekIndex * 7
-                val end = min(start + 7, totalDays)
+                val end = min(start + 7, effectiveTotal)
                 val weekSlice = if (start < end) days.subList(start, end) else emptyList()
 
                 // 첫 주만 시작 요일 오프셋 적용

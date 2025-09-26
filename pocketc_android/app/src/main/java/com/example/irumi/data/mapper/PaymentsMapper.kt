@@ -6,7 +6,6 @@ import com.example.irumi.data.dto.response.payments.PaymentsResponse
 import com.example.irumi.domain.entity.payments.PaymentEntity
 import com.example.irumi.domain.entity.payments.PaymentsHistoryEntity
 
-
 fun Payment.toPaymentEntity() =
     PaymentEntity(
         paymentId = transactionId,

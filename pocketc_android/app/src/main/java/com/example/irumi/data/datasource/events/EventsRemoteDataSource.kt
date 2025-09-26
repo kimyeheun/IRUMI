@@ -24,5 +24,4 @@ class EventsRemoteDataSource @Inject constructor(
 
     override suspend fun fillPuzzle(): BaseResponse<PuzzlesResponse> =
         eventsService.fillPuzzle()
-
 }

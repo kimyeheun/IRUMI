@@ -3,7 +3,6 @@ package com.example.irumi.data.mapper
 import com.example.irumi.data.dto.response.main.BadgeListResponse
 import com.example.irumi.data.dto.response.main.DailySavingResponse
 import com.example.irumi.data.dto.response.main.FollowIdsResponse
-import com.example.irumi.data.dto.response.main.FollowItem
 import com.example.irumi.data.dto.response.main.FollowListResponse
 import com.example.irumi.data.dto.response.main.FriendDailyResponse
 import com.example.irumi.data.dto.response.main.MissionResponse

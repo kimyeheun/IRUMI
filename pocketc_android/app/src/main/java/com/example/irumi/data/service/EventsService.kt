@@ -46,5 +46,4 @@ interface EventsService {
     @POST("/api/v1/event/fill")
     suspend fun fillPuzzle(
     ): BaseResponse<PuzzlesResponse>
-
 }

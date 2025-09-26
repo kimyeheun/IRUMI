@@ -102,7 +102,7 @@ object CategoryMapper {
         10 to listOf(37, 38, 39)
     )
 
-    // 🔹 변환 함수
+    // 변환 함수
     fun getMajorName(id: Int): String? = majorIdToName[id]
     fun getMajorId(name: String): Int? = majorNameToId[name]
     fun isMajorFixed(id: Int): Boolean = majorIdToFixed[id] ?: false

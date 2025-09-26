@@ -1,4 +1,3 @@
-// ui/home/component/BadgesSection.kt
 package com.example.irumi.ui.home.component
 
 import androidx.compose.foundation.background
@@ -24,7 +23,6 @@ import androidx.compose.ui.layout.ContentScale
 import com.example.irumi.domain.entity.main.BadgeEntity
 import com.example.irumi.ui.theme.BrandGreen
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 

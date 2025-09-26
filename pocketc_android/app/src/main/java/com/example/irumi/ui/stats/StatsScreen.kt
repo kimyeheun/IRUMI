@@ -59,6 +59,7 @@ import com.example.irumi.ui.auth.AuthViewModel
 import com.example.irumi.ui.events.LoadingPlaceholder
 import com.example.irumi.ui.stats.component.CategoryPieChart
 import com.example.irumi.ui.theme.BrandGreen
+import com.example.irumi.ui.theme.LightGray
 import ir.ehsannarmani.compose_charts.LineChart
 import ir.ehsannarmani.compose_charts.models.DotProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
@@ -133,18 +134,15 @@ fun StatsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(LightGray)                 // ★ LightGray 적용
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.Start
     ) {
         Header(stats = stats)
-
         MonthChart(stats = stats)
-
         Spacer(Modifier.height(8.dp))
-
         CategoryPieChart(stats = stats)
     }
 }

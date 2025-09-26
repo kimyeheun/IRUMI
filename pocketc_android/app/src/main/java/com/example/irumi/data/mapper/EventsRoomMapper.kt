@@ -11,7 +11,6 @@ import com.example.irumi.domain.entity.PuzzleEntity
 import com.example.irumi.domain.entity.RankEntity
 import com.example.irumi.domain.entity.RoomEntity
 
-
 fun Room.toRoomEntity(puzzles: List<PuzzleEntity>, ranks: List<RankEntity>, members: List<MemberEntity>): RoomEntity {
     return RoomEntity(
         roomId = this.roomId,

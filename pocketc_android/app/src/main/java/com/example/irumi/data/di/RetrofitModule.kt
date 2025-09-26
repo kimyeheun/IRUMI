@@ -1,6 +1,5 @@
 package com.example.irumi.data.di
 
-import android.content.SharedPreferences
 import com.example.irumi.BuildConfig
 import com.example.irumi.core.network.AuthInterceptor
 import com.example.irumi.core.pref.TokenStore
@@ -16,7 +15,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Converter
 import retrofit2.Retrofit
 import javax.inject.Singleton
-
 
 /**
  * Hilt를 사용하여 네트워크 통신에 필요한 모든 객체(JSON, OkHttp, Retrofit)를 생성하고 제공하는 모듈

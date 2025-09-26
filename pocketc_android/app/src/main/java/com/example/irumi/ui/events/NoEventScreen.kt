@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,110 +51,119 @@ import coil.request.ImageRequest
 import com.example.irumi.domain.entity.EventEntity
 import java.text.SimpleDateFormat
 import java.util.Locale
+import com.example.irumi.ui.theme.LightGray   // ★ LightGray import
 
 @Composable
 fun NoEventScreen(viewModel: EventViewModel = hiltViewModel(), eventEntity: EventEntity) {
-    // TODO 뷰모델 연결
     var showDialog by remember { mutableStateOf(false) }
     var dialogType by remember { mutableStateOf<DialogType?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .background(Color.White)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    // ★ LightGray 전체 배경 적용
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = LightGray
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(eventEntity.badgeImageUrl)
-                .crossfade(true) // 부드러운 이미지 로딩 효과 (선택 사항)
-                .placeholder(R.drawable.ic_menu_gallery) // TODO 로딩 중 보여줄 플레이스홀더 이미지 (선택 사항)
-                .build(),
-            contentDescription = "Event Image",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .width(150.dp)
-                .clip(RoundedCornerShape(8.dp))
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),  // 여기서 더 이상 background(Color.White) ❌
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = eventEntity.eventName,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(eventEntity.badgeImageUrl)
+                    .crossfade(true)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .build(),
+                contentDescription = "Event Image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .width(150.dp)
+                    .clip(RoundedCornerShape(8.dp))
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "기간: ${formatDate(eventEntity.startAt)} ~ ${formatDate(eventEntity.endAt)}",
-                fontSize = 16.sp,
-                color = Color.Gray
-            )
+
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = eventEntity.eventDescription,
-                fontSize = 16.sp,
-                color = Color.Black,
-                textAlign = TextAlign.Center
-            )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "🏆 보상: ${eventEntity.badgeName}",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.Black,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = eventEntity.badgeDescription,
-                        fontSize = 14.sp,
-                        color = Color.DarkGray,
-                        textAlign = TextAlign.Center
-                    )
+                Text(
+                    text = eventEntity.eventName,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "기간: ${formatDate(eventEntity.startAt)} ~ ${formatDate(eventEntity.endAt)}",
+                    fontSize = 16.sp,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = eventEntity.eventDescription,
+                    fontSize = 16.sp,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "🏆 보상: ${eventEntity.badgeName}",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.Black,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = eventEntity.badgeDescription,
+                            fontSize = 14.sp,
+                            color = Color.DarkGray,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ActionButton(
-                text = "방 입장",
-                onClick = {
-                    dialogType = DialogType.ENTER_ROOM
-                    showDialog = true
-                }
-            )
-            ActionButton(
-                text = "방 생성",
-                onClick = {
-                    dialogType = DialogType.CREATE_ROOM
-                    showDialog = true
-                }
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ActionButton(
+                    text = "방 입장",
+                    onClick = {
+                        dialogType = DialogType.ENTER_ROOM
+                        showDialog = true
+                    }
+                )
+                ActionButton(
+                    text = "방 생성",
+                    onClick = {
+                        dialogType = DialogType.CREATE_ROOM
+                        showDialog = true
+                    }
+                )
+            }
         }
     }
 

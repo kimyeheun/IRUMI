@@ -16,7 +16,6 @@ interface EventsDataSource {
         maxMembers: Int
     ): BaseResponse<EventsRoomResponse>
 
-
     suspend fun leaveEventsRoom(
     ): BaseResponse<EventResponse>
 
