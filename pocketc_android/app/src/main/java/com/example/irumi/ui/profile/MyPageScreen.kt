@@ -444,7 +444,7 @@ private fun SettingsSection(onLoggedOut: () -> Unit) {
                 icon = Icons.Default.ExitToApp,
                 title = "로그아웃",
                 subtitle = "",
-                onClick = onLoggedOut,
+                onClick = { showLogoutDialog = true },
                 textColor = Color(0xFFE53E3E)
             )
 
