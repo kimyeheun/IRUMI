@@ -20,11 +20,7 @@ interface MainDataSource {
     suspend fun deleteFollow(targetUserId: Int): BaseResponse<Unit?>
     suspend fun getDailyWithFriend(friendId: Int): BaseResponse<FriendDailyResponse>
 
-    // 미션(일/주/월) – userId 필요
-    suspend fun getDailyMissions(userId: Int): BaseResponse<MissionsResponse>
-    suspend fun getWeeklyMissions(userId: Int): BaseResponse<MissionsResponse>
-    suspend fun getMonthlyMissions(userId: Int): BaseResponse<MissionsResponse>
-
-    // 추천 미션 선택 제출
+    // ✅ 미션
+    suspend fun getMissions(): BaseResponse<MissionsResponse>
     suspend fun postMissions(selected: List<Int>): BaseResponse<MissionsResponse>
 }
