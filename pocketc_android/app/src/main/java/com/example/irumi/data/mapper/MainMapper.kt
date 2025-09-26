@@ -22,6 +22,7 @@ import com.example.irumi.domain.entity.main.SpendingEntity
 import com.example.irumi.domain.entity.main.StreakEntity
 import com.example.irumi.domain.entity.main.UserProfileEntity
 
+/** 유저 프로필 매핑 */
 fun UserProfileResponse.toEntity() = UserProfileEntity(
     userId = userId,
     name = name,
@@ -29,48 +30,81 @@ fun UserProfileResponse.toEntity() = UserProfileEntity(
     profileImageUrl = profileImageUrl
 )
 
+/** 오늘의 절약 점수 매핑 */
 fun DailySavingResponse.toEntity() = DailySavingEntity(
-    savingScore, totalSpending
+    savingScore = savingScore,
+    totalSpending = totalSpending
 )
 
+/** 지출 매핑 */
 fun SpendingResponse.toEntity() = SpendingEntity(
-    totalSpending
+    totalSpending = totalSpending
 )
 
+/** 팔로우 리스트 매핑 */
 fun FollowListResponse.toEntity(): List<FollowEntity> =
-    follows.map { FollowEntity(it.followUserId, it.nickname, it.profileImageUrl) }
+    follows.map { dto ->
+        FollowEntity(
+            followUserId = dto.followUserId,
+            nickname = dto.nickname,
+            profileImageUrl = dto.profileImageUrl
+        )
+    }
 
+/** 뱃지 리스트 매핑 */
 fun BadgeListResponse.toEntity(): List<BadgeEntity> =
-    badges.map { BadgeEntity(it.badgeId, it.badgeName, it.badgeDescription, it.level, it.badgeImageUrl, it.createdAt) }
+    badges.map { dto ->
+        BadgeEntity(
+            badgeId = dto.badgeId,
+            badgeName = dto.badgeName,
+            badgeDescription = dto.badgeDescription,
+            level = dto.level,
+            badgeImageUrl = dto.badgeImageUrl,
+            createdAt = dto.createdAt
+        )
+    }
 
+/** 스트릭 매핑 */
 fun StreaksResponse.toEntity(): List<StreakEntity> =
-    streaks.map { StreakEntity(it.date, it.missionsCompleted, it.spending, it.isActive) }
+    streaks.map { dto ->
+        StreakEntity(
+            date = dto.date,
+            missionsCompleted = dto.missionsCompleted,
+            spending = dto.spending,
+            isActive = dto.isActive
+        )
+    }
 
+/** 팔로우 ID/시각 매핑 */
 fun FollowIdsResponse.toEntity(): List<FollowInfoEntity> =
-    follows.map { FollowInfoEntity(it.followUserId, it.followedAt, it.followeeName, it.followeeProfile) }
+    follows.map { dto ->
+        FollowInfoEntity(
+            followUserId = dto.followUserId,
+            followedAt = dto.followedAt,
+            followeeName = dto.followeeName,
+            followeeProfile = dto.followeeProfile
+        )
+    }
 
+/** 나와 친구의 절약 정보 매핑 */
 fun FriendDailyResponse.toEntity() = FriendDailyEntity(
     me = me.toEntity(),
     friend = friend.toEntity()
 )
 
+/** 개별 미션 매핑 */
 fun MissionResponse.toEntity() = MissionEntity(
-    missionId = missionId,
-    subId = subId,
-    type = type,
     mission = mission,
-    status = status,
-    progress = progress
+    subId = subId,
+    dsl = dsl,
+    type = type,
+    validFrom = validFrom,
+    validTo = validTo
 )
 
+/** 전체 미션 응답 매핑 */
 fun MissionsResponse.toEntity() = MissionsEntity(
-    missionReceived = missionReceived,
+    userId = userId,
+    date = date,
     missions = missions.map { it.toEntity() }
-)
-
-fun FollowItem.toFollowInfoEntity() = FollowInfoEntity(
-    followUserId = followUserId,
-    followedAt = followedAt,
-    followeeName = followeeName,
-    followeeProfile = followeeProfile
 )

@@ -29,7 +29,7 @@ fun MyScoreSection(
     titleColor: Color = BrandGreen,
     maxScore: Int = 100                 // 진행바 최대값(필요시 조절)
 ) {
-    val safe = score.coerceAtLeast(100)
+    val safe = score.coerceAtLeast(0)
     val animated by animateIntAsState(targetValue = safe, label = "myScoreAnim")
     val nf = NumberFormat.getIntegerInstance(Locale.getDefault())
 
