@@ -61,7 +61,10 @@ fun StreakSection(
                 .height((boxSize * 7) + (boxSpacing * 6)),
             horizontalArrangement = Arrangement.spacedBy(weekSpacing)
         ) {
-            items(weeks) { weekIndex ->
+            items(
+                count=weeks,
+                key= { weekIndex -> "week_$weekIndex"}
+            ) { weekIndex ->
                 val start = weekIndex * 7
                 val end = min(start + 7, totalDays)
                 val weekSlice = if (start < end) days.subList(start, end) else emptyList()
