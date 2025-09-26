@@ -1,17 +1,41 @@
 package com.example.irumi.ui.profile
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,7 +53,9 @@ import coil.request.ImageRequest
 import com.example.irumi.domain.entity.main.DailySavingEntity
 import com.example.irumi.domain.entity.main.UserProfileEntity
 import com.example.irumi.ui.auth.AuthViewModel
+import com.example.irumi.ui.events.SampleColors
 import com.example.irumi.ui.home.HomeViewModel
+import com.example.irumi.ui.payments.TossColors
 import com.example.irumi.ui.theme.BrandGreen
 import java.text.DecimalFormat
 
@@ -153,13 +179,9 @@ private fun ProfileHeaderCard(
                 color = Color(0xFF191F28)
             )
 
-            // 이메일 (희미하게)
-            Text(
-                text = "@" + profile?.userId.toString(),
-                fontSize = 14.sp,
-                color = Color(0xFF8B95A1),
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            MyCodeRow(profile?.userId ?: 0)
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -176,6 +198,46 @@ private fun ProfileHeaderCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun MyCodeRow(
+    userId: Int,
+    context: Context = LocalContext.current
+) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFF8F9FA))
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "@$userId",
+            fontSize = 16.sp,
+            color = SampleColors.Gray400
+        )
+
+        Spacer(Modifier.width(4.dp))
+
+        Icon(
+            imageVector = Icons.Default.ContentCopy,
+            contentDescription = "코드 복사",
+            tint = TossColors.OnSurfaceVariant,
+            modifier = Modifier
+                .size(28.dp) // 원하는 크기
+                .clip(RoundedCornerShape(4.dp))
+                .clickable {
+                    val clip = ClipData.newPlainText("내 코드", userId.toString())
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(context, "내 코드가 복사됐어요", Toast.LENGTH_SHORT).show()
+                }
+                .padding(4.dp) // 아이콘 여백
+        )
     }
 }
 
