@@ -1,5 +1,6 @@
 package com.example.irumi.ui.events
 
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.irumi.data.dto.response.events.RoomStatus

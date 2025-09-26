@@ -1,6 +1,9 @@
 package com.example.irumi.ui.profile
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,11 +29,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.irumi.data.dto.request.auth.AuthEditRequest
 import com.example.irumi.domain.entity.main.DailySavingEntity
 import com.example.irumi.domain.entity.main.UserProfileEntity
 import com.example.irumi.ui.auth.AuthViewModel
 import com.example.irumi.ui.home.HomeViewModel
 import com.example.irumi.ui.theme.BrandGreen
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.InputStream
 import java.text.DecimalFormat
 
 @Composable
@@ -44,6 +51,19 @@ fun MyPageScreen(
 
     val error = authViewModel.error
     val isLoggedIn = authViewModel.isLoggedIn
+
+    // 이미지 선택을 위한 launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            authViewModel.updateMe(AuthEditRequest(
+                uiState.profile?.name!!,
+                uiState.profile?.profileImageUrl!!,
+                uiState.profile?.budget!!
+                ))
+        }
+    }
 
     // 로그아웃 성공 감지 → 외부로 알림
     LaunchedEffect(isLoggedIn) {
@@ -60,8 +80,10 @@ fun MyPageScreen(
             // 프로필 헤더 카드
             ProfileHeaderCard(
                 profile = uiState.profile,
-                myScore = uiState.myScore,
                 money = money,
+                onProfileImageClick = { // 콜백으로 전달
+                    imagePickerLauncher.launch("image/*")
+                }
             )
         }
 
@@ -98,8 +120,8 @@ fun MyPageScreen(
 @Composable
 private fun ProfileHeaderCard(
     profile: UserProfileEntity?,
-    myScore: DailySavingEntity?,
     money: DecimalFormat,
+    onProfileImageClick: () -> Unit // 콜백 파라미터 추가
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -118,7 +140,8 @@ private fun ProfileHeaderCard(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(BrandGreen.copy(alpha = 0.1f)),
+                    .background(BrandGreen.copy(alpha = 0.1f))
+                    .clickable { onProfileImageClick() },
                 contentAlignment = Alignment.Center
             ) {
                 if (profile?.profileImageUrl?.isNotEmpty() == true) {
