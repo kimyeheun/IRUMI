@@ -1,55 +1,23 @@
 package com.example.irumi.data.datasource.main
 
-import com.example.irumi.core.network.BaseResponse
 import com.example.irumi.data.dto.request.main.MissionsSelectRequest
-import com.example.irumi.data.dto.response.main.BadgeListResponse
-import com.example.irumi.data.dto.response.main.DailySavingResponse
-import com.example.irumi.data.dto.response.main.FollowIdsResponse
-import com.example.irumi.data.dto.response.main.FriendDailyResponse
-import com.example.irumi.data.dto.response.main.MissionsResponse
-import com.example.irumi.data.dto.response.main.StreaksResponse
-import com.example.irumi.data.dto.response.main.UserProfileResponse
 import com.example.irumi.data.service.MainService
 import javax.inject.Inject
 
 class MainRemoteDataSource @Inject constructor(
     private val service: MainService
 ) : MainDataSource {
+    override suspend fun getUserProfile() = service.getUserProfile()
+    override suspend fun getDaily() = service.getDailySaving()
+    override suspend fun getFollowIds() = service.getFollowIds()
+    override suspend fun getBadges() = service.getBadges()
+    override suspend fun getStreaks() = service.getStreaks()
+    override suspend fun postFollow(targetUserId: Int) = service.postFollow(targetUserId)
+    override suspend fun deleteFollow(targetUserId: Int) = service.deleteFollow(targetUserId)
+    override suspend fun getDailyWithFriend(friendId: Int) = service.getDailyWithFriend(friendId)
 
-    override suspend fun getUserProfile(): BaseResponse<UserProfileResponse> =
-        service.getUserProfile()
-
-    override suspend fun getDaily(): BaseResponse<DailySavingResponse> =
-        service.getDailySaving()
-
-    override suspend fun getFollowIds(): BaseResponse<FollowIdsResponse> =
-        service.getFollowIds()
-
-    override suspend fun getBadges(): BaseResponse<BadgeListResponse> =
-        service.getBadges()
-
-    override suspend fun getStreaks(): BaseResponse<StreaksResponse> =
-        service.getStreaks()
-
-    override suspend fun postFollow(targetUserId: Int): BaseResponse<Unit?> =
-        service.postFollow(targetUserId)
-
-    override suspend fun deleteFollow(targetUserId: Int): BaseResponse<Unit?> =
-        service.deleteFollow(targetUserId)
-
-    override suspend fun getDailyWithFriend(friendId: Int): BaseResponse<FriendDailyResponse> =
-        service.getDailyWithFriend(friendId)
-
-    // ===== AI 미션 =====
-    override suspend fun getDailyMissions(userId: Int): BaseResponse<MissionsResponse> =
-        service.getDailyMissions(userId)
-
-    override suspend fun getWeeklyMissions(userId: Int): BaseResponse<MissionsResponse> =
-        service.getWeeklyMissions(userId)
-
-    override suspend fun getMonthlyMissions(userId: Int): BaseResponse<MissionsResponse> =
-        service.getMonthlyMissions(userId)
-
-    override suspend fun postMissions(selected: List<Int>): BaseResponse<MissionsResponse> =
+    // ✅
+    override suspend fun getMissions() = service.getMissions()
+    override suspend fun postMissions(selected: List<Int>) =
         service.postMissions(MissionsSelectRequest(selected))
 }

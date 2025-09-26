@@ -94,17 +94,17 @@ fun FriendDailyResponse.toEntity() = FriendDailyEntity(
 
 /** 개별 미션 매핑 */
 fun MissionResponse.toEntity() = MissionEntity(
-    mission = mission,
+    missionId = missionId,
     subId = subId,
-    dsl = dsl,
     type = type,
-    validFrom = validFrom,
-    validTo = validTo
+    mission = mission,
+    status = status,
+    progress = progress,
+    value = value,
+    template = template
 )
 
-/** 전체 미션 응답 매핑 */
 fun MissionsResponse.toEntity() = MissionsEntity(
-    userId = userId,
-    date = date,
+    missionReceived = missionReceived,
     missions = missions.map { it.toEntity() }
 )
