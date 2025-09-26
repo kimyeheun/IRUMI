@@ -1,6 +1,7 @@
 // ui/home/HomeScreen.kt
 package com.example.irumi.ui.home
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -173,6 +174,8 @@ fun HomeScreen(
                 days = state.streaks.toDays(),
                 totalDays = 365
             )
+
+            Log.d("", "사고지점2")
         } else {
             // 친구 비교 데이터 (없으면 로딩 중)
             val pair = state.friendDaily[selectedFriend.id]
@@ -321,6 +324,8 @@ fun HomeScreen(
             }
         )
     }
+
+    Log.d("", "사고지점3")
 }
 
 /** StreakEntity -> 고정 길이 Boolean 리스트 */

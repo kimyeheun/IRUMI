@@ -19,6 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.itemsIndexed
 import coil.compose.AsyncImage
 import com.example.irumi.ui.home.Friend
 
@@ -36,7 +37,9 @@ fun FriendList(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(friends, key = { it.id }) { friend ->
+        itemsIndexed(friends, key = { index, friend ->
+            "${friend.id}_$index"
+        }) { index, friend ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
