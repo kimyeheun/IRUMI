@@ -2,19 +2,26 @@
 package com.example.irumi.ui.home.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.irumi.core.designsystem.component.tooltip.InfoTooltip
 import com.example.irumi.ui.theme.BrandGreen
 import kotlin.math.ceil
 import kotlin.math.min
@@ -43,6 +50,8 @@ fun StreakSection(
     val effectiveTotal = min(totalDays, days.size)
     val weeks = ceil(effectiveTotal / 7.0).toInt().coerceAtLeast(1)
 
+    var isPressed by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -51,8 +60,20 @@ fun StreakSection(
             .padding(16.dp)
     ) {
         // 친구가 선택된 경우 고정 문구로 “친구의 스트릭” 표시
-        val title = if (friendName != null) "친구의 스트릭" else "나의 스트릭"
-        Text(text = title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
+            Text(text = if (friendName != null) "친구의 스트릭" else "나의 스트릭", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Spacer(Modifier.width(4.dp))
+            InfoTooltip(
+                title = "스트릭",
+                description = "미션을 달성하면 해당 날짜의\n 스트릭을 채울 수 있습니다."
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = "매일 오전 6시 스트릭 갱신",
+                fontWeight = FontWeight.Bold,
+                fontSize = 10.sp, color = Color.LightGray
+            )
+        }
         Spacer(Modifier.height(10.dp))
 
         LazyRow(
@@ -86,11 +107,23 @@ fun StreakSection(
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
                                     when (state) {
-                                        null  -> Color(0xFFF1F3F5) // 빈칸(패딩)
-                                        true  -> BrandGreen        // 달성
+                                        null -> Color(0xFFF1F3F5) // 빈칸(패딩)
+                                        true -> BrandGreen        // 달성
                                         false -> Color(0xFFE6E8EC) // 미달
                                     }
                                 )
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onPress = {
+                                            isPressed = true
+                                            // 여기서 press 중 동작 설정
+                                            println("누르고 있음!")
+                                            tryAwaitRelease() // 손가락을 뗄 때까지 대기
+                                            isPressed = false
+                                            println("손가락을 뗐음!")
+                                        }
+                                    )
+                            }
                         )
                     }
                 }
