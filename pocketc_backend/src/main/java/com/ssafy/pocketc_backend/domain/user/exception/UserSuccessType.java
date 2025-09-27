@@ -19,7 +19,9 @@ public enum UserSuccessType implements SuccessType {
     WITHDRAW_MEMBER_SUCCESS(HttpStatus.NO_CONTENT, "회원 탈퇴가 완료되었습니다."),
 
     GET_ME_SUCCESS(HttpStatus.OK, "회원 조회에 성공했습니다."),
-    UPLOAD_SUCCESS(HttpStatus.OK, "이미지 업로드에 성공했습니다.");
+    UPLOAD_SUCCESS(HttpStatus.OK, "이미지 업로드에 성공했습니다."),
+
+    SUCCESS_UPDATE_TRANSACTIONS(HttpStatus.OK, "거래내역 AI 성공");
 
     private final HttpStatus httpStatus;
     private final String message;
