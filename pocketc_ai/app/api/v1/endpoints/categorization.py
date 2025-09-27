@@ -16,7 +16,6 @@ def create_categories(
         userId: int,
         service: CategoryService = Depends(get_category_service)) -> CategoriesResponse | None:
     try:
-        print("??")
         return service.create_categories(userId)
     except Exception as e:
         logging.warning(f"An error occurred: {e}")
