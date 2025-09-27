@@ -66,7 +66,7 @@ public class UserController {
 
 
     @Operation(summary = "회원정보 수정", description = "전달하지 않은 필드는 변경되지 않음 " +
-            "수정 가능한 항목: 이름, 이메일, 비밀번호, 예산, 프로필 이미지(잠시 제외) "
+            "수정 가능한 항목: 이름 예산"
     )
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<?>> updateUser(
