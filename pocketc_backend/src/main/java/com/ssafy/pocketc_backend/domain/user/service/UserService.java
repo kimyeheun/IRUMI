@@ -67,6 +67,7 @@ public class UserService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .budget(request.getBudget())
                 .profileImageUrl(getRandomDefaultProfileImage()) // 기본 이미지 미리 설정
+                .puzzleAttempts(5)
                 .build();
 
         userRepository.save(user);
