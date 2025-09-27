@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.irumi.core.designsystem.component.dialog.TwoButtonDialog
+import com.example.irumi.ui.payments.component.PaymentsList
 import com.example.irumi.ui.payments.model.PaymentDetailUiModel
 import com.example.irumi.ui.payments.model.PaymentsByDay
 import com.example.irumi.ui.payments.model.PaymentsListItem
@@ -137,7 +138,6 @@ fun PaymentsScreen(
     Surface(
         modifier = Modifier
             .fillMaxSize(),
-        //.padding(paddingValues),
         color = LightGray
     ) {
         Column {
@@ -243,7 +243,9 @@ fun MonthNavigationBar(
     }
 }
 
-// 재사용 가능한 당기면 새로고침 컴포넌트
+/**
+ * 재사용 가능한 당기면 새로고침 컴포넌트
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PullRefreshContent(
@@ -259,240 +261,6 @@ fun PullRefreshContent(
         contentAlignment = Alignment.TopCenter
     ) {
         content()
-    }
-}
-
-@Composable
-fun MonthSummaryCard(
-    monthlyTotal: Int,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = TossColors.Background),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = "이번 달 지출",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF191F28)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "${String.format("%,d", monthlyTotal)}원",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = TossColors.OnSurface
-            )
-        }
-    }
-}
-
-@Composable
-fun PaymentsList(
-    monthlyTotal: Int,
-    groupedTransactions: List<PaymentsByDay>,
-    onPaymentItemClick: (Int) -> Unit,
-    onPaymentCheckClick: (paymentId: Int, onFailure: () -> Unit) -> Unit
-) {
-    val flattenedList = remember(groupedTransactions) {
-        val list = mutableListOf<PaymentsListItem>()
-        groupedTransactions.forEach { paymentByDay ->
-            list.add(PaymentsListItem.Header(paymentByDay.date, paymentByDay.dailyTotal))
-            paymentByDay.payments.forEach { payment ->
-                list.add(PaymentsListItem.Payment(payment, onPaymentItemClick))
-            }
-        }
-        list
-    }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            // 월 지출 요약 카드
-            MonthSummaryCard(
-                monthlyTotal = monthlyTotal,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-        }
-
-        items(
-            items = flattenedList,
-            key = { item ->
-                when (item) {
-                    is PaymentsListItem.Header -> "header-${item.date}"
-                    is PaymentsListItem.Payment -> "payment-${item.payment.paymentId}"
-                }
-            }
-        ) { item ->
-            when (item) {
-                is PaymentsListItem.Header -> DayHeader(
-                    date = item.date
-                )
-                is PaymentsListItem.Payment -> PaymentItem(
-                    payment = item.payment,
-                    onClick = { item.onPaymentItemClick(item.payment.paymentId) },
-                    onPaymentCheckClick = onPaymentCheckClick
-                )
-            }
-        }
-
-        item { Spacer(modifier = Modifier.height(20.dp)) }
-    }
-}
-
-@Composable
-fun DayHeader(date: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = date,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp,
-            color = TossColors.OnSurface
-        )
-    }
-}
-
-@Composable
-fun PaymentItem(
-    payment: PaymentDetailUiModel,
-    onClick: () -> Unit,
-    onPaymentCheckClick: (paymentId: Int, onFailure: () -> Unit) -> Unit
-) {
-    var showDialog by remember { mutableStateOf(false) }
-    var locallyApplied by remember(payment.paymentId, payment.isApplied) {
-        mutableStateOf(payment.isApplied)
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = TossColors.Background),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 상점 아이콘
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(TossColors.OutlineVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = payment.merchantName.firstOrNull()?.toString() ?: "?",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TossColors.OnSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // 결제 정보
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = payment.merchantName,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    color = TossColors.OnSurface
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "${payment.majorCategoryName} | ${payment.subCategoryName}",
-                    fontSize = 14.sp,
-                    color = TossColors.OnSurfaceVariant
-                )
-            }
-
-            // 금액 및 반영 버튼
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = "${String.format("%,d", payment.amount)}원",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = TossColors.OnSurface
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (!locallyApplied) {
-                    Text(
-                        text = "반영하기",
-                        fontSize = 12.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .background(
-                                TossColors.Primary,
-                                RoundedCornerShape(8.dp)
-                            )
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                            .clickable {
-                                showDialog = true
-                            }
-                    )
-                } else {
-                    Text(
-                        text = "반영완료",
-                        fontSize = 12.sp,
-                        color = TossColors.Primary.copy(alpha = 0.8f),
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .background(
-                                Color.Gray.copy(alpha = 0.1f),
-                                RoundedCornerShape(8.dp)
-                            )
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-            }
-        }
-    }
-
-    if (showDialog) {
-        TwoButtonDialog(
-            title = "결제내역을 반영하시겠어요?",
-            text = "반영하면 결제 내역이 미션에 반영됩니다.",
-            confirmButtonText = "반영하기",
-            dismissButtonText = "취소",
-            onDismissRequest = {
-                showDialog = false
-            },
-            onConfirmFollow = {
-                locallyApplied = true
-                showDialog = false
-
-                onPaymentCheckClick(payment.paymentId) {
-                    locallyApplied = false
-                }
-            }
-        )
     }
 }
 
