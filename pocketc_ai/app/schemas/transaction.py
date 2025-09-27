@@ -10,7 +10,7 @@ class CategoryRequest(BaseModel):
     transactedAt: str
 
 class CategoryResponse(BaseModel):
-    transactionId: Optional[int] | None
+    transactionId: Optional[int] = None
     amount: int
     merchantName: str
     transactedAt: datetime
