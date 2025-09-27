@@ -1,11 +1,12 @@
 package com.ssafy.pocketc_backend.domain.main.controller;
 
+import com.ssafy.pocketc_backend.domain.event.dto.response.BadgeResDto;
+import com.ssafy.pocketc_backend.domain.event.service.EventService;
 import com.ssafy.pocketc_backend.domain.main.dto.DailyCompareResponse;
 import com.ssafy.pocketc_backend.domain.main.dto.MainResponse;
 import com.ssafy.pocketc_backend.domain.main.dto.StreakCompareResponse;
 import com.ssafy.pocketc_backend.domain.main.dto.StreakResDto;
 import com.ssafy.pocketc_backend.domain.main.service.MainService;
-import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import com.ssafy.pocketc_backend.domain.user.service.UserService;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 
+import static com.ssafy.pocketc_backend.domain.event.exception.EventSuccessType.SUCCESS_GET_BADGES;
 import static com.ssafy.pocketc_backend.domain.main.exception.MainSuccessType.SUCCESS_GET_DAILY_STAT;
 import static com.ssafy.pocketc_backend.domain.main.exception.MainSuccessType.SUCCESS_GET_STREAKS;
 
@@ -29,23 +31,26 @@ public class MainController {
 
     private final MainService mainService;
     private final UserService userService;
+    private final EventService  eventService;
+
     @Operation(summary = "친구와 내 절약점수+총 지출 조회")
     @GetMapping("/daily/{friendId}")
     public ResponseEntity<ApiResponse<DailyCompareResponse>> getDailyStats(
-            Principal principal,@PathVariable Integer friendId) {
+            Principal principal, @PathVariable Integer friendId) {
         Integer myId = Integer.valueOf(principal.getName());
         MainResponse myStats = mainService.getDailyScoreAndTotal(myId);
         MainResponse friendStats = mainService.getDailyScoreAndTotal(friendId);
         DailyCompareResponse response = new DailyCompareResponse(myStats, friendStats);
-        return ResponseEntity.ok(ApiResponse.success(SUCCESS_GET_DAILY_STAT,response));
+        return ResponseEntity.ok(ApiResponse.success(SUCCESS_GET_DAILY_STAT, response));
     }
+
     @Operation(summary = "내 절약점수+총 지출 조회")
     @GetMapping("/daily")
     public ResponseEntity<ApiResponse<MainResponse>> getDailyStats(
             Principal principal) {
         Integer myId = Integer.valueOf(principal.getName());
         MainResponse response = mainService.getDailyScoreAndTotal(myId);
-        return ResponseEntity.ok(ApiResponse.success(SUCCESS_GET_DAILY_STAT,response));
+        return ResponseEntity.ok(ApiResponse.success(SUCCESS_GET_DAILY_STAT, response));
     }
 
     @Operation(summary = "스트릭 조회")
@@ -56,14 +61,23 @@ public class MainController {
                 mainService.getStreaks(Integer.parseInt(principal.getName()))
         ));
     }
+
     @Operation(summary = "친구 이름과 스트릭 조회")
     @GetMapping("/streaks/{friendId}")
     public ResponseEntity<ApiResponse<StreakCompareResponse>> getFriendStreaks(@PathVariable Integer friendId) {
         String friendName = userService.getProfile(friendId).name();
         StreakResDto friendStreak = mainService.getStreaks(friendId);
-        StreakCompareResponse response = new StreakCompareResponse(friendName,friendStreak);
+        StreakCompareResponse response = new StreakCompareResponse(friendName, friendStreak);
         return ResponseEntity.ok(ApiResponse.success(
-                SUCCESS_GET_STREAKS,response
+                SUCCESS_GET_STREAKS, response
+        ));
+    }
+
+    @GetMapping("/badges/{friendId}")
+    public ResponseEntity<ApiResponse<BadgeResDto>> getFriendBadges(@PathVariable Integer friendId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_GET_BADGES,
+                eventService.getBadges(friendId)
         ));
     }
 }
