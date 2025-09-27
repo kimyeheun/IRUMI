@@ -58,8 +58,9 @@ class CategoryService:
 
             categories.append(
                 CategoryResponse(
+                    transactionId=int(trans.transaction_id),
                     amount=trans.amount,
-                    merchantName=trans.merchant_name,
+                    merchantName=str(trans.merchant_name),
                     transactedAt=trans.transacted_at,
                     majorId=category.major_id,
                     subId=category.sub_id,
