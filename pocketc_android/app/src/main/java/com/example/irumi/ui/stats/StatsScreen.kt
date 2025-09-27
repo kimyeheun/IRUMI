@@ -323,7 +323,7 @@ fun Header(
                 ) {
                     // 예산 정보 카드
                     TossStyleInfoRow(
-                        label = "설정 예산",
+                        label = "이번달 예산",
                         value = money.format(budget),
                         iconBg = Color(0xFF3B82F6).copy(alpha = 0.1f),
                         iconText = "💰"
@@ -505,22 +505,22 @@ private fun AchievementMessage(savingPercent: Double) {
     // 절약률에 따른 메시지와 색상
     val (message, messageColor, bgColor) = when {
         savingPercent > 20 -> Triple(
-            "훌륭해요! 지난 달보다 ${String.format("%.0f", savingPercent)}% 절약했어요 🎉",
+            "훌륭해요! 지난 달보다 ${String.format("%.0f", 100 - savingPercent)}% 절약했어요 🎉",
             BrandGreen,
             BrandGreen.copy(alpha = 0.1f)
         )
         savingPercent > 10 -> Triple(
-            "좋아요! 지난 달보다 ${String.format("%.0f", savingPercent)}% 절약했어요 👏",
+            "좋아요! 지난 달보다 ${String.format("%.0f", 100 - savingPercent)}% 절약했어요 👏",
             BrandGreen,
             BrandGreen.copy(alpha = 0.1f)
         )
         savingPercent > 0 -> Triple(
-            "지난 달보다 ${String.format("%.0f", savingPercent)}% 절약했어요",
+            "지난 달보다 ${String.format("%.0f", 100 - savingPercent)}% 절약했어요",
             BrandGreen,
             BrandGreen.copy(alpha = 0.1f)
         )
         savingPercent < -10 -> Triple(
-            "지난 달보다 ${String.format("%.0f", -savingPercent)}% 더 지출했어요",
+            "지난 달보다 ${String.format("%.0f", -(100 - savingPercent))}% 더 지출했어요",
             Color(0xFF8B95A1),
             Color(0xFFF8F9FA)
         )
