@@ -1,15 +1,15 @@
 package com.ssafy.pocketc_backend.domain.user.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssafy.pocketc_backend.domain.user.dto.request.TokenReissueRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
-import com.ssafy.pocketc_backend.domain.user.dto.response.UserResponse;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserProfileResponse;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserResponse;
 import com.ssafy.pocketc_backend.domain.user.service.UserService;
 import com.ssafy.pocketc_backend.global.auth.jwt.JwtProvider;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
+import com.ssafy.pocketc_backend.global.data.DataService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,15 +27,16 @@ import static com.ssafy.pocketc_backend.domain.user.exception.UserSuccessType.*;
 public class UserController {
     private final UserService userService;
     private final JwtProvider jwtProvider;
+    private final DataService dataService;
 
-    @Operation(summary = "회원가입", description = "이름, 패스워드, 이메일, 에산")
+    @Operation(summary = "회원가입", description = "이름, 패스워드, 이메일, 예산")
     @PostMapping
-    public ResponseEntity<ApiResponse<?>> signup(@RequestBody UserSignupRequest request) throws JsonProcessingException {
+    public ResponseEntity<ApiResponse<?>> signup(@RequestBody UserSignupRequest request) throws IOException {
 
         return ResponseEntity.ok(ApiResponse.success(SIGNUP_MEMBER_SUCCESS, userService.signup(request)));
     }
 
-    @Operation(summary = "로그인", description = "아메일,패스워드")
+    @Operation(summary = "로그인", description = "이메일,패스워드")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<UserResponse>> login(@RequestBody UserLoginRequest request) {
 
@@ -94,5 +95,11 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(UPLOAD_SUCCESS));
     }
 
-
+    @PostMapping("/ai/transaction")
+    public ResponseEntity<ApiResponse<?>> updateTransactions(Principal principal) throws IOException {
+        dataService.getDummyTransactions(Integer.parseInt(principal.getName()));
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_UPDATE_TRANSACTIONS
+        ));
+    }
 }

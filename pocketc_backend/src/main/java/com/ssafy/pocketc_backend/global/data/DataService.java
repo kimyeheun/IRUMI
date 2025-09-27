@@ -1,62 +1,57 @@
 package com.ssafy.pocketc_backend.global.data;
 
 import com.ssafy.pocketc_backend.domain.event.entity.Event;
-import com.ssafy.pocketc_backend.domain.event.repository.BadgeRepository;
 import com.ssafy.pocketc_backend.domain.event.repository.EventRepository;
-import com.ssafy.pocketc_backend.domain.event.repository.RoomRepository;
-import com.ssafy.pocketc_backend.domain.event.service.EventService;
-import com.ssafy.pocketc_backend.domain.follow.repository.FollowRepository;
-import com.ssafy.pocketc_backend.domain.mission.repository.MissionRepository;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
-import com.ssafy.pocketc_backend.domain.report.repository.ReportRepository;
-import com.ssafy.pocketc_backend.domain.transaction.repository.TransactionRepository;
-import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.Dummy;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.DummyTransactionsDto;
+import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionAiResDto;
+import com.ssafy.pocketc_backend.domain.transaction.service.TransactionService;
+import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
+import com.ssafy.pocketc_backend.global.exception.CustomException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Optional;
+
+import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class DataService {
 
-    private final BadgeRepository badgeRepository;
-    private final UserRepository userRepository;
-    private final RoomRepository roomRepository;
-    private final FollowRepository followRepository;
-    private final MissionRepository missionRepository;
-    private final ReportRepository reportRepository;
-    private final TransactionRepository transactionRepository;
-    private final StreakRepository streakRepository;
     private final EventRepository eventRepository;
 
     private final MissionRedisService missionRedisService;
-    private final EventService eventService;
 
     private final DataSource dataSource;
     private final JdbcTemplate jdbc;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final TransactionService transactionService;
+    private final ResourceLoader resourceLoader;
+
+    private final WebClient webClient;
+    private final UserRepository userRepository;
 
     public void deleteAll() {
-//        List<User> users = userRepository.findAll();
-//        for (User user : users) {
-//            if (user.getRoom() != null)
-//                eventService.leaveRoom(user.getUserId());
-//        }
-//
-//        badgeRepository.deleteAll();
-//        followRepository.deleteAll();
-//        missionRepository.deleteAll();
-//        reportRepository.deleteAll();
-//        transactionRepository.deleteAll();
-//        streakRepository.deleteAll();
-//        eventRepository.deleteAll();
-//        userRepository.deleteAll();
 
         jdbc.execute("SET FOREIGN_KEY_CHECKS=0");
 
@@ -83,5 +78,47 @@ public class DataService {
         populator.setContinueOnError(false);
         populator.setSeparator(";");
         populator.execute(dataSource);
+    }
+
+    public void putDummyTransactions(Integer userId) throws IOException {
+
+        Resource res = new ClassPathResource("db/init_v3.sql");
+        if (!res.exists()) throw new IllegalStateException("db/init_v3.sql not found");
+
+        String sql = new String(res.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+        sql = sql.replaceAll("(?s)/\\*.*?\\*/", "").trim();
+
+        if (sql.endsWith(";")) {
+            sql = sql.substring(0, sql.length() - 1);
+        }
+
+        MapSqlParameterSource params = new MapSqlParameterSource().addValue("userId", userId);
+
+        jdbcTemplate.update(sql, params);
+    }
+
+    public void getDummyTransactions(Integer userId) throws IOException {
+        // AI로 호출
+        DummyTransactionsDto dummyTransactionsDto = webClient.post()
+                .uri("/ai/categories/{userId}", userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, resp ->
+                        resp.bodyToMono(String.class)
+                                .defaultIfEmpty("AI categorize API error")
+                                .flatMap(msg -> Mono.error(new RuntimeException(msg)))
+                )
+                .bodyToMono(DummyTransactionsDto.class)
+                .timeout(Duration.ofSeconds(10)).block();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        for (Dummy dummy : dummyTransactionsDto.getTransactions()) {
+            System.out.println(dummy.getMerchantName() + ": " + dummy.getMajorId() + " " + dummy.getSubId());
+            transactionService.putTransaction(dummy, user);
+        }
     }
 }

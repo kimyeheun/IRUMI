@@ -84,7 +84,7 @@ public class TransactionController {
 
     @PostMapping("/admin/create/transactions/users/{userId}")
     public ResponseEntity<ApiResponse<?>> createUserTransaction(@PathVariable("userId") Integer userId, @RequestBody DummyTransactionsDto dto) {
-        transactionService.createTransactions(userId, dto);
+//        transactionService.createTransactions(userId, dto);
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_CREATE_TRANSACTIONS
         ));
