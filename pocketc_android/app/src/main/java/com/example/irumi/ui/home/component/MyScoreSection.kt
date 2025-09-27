@@ -3,11 +3,14 @@ package com.example.irumi.ui.home.component
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,10 +22,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.irumi.core.designsystem.component.tooltip.InfoTooltip
 import com.example.irumi.ui.theme.BrandGreen
 import java.text.NumberFormat
 import java.util.Locale
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyScoreSection(
     score: Int,                         // 외부 상태 그대로 사용 (remember 금지)
@@ -41,7 +47,16 @@ fun MyScoreSection(
             .padding(vertical = 20.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("내 점수", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = titleColor)
+        Row() {
+            Text("내 점수", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = titleColor)
+            Spacer(Modifier.size(4.dp)) // 텍스트와 아이콘 버튼 사이 간격
+
+            InfoTooltip(
+                "내 점수 계산법",
+                "- 오늘의 지출 중 “필수 소비”와 “비필수 소비”의 비율을 봅니다.\n" +
+                        "- 필수 소비의 비중이 지난달보다 높아지면 점수가 올라가고, 줄어들면 점수가 내려갑니다."
+            )
+        }
         Spacer(Modifier.height(8.dp))
 
         Text(
