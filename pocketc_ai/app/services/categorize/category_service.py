@@ -8,4 +8,4 @@ from app.services.categorize.category import CategoryService
 
 
 def get_category_service(db: Session = Depends(get_db)) -> CategoryService:
-    return CategoryService(db, fallback="기타")
+    return CategoryService(db, fallback="기타 지출")

@@ -18,6 +18,9 @@ class TransactionRepository:
         query = self.db.query(Transaction)
         return pd.read_sql(query.statement, self.db.bind)
 
+    def get_user_all_transactions(self, user_id:int) -> list[type[Transaction]] :
+        return self.db.query(Transaction).filter(Transaction.user_id == user_id).all()
+
     def get_user_week_transactions(self, user_id:int, now:datetime) -> list[type[Transaction]]:
         start_date = now - timedelta(days=7)
         return (

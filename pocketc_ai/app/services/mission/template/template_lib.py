@@ -31,7 +31,7 @@ BASE_WEIGHTS: Dict[str, List[Tuple[TemplateName, float]]] = {
     "충동구매": [("SPEND_CAP_DAILY",0.45), ("PER_TXN_DAILY",0.35), ("COUNT_CAP_DAILY",0.2)],
     "도서/교재": [("SPEND_CAP_DAILY",0.45), ("PER_TXN_DAILY",0.35), ("COUNT_CAP_DAILY",0.2)],
     "경조사비": [("SPEND_CAP_DAILY",0.45), ("PER_TXN_DAILY",0.35), ("COUNT_CAP_DAILY",0.2)],
-    "기타": [("SPEND_CAP_DAILY",0.45), ("PER_TXN_DAILY",0.35), ("COUNT_CAP_DAILY",0.2)],
+    "기타 지출": [("SPEND_CAP_DAILY",0.45), ("PER_TXN_DAILY",0.35), ("COUNT_CAP_DAILY",0.2)],
 }
 
 # 고정/재무/필수: 대상 제외(필요 시 따로 월간 템플릿에서 다룸)
