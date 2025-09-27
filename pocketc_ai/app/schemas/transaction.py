@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 
 from pydantic import BaseModel
 
@@ -15,3 +16,6 @@ class CategoryResponse(BaseModel):
     majorId: int
     subId: int
     isFixed: bool         # 고정비 1, 변동비 0
+
+class CategoriesResponse(BaseModel):
+    transactions: List[CategoryResponse]
