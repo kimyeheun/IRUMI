@@ -376,7 +376,6 @@ private fun CategorySection(
         CategoryList(
             stats = stats,
             categories = categories,
-            modifier = Modifier
         )
     }
 }
