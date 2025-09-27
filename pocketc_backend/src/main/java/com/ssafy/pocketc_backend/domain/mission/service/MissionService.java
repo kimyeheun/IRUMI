@@ -85,7 +85,7 @@ public class MissionService {
         int idx = 1;
         for (Mission m : missions) {
             missionDtos.add(MissionDto.of(
-                    idx++,
+                    idx,
                     m.getSubId(),
                     m.getType(),
                     m.getMission(),
@@ -105,6 +105,7 @@ public class MissionService {
                             .type(m.getType())
                             .progress(0L)
                     .build());
+            idx++;
         }
 
         List<Mission> wm = missionRepository.findAllByUser_UserId(userId);
@@ -283,5 +284,9 @@ public class MissionService {
                     .value(value)
                     .build());
         }
+    }
+
+    public void deleteRedis() {
+        missionRedisService.deleteAll();
     }
 }
