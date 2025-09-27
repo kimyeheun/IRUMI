@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -33,10 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import com.example.irumi.core.mapper.CategoryMapper
 import com.example.irumi.core.mapper.CategoryMapper.getMajorName
 import com.example.irumi.core.mapper.CategoryMapper.isMajorFixed
 import com.example.irumi.core.state.UiState
@@ -64,7 +63,8 @@ fun CategoryPieChart(
 ) {
     /** 데이터 추출 */
     val monthlyStatistics = stats as? UiState.Success<MonthStatsResponse>
-    val expenseByCategories = monthlyStatistics?.data?.expenseByCategories?.sortedByDescending { it.expense }
+    val expenseByCategories =
+        monthlyStatistics?.data?.expenseByCategories?.sortedByDescending { it.expense }
     val totalExpense = monthlyStatistics?.data?.currMonthExpense ?: 1
     val money = remember { DecimalFormat("#,##0원") }
 
@@ -326,7 +326,11 @@ private fun PieChartWithLegend(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("•", fontSize = 11.sp, color = Color(0xFF8B95A1))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text(money.format(category.amount), fontSize = 11.sp, color = Color(0xFF8B95A1))
+                            Text(
+                                money.format(category.amount),
+                                fontSize = 11.sp,
+                                color = Color(0xFF8B95A1)
+                            )
                         }
                     }
                 }

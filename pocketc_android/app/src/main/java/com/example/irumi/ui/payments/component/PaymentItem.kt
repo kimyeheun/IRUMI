@@ -270,7 +270,7 @@ fun PaymentItem(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "결제 내역이 미션 달성에 포함됩니다",
+                            text = "결제 내역이 미션 진행도에 반영됩니다",
                             fontSize = 14.sp,
                             color = Color.Gray,
                             textAlign = TextAlign.Center

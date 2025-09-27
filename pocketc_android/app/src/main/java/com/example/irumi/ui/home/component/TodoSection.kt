@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.irumi.core.designsystem.component.tooltip.InfoTooltip
 import com.example.irumi.domain.entity.main.MissionEntity
 import com.example.irumi.ui.theme.BrandGreen
 import java.time.Instant
@@ -138,7 +139,17 @@ fun TodoSection(
             .background(Color.White)
             .padding(16.dp)
     ) {
-        Text("오늘의 미션", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("오늘의 미션", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.width(2.dp))
+            InfoTooltip(title="미션", description = "소비 내역 맞춤형 AI미션입니다", iconSize=14)
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = "매일 오전 12시 미션 생성",
+                fontWeight = FontWeight.Bold,
+                fontSize = 10.sp, color = Color.LightGray
+            )
+        }
         Spacer(Modifier.height(8.dp))
 
         if (!error.isNullOrBlank()) {
