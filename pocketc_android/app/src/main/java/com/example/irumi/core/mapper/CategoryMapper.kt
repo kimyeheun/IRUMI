@@ -106,7 +106,6 @@ object CategoryMapper {
     fun getMajorName(id: Int): String? = majorIdToName[id]
     fun getMajorId(name: String): Int? = majorNameToId[name]
     fun isMajorFixed(id: Int): Boolean = majorIdToFixed[id] ?: false
-
     fun getSubName(id: Int): String? = subIdToName[id]
     fun getSubId(name: String): Int? = subNameToId[name]
     fun isSubFixed(id: Int): Boolean = subIdToFixed[id] ?: false
