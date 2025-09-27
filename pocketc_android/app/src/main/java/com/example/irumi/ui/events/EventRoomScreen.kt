@@ -37,6 +37,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -70,6 +71,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.example.irumi.core.designsystem.component.dialog.TwoButtonDialog
+import com.example.irumi.core.designsystem.component.tooltip.InfoTooltip
 import com.example.irumi.data.dto.response.events.RoomStatus
 import com.example.irumi.domain.entity.EventEntity
 import com.example.irumi.domain.entity.MemberEntity
@@ -605,7 +607,7 @@ fun PuzzleMemberItem(
                     Modifier.combinedClickable(
                         onClick = { },
                         onLongClick = {
-                           onMemberLongClick()
+                            onMemberLongClick()
                         }
                     )
                 }
@@ -784,13 +786,16 @@ fun AttemptsSection(
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-            Text(
-                text = "퍼즐 조각",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = SampleColors.OnSurfaceVariant,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Text(
+                    text = "퍼즐 조각",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = SampleColors.OnSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                InfoTooltip("퍼즐", "미션을 달성하면 퍼즐 조각을 받을 수 있습니다")
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "$attemptsRemaining",

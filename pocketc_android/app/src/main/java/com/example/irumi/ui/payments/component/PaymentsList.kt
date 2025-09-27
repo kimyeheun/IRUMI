@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.irumi.core.designsystem.component.tooltip.InfoTooltip
 import com.example.irumi.ui.payments.TossColors
 import com.example.irumi.ui.payments.model.PaymentsByDay
 import com.example.irumi.ui.payments.model.PaymentsListItem
@@ -105,12 +106,14 @@ fun MonthSummaryCard(
             modifier = Modifier.padding(20.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            Text(
-                text = "이번 달 지출",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF191F28)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "이번 달 지출",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF191F28)
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "${String.format("%,d", monthlyTotal)}원",
@@ -119,6 +122,13 @@ fun MonthSummaryCard(
                 color = TossColors.OnSurface
             )
         }
+    }
+    Row(modifier = Modifier.padding(vertical = 4.dp, horizontal = 0.dp).fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        Text(
+            text = "매일 오전 12시에 모든 결제 내역을 미션에 자동 반영합니다.",
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp, color = Color.LightGray
+        )
     }
 }
 
