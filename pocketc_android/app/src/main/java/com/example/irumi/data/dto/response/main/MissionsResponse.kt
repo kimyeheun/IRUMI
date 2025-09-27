@@ -16,7 +16,7 @@ data class MissionResponse(
     @SerialName("type") val type: Int,
     @SerialName("mission") val mission: String,
     @SerialName("status") val status: String,
-    @SerialName("progress") val progress: Int,
-    @SerialName("value") val value: Int,
-    @SerialName("template") val template: String
+    @SerialName("progress") val progress: Int?,
+    @SerialName("value") val value: Int?,
+    @SerialName("template") val template: String?
 )

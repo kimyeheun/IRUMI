@@ -2,13 +2,36 @@ package com.example.irumi.ui.home
 
 import android.app.Activity
 import android.util.Log
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,9 +45,17 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.irumi.domain.entity.main.StreakEntity
-import com.example.irumi.ui.home.component.*
+import com.example.irumi.ui.home.component.BadgesSection
+import com.example.irumi.ui.home.component.FriendAddSheet
+import com.example.irumi.ui.home.component.FriendCompareSection
+import com.example.irumi.ui.home.component.FriendList
+import com.example.irumi.ui.home.component.MissionPickSheet
+import com.example.irumi.ui.home.component.MyScoreSection
+import com.example.irumi.ui.home.component.StreakSection
+import com.example.irumi.ui.home.component.TodoSection
 import com.example.irumi.ui.theme.BrandGreen
 import com.example.irumi.ui.theme.LightGray
+import timber.log.Timber
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.math.min
@@ -96,13 +127,13 @@ fun HomeScreen(
     var showMissionSheet by rememberSaveable { mutableStateOf(false) }
     var lastTriggeredByDayKey by rememberSaveable { mutableStateOf("") }
 
-    LaunchedEffect(state.missionReceived, state.missions, dayKey) {
-        if (!state.missionReceived && state.missions.isNotEmpty() && lastTriggeredByDayKey != dayKey) {
-            showMissionSheet = true
-            lastTriggeredByDayKey = dayKey
-        }
-        if (state.missionReceived) {
-            showMissionSheet = false
+    LaunchedEffect(state.missionReceived) {
+        state.missionReceived?.let {
+            if (!it) {
+                Timber.d("!!! 오늘 첫 실행: 추천 미션 시트 자동 노출(하루 1회) !!!")
+                showMissionSheet = true
+                lastTriggeredByDayKey = dayKey
+            }
         }
     }
 
@@ -180,7 +211,7 @@ fun HomeScreen(
 
                     // 오늘의 미션
                     TodoSection(
-                        missionReceived = state.missionReceived,
+                        missionReceived = state.missionReceived ?: false,
                         missions = state.missions
                     )
                     Spacer(Modifier.height(12.dp))
@@ -260,6 +291,21 @@ fun HomeScreen(
                 }
             }
         }
+    }
+
+
+    if(showMissionSheet) {
+        MissionPickSheet(
+            missions = state.missions,
+            onDismiss = {
+                showMissionSheet = false
+            },
+            onConfirm = { it ->
+                Timber.d("onConfirm: $it")
+                viewModel.submitMissions(it)
+                showMissionSheet = false
+            }
+        )
     }
 
     // ===== 언팔로우 다이얼로그 =====
