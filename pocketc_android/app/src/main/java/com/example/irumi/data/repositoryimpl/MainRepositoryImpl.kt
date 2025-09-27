@@ -69,6 +69,16 @@ class MainRepositoryImpl @Inject constructor(
         Unit
     }
 
+    override suspend fun getStreaksWithFriend(friendId: Int): Result<Pair<String, List<StreakEntity>>> = runCatching {
+        val res = dataSource.getStreaksWithFriend(friendId)
+        requireData(res.data, "getStreaksWithFriend").toEntity()
+    }
+
+    override suspend fun getBadgesWithFriend(friendId: Int): Result<List<BadgeEntity>> = runCatching {
+        val res = dataSource.getBadgesWithFriend(friendId)
+        requireData(res.data, "getBadgesWithFriend").toEntity()
+    }
+
     override suspend fun getDailyWithFriend(friendId: Int): Result<FriendDailyEntity> = runCatching {
         val res = dataSource.getDailyWithFriend(friendId)
         requireData(res.data, "getDailyWithFriend").toEntity()
