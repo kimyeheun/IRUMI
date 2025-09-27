@@ -10,7 +10,8 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor(access =  AccessLevel.PRIVATE)
 public enum MainSuccessType implements SuccessType {
     SUCCESS_GET_STREAKS(HttpStatus.OK, "스트릭 조회 완료"),
-    SUCCESS_GET_DAILY_STAT(HttpStatus.OK, "하루 지출 및 절약점수 조회 완료");
+    SUCCESS_GET_DAILY_STAT(HttpStatus.OK, "하루 지출 및 절약점수 조회 완료"),
+    SUCCESS_GET_FOLLOWER_INFO(HttpStatus.OK, "팔로워 정보 조회 성공");
 
     private final HttpStatus httpStatus;
     private final String message;
