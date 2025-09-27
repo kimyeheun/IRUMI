@@ -6,6 +6,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -75,7 +79,7 @@ import com.example.irumi.domain.entity.RoomEntity
 import com.example.irumi.ui.payments.PullRefreshContent
 import com.example.irumi.ui.payments.TossColors
 import com.example.irumi.ui.theme.BrandGreen
-import timber.log.Timber
+import kotlinx.coroutines.delay
 
 // 토스 스타일 컬러 팔레트
 object SampleColors {
@@ -124,7 +128,7 @@ fun EventRoomScreen(
                 rank = rankEntity.rank,
                 nickname = member?.name ?: "Unknown",
                 filledCount = rankEntity.count,
-                totalPieces = roomEntity.puzzles.size
+                totalPieces = roomEntity.totalPieces
             )
         }
     }
@@ -160,7 +164,6 @@ fun EventRoomScreen(
                     item {
                         Spacer(Modifier.height(16.dp))
                         PuzzleMembers(
-                            context = context,
                             maxMembers = roomEntity.maxMembers,
                             members = roomEntity.members,
                             onFollowClick = onFollowClick
@@ -169,7 +172,11 @@ fun EventRoomScreen(
 
                     item {
                         if (isSuccess != null) {
-                            GameResultSection(isSuccess)
+                            GameResultSection(
+                                isSuccess = isSuccess,
+                                badgeImageUrl = eventEntity.badgeImageUrl,
+                                badgeName = eventEntity.badgeName
+                            )
                         } else {
                             ProgressCard(
                                 filledCount = roomEntity.puzzles.size,
@@ -181,6 +188,7 @@ fun EventRoomScreen(
                     item {
                         bitmap?.let { loadedBitmap ->
                             PuzzleGrid(
+                                isSuccess = isSuccess,
                                 roomEntity = roomEntity,
                                 members = roomEntity.members,
                                 selectedUserId = selectedUserId,
@@ -237,39 +245,55 @@ fun TopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "방코드",
-                fontSize = 16.sp,
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .background(
-                        TossColors.Primary,
-                        RoundedCornerShape(8.dp)
-                    )
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                    .clickable {
-                        showDialog = true
+            // 1. 방코드
+            Box(
+                modifier = Modifier.weight(0.3f),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = "방코드",
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .background(
+                            TossColors.Primary,
+                            RoundedCornerShape(8.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .clickable { showDialog = true }
+                )
+            }
+
+            // 2. 퍼즐 게임
+            Box(
+                modifier = Modifier.weight(0.4f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "퍼즐 게임",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = SampleColors.OnSurface
+                )
+            }
+
+            // 3. 나가기
+            Box(
+                modifier = Modifier.weight(0.3f),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                if (isSuccess == null) {
+                    TextButton(
+                        onClick = onLeaveClick,
+                        colors = ButtonDefaults.textButtonColors(contentColor = SampleColors.Error)
+                    ) {
+                        Text(
+                            "나가기",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
-            )
-
-            Text(
-                text = "퍼즐 게임",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = SampleColors.OnSurface
-            )
-
-            if(isSuccess == null) {
-                TextButton(
-                    onClick = onLeaveClick,
-                    colors = ButtonDefaults.textButtonColors(contentColor = SampleColors.Error)
-                ) {
-                    Text(
-                        "나가기",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
                 }
             }
         }
@@ -302,7 +326,7 @@ fun InviteDialog(
             val clip = ClipData.newPlainText("방코드", roomCode)
             clipboard.setPrimaryClip(clip)
 
-            Toast.makeText(context, "방코드가 복사되었습니다", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "방코드가 복사됐어요", Toast.LENGTH_SHORT).show()
             onDismiss()
         }
     )
@@ -362,14 +386,29 @@ fun ProgressCard(filledCount: Int, totalPieces: Int) {
     }
 }
 
+@Preview(showBackground = true)
 @Composable
-fun GameResultSection(isSuccess: Boolean) {
+fun PreviewGame() {
+    GameResultSection(
+        isSuccess = true,
+        badgeImageUrl = "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/badges/event1.png" ,
+        badgeName = "dd"
+    )
+}
+
+
+@Composable
+fun GameResultSection(
+    isSuccess: Boolean,
+    badgeImageUrl: String,
+    badgeName: String
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSuccess) SampleColors.Success else SampleColors.Error
+            containerColor = if (isSuccess) BrandGreen else SampleColors.Error
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(20.dp)
@@ -380,30 +419,94 @@ fun GameResultSection(isSuccess: Boolean) {
                 .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(80.dp)
+                    .shadow(
+                        elevation = 12.dp,         // 그림자 강도
+                        shape = CircleShape,       // 원형
+                        ambientColor = Color.Yellow.copy(alpha = 0.9f),
+                        spotColor = Color.Yellow.copy(alpha = 0.9f)
+                    )
+            ) {
+                AsyncImage(
+                    model = badgeImageUrl,
+                    contentDescription = "뱃지 이미지",
+                    modifier = Modifier.size(80.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = if (isSuccess) "🎉" else "😞",
-                fontSize = 48.sp
+                text = badgeName,
+                fontSize = 16.sp,
+                color = Color.White.copy(alpha = 0.9f)
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = if (isSuccess) "퍼즐 완성!" else "아쉬워요",
+                text = if (isSuccess) "획득 성공!" else "획득 실패",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = if (isSuccess) "모든 조각을 맞췄습니다" else "다음엔 꼭 성공해보세요",
-                fontSize = 16.sp,
-                color = Color.White.copy(alpha = 0.9f)
-            )
+
+            if(isSuccess) {
+                JumpingText(
+                    text = "홈에서 획득한 배지를 확인하세요",
+                    fontSize = 16,
+                    color = Color.White,
+                    targetValue = 5f,
+                    durationMillis = 400
+                )
+            }else {
+                Text(
+                    text = "다음엔 꼭 성공해보세요",
+                    fontSize = 16.sp,
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+            }
         }
     }
 }
 
 @Composable
+fun JumpingText(
+    text: String,
+    fontSize: Int,
+    color: Color,
+    targetValue: Float,
+    durationMillis: Long
+) {
+    val offsetY = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            // 위로 점프
+            offsetY.animateTo(
+                targetValue = -targetValue, // 위로 10px 이동
+                animationSpec = tween(150, easing = FastOutLinearInEasing)
+            )
+            // 아래로 내려오기
+            offsetY.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(150, easing = FastOutLinearInEasing)
+            )
+            delay(durationMillis) // 반복 간격
+        }
+    }
+
+    Text(
+        text = text,
+        fontSize = fontSize.sp,
+        color = color.copy(alpha = 0.9f),
+        modifier = Modifier.offset(y = offsetY.value.dp) // Y축 이동
+    )
+}
+
+
+@Composable
 fun PuzzleMembers(
-    context: Context,
     maxMembers: Int,
     members: List<MemberEntity>,
     onFollowClick: (Int) -> Unit
@@ -419,10 +522,33 @@ fun PuzzleMembers(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Column(
+        Column (
             modifier = Modifier.padding(20.dp)
         ) {
+
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "참가자",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = SampleColors.OnSurfaceVariant,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+
+                Text(
+                    text = "${members.size} / $maxMembers",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = SampleColors.Primary,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
             LazyRow(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 itemsIndexed(members) { index, member ->
@@ -435,18 +561,6 @@ fun PuzzleMembers(
                             selectedMemberForDialog = member
                             showDialog = true
                         }
-                    }
-                }
-
-                val emptySlots = maxMembers - members.size
-                items(emptySlots) {
-                    Timber.d("!!! Empty slot ${it}")
-                    PuzzleMemberItem(
-                        isEmpty = true,
-                        index = null,
-                        member = null
-                    ) {
-                        Toast.makeText(context, "방코드를 공유해보세요", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -525,6 +639,7 @@ fun PuzzleMemberItem(
 
 @Composable
 fun PuzzleGrid(
+    isSuccess: Boolean?,
     roomEntity: RoomEntity,
     members: List<MemberEntity>,
     bitmap: Bitmap,
@@ -562,28 +677,39 @@ fun PuzzleGrid(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            for (rowIdx in 1..totalRows) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    for (colIdx in 1..totalCols) {
-                        val puzzleEntity = puzzleMap[rowIdx to colIdx]
+            if(isSuccess != null && isSuccess) {
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = "퍼즐 완성 이미지",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }else {
+                for (rowIdx in 1..totalRows) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        for (colIdx in 1..totalCols) {
+                            val puzzleEntity = puzzleMap[rowIdx to colIdx]
 
-                        PuzzleItem(
-                            puzzle = puzzleEntity,
-                            piece = cropBitmapPiece(
-                                bitmap,
-                                rowIdx,
-                                colIdx,
-                                totalRows,
-                                totalCols
-                            ),
-                            onPuzzleClick = onPuzzleClick,
-                            selectedUserId = selectedUserId,
-                            members = members,
-                            modifier = Modifier.weight(1f)
-                        )
+                            PuzzleItem(
+                                puzzle = puzzleEntity,
+                                piece = cropBitmapPiece(
+                                    bitmap,
+                                    rowIdx,
+                                    colIdx,
+                                    totalRows,
+                                    totalCols
+                                ),
+                                onPuzzleClick = onPuzzleClick,
+                                selectedUserId = selectedUserId,
+                                members = members,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }
