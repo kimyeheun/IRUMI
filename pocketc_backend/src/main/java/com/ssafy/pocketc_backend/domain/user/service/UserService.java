@@ -1,14 +1,13 @@
 package com.ssafy.pocketc_backend.domain.user.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionService;
 import com.ssafy.pocketc_backend.domain.report.entity.Report;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
-import com.ssafy.pocketc_backend.domain.user.dto.response.UserResponse;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserProfileResponse;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserResponse;
 import com.ssafy.pocketc_backend.domain.user.entity.Streak;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.exception.UserErrorType;
@@ -16,6 +15,7 @@ import com.ssafy.pocketc_backend.domain.user.repository.StreakRepository;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
 import com.ssafy.pocketc_backend.global.auth.jwt.JwtProvider;
 import com.ssafy.pocketc_backend.global.auth.service.RefreshTokenService;
+import com.ssafy.pocketc_backend.global.data.DataService;
 import com.ssafy.pocketc_backend.global.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -32,14 +33,17 @@ import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.*;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final S3UploadService s3UploadService;
     private final JwtProvider jwtProvider;
+    private final PasswordEncoder passwordEncoder;
+
+    private final UserRepository userRepository;
+    private final StreakRepository streakRepository;
+
+    private final S3UploadService s3UploadService;
     private final RefreshTokenService refreshTokenService;
     private final ReportService reportService;
-    private final StreakRepository streakRepository;
     private final MissionService missionService;
+    private final DataService dataService;
 
     private static final List<String> DEFAULT_PROFILE_IMAGES = List.of(
             "https://irumi-s3.s3.ap-northeast-2.amazonaws.com/profile/default1.jpg",
@@ -56,7 +60,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse signup(UserSignupRequest request) throws JsonProcessingException {
+    public UserResponse signup(UserSignupRequest request) throws IOException {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(UserErrorType.ALREADY_EXISTS);
         }
@@ -91,6 +95,9 @@ public class UserService {
 
         missionService.getWeeklyMissions(user.getUserId());
         missionService.getMonthlyMissions(user.getUserId());
+
+        dataService.putDummyTransactions(user.getUserId());
+
         return jwtProvider.issueToken(user.getUserId(), user.getEmail());
     }
 

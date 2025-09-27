@@ -7,6 +7,7 @@ import com.ssafy.pocketc_backend.domain.event.entity.Status;
 import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionRedisDto;
 import com.ssafy.pocketc_backend.domain.mission.dto.response.MissionInfoDto;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
+import com.ssafy.pocketc_backend.domain.report.entity.Report;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.*;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionAiResDto;
@@ -330,5 +331,18 @@ public class TransactionService {
                 reportService.updateMonthlyTotalExpense(userId, curMonth, amount);
             }
         }
+    }
+
+    public void putTransaction(Dummy dummy, Integer userId) {
+        Transaction transaction = transactionRepository.findById(dummy.transactionId())
+                .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
+
+        transaction.setFixed(dummy.isFixed());
+        transaction.setTransactedAt(dummy.date());
+        transaction.setMajorId(dummy.majorId());
+        transaction.setSubId(dummy.subId());
+        transactionRepository.save(transaction);
+
+        Report report = reportService.getR
     }
 }
