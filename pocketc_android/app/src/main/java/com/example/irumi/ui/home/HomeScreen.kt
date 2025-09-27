@@ -73,6 +73,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val friendState by viewModel.uiFriendState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
 
     // ---- 상태바/내비게이션바: 흰 배경 + 어두운 아이콘 설정 ----
@@ -119,7 +120,13 @@ fun HomeScreen(
 
     // 선택된 친구 바뀌면 비교 데이터 로드(캐시 사용)
     LaunchedEffect(selectedFriend.id) {
-        if (selectedFriend.id != 0) viewModel.reloadFriendDaily(selectedFriend.id)
+        if (selectedFriend.id != 0) {
+            viewModel.reloadFriendDaily(selectedFriend.id)
+            Timber.d("친구 id 바뀜 -=> ${selectedFriend.id}")
+            viewModel.loadFriendInfoAll(selectedFriend.id)
+        }else {
+            //viewModel.reloadAll()
+        }
     }
 
     // ===== 오늘 첫 실행: 추천 미션 시트 자동 노출(하루 1회) =====
@@ -181,7 +188,9 @@ fun HomeScreen(
                     friends = friends,
                     selected = selectedFriend,
                     brand = brand,
-                    onSelect = { selectedFriend = it },
+                    onSelect = {
+                        selectedFriend = it
+                               },
                     onAddClick = {
                         followError = null
                         pendingFollowTargetId = null
@@ -241,13 +250,15 @@ fun HomeScreen(
                             friendName = selectedFriend.name
                         )
                         Spacer(Modifier.height(12.dp))
-                    }
+                        BadgesSection(badges = friendState.badges)
+                        Spacer(Modifier.height(12.dp))
 
-                    StreakSection(
-                        friendName = selectedFriend.name,
-                        days = state.streaks.toDays(),
-                        totalDays = 365
-                    )
+                        StreakSection(
+                            friendName = selectedFriend.name,
+                            days = friendState.streaks.toDays(),
+                            totalDays = 365
+                        )
+                    }
                 }
                 Spacer(Modifier.height(24.dp))
             }
