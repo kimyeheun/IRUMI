@@ -30,7 +30,7 @@ import androidx.compose.foundation.lazy.items
 @Composable
 fun BadgesSection(
     badges: List<BadgeEntity>,
-    title: String = "내 뱃지",
+    title: String = "나의 뱃지",
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
     error: String? = null,
@@ -43,7 +43,14 @@ fun BadgesSection(
             .background(Color.White)
             .padding(16.dp)
     ) {
-        Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = BrandGreen)
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF191F28),
+            letterSpacing = (-0.5).sp,
+            lineHeight = 28.sp
+        )
         Spacer(Modifier.height(10.dp))
 
         // 1) 에러

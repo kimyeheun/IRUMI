@@ -52,7 +52,14 @@ fun StreakSection(
     ) {
         // 친구가 선택된 경우 고정 문구로 “친구의 스트릭” 표시
         val title = if (friendName != null) "친구의 스트릭" else "나의 스트릭"
-        Text(text = title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF191F28),
+            letterSpacing = (-0.5).sp,
+            lineHeight = 28.sp
+        )
         Spacer(Modifier.height(10.dp))
 
         LazyRow(
