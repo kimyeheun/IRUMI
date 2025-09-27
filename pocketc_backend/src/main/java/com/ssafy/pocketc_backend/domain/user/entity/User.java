@@ -41,6 +41,9 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     private Integer puzzleAttempts = 0;
 
+    @Column(unique = true, nullable = false, length = 10)
+    private String userCode;
+
     //    @Column
 //    private String feedback;
     public void updateEmail(String email) {
@@ -61,5 +64,14 @@ public class User extends BaseTimeEntity {
 
     public void updateProfileImage(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
+    }
+
+    @PrePersist
+    private void generateUserCode() {
+        if (this.userCode != null) return;
+        this.userCode = java.util.UUID.randomUUID().toString()
+                .replace("-", "")
+                .substring(0, 8)
+                .toUpperCase();
     }
 }
