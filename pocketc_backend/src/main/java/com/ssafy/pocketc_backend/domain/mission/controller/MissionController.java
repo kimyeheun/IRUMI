@@ -40,4 +40,10 @@ public class MissionController {
                 missionService.chooseMissions(dto, userId(principal))
         ));
     }
+
+    @DeleteMapping("/admin/redis")
+    public ResponseEntity<?> deleteRedis() {
+        missionService.deleteRedis();
+        return ResponseEntity.ok("성공");
+    }
 }
