@@ -8,6 +8,7 @@ import com.ssafy.pocketc_backend.domain.mission.dto.request.MissionRedisDto;
 import com.ssafy.pocketc_backend.domain.mission.dto.response.MissionInfoDto;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
 import com.ssafy.pocketc_backend.domain.report.entity.Report;
+import com.ssafy.pocketc_backend.domain.report.repository.ReportRepository;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.*;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionAiResDto;
@@ -54,6 +55,7 @@ public class TransactionService {
 
     private final MissionRedisService missionRedisService;
     private final StreakRepository streakRepository;
+    private final ReportRepository reportRepository;
 
     public TransactionResDto getTransactionById(int transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId)
@@ -299,50 +301,64 @@ public class TransactionService {
         return MissionInfoDto.of(check, progress, value, template);
     }
 
-    public void createTransactions(Integer userId, DummyTransactionsDto dto) {
-        Random random = new Random();
-        List<Dummy> dtos = dto.transactions();
+//    public void createTransactions(Integer userId, DummyTransactionsDto dto) {
+//        Random random = new Random();
+//        List<Dummy> dtos = dto.transactions();
+//
+//        User user = userRepository.findById(userId)
+//                .orElseThrow();
+//        for (Dummy transaction : dtos) {
+//
+//            long amount = transaction.amount() / 100 * 100;
+//
+//            Streak streak = streakRepository.findByUser_userIdAndDate(userId, transaction.transactedAt().toLocalDate());
+//            streak.setSpentAmount(streak.getSpentAmount() + amount);
+//
+//            Transaction t = Transaction.builder()
+//                    .user(user)
+//                    .amount(amount)
+//                    .transactedAt(transaction.transactedAt())
+//                    .isApplied(false)
+//                    .isFixed(random.nextBoolean())
+//                    .merchantName(transaction.merchantName())
+//                    .majorId(transaction.majorId())
+//                    .subId(transaction.subId())
+//                    .build();
+//            LocalDate curMonth = transaction.transactedAt().toLocalDate().withDayOfMonth(1);
+//            transactionRepository.save(t);
+//            if (t.isFixed()) {
+//                reportService.updateMonthlyFixedExpense(userId, curMonth, amount);
+//                reportService.updateMonthlyTotalExpense(userId, curMonth, amount);
+//            } else {
+//                reportService.updateMonthlyTotalExpense(userId, curMonth, amount);
+//            }
+//        }
+//    }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow();
-        for (Dummy transaction : dtos) {
-
-            long amount = transaction.amount() / 100 * 100;
-
-            Streak streak = streakRepository.findByUser_userIdAndDate(userId, transaction.date().toLocalDate());
-            streak.setSpentAmount(streak.getSpentAmount() + amount);
-
-            Transaction t = Transaction.builder()
-                    .user(user)
-                    .amount(amount)
-                    .transactedAt(transaction.date())
-                    .isApplied(false)
-                    .isFixed(random.nextBoolean())
-                    .merchantName(transaction.merchantName())
-                    .majorId(transaction.majorId())
-                    .subId(transaction.subId())
-                    .build();
-            LocalDate curMonth = transaction.date().toLocalDate().withDayOfMonth(1);
-            transactionRepository.save(t);
-            if (t.isFixed()) {
-                reportService.updateMonthlyFixedExpense(userId, curMonth, amount);
-                reportService.updateMonthlyTotalExpense(userId, curMonth, amount);
-            } else {
-                reportService.updateMonthlyTotalExpense(userId, curMonth, amount);
-            }
-        }
-    }
-
-    public void putTransaction(Dummy dummy, Integer userId) {
-        Transaction transaction = transactionRepository.findById(dummy.transactionId())
+    public void putTransaction(Dummy dummy, User user) {
+        Transaction transaction = transactionRepository.findById(dummy.getTransactionId())
                 .orElseThrow(() -> new CustomException(ERROR_GET_TRANSACTION));
 
         transaction.setFixed(dummy.isFixed());
-        transaction.setTransactedAt(dummy.date());
-        transaction.setMajorId(dummy.majorId());
-        transaction.setSubId(dummy.subId());
+        transaction.setTransactedAt(dummy.getTransactedAt());
+        transaction.setMajorId(dummy.getMajorId());
+        transaction.setSubId(dummy.getSubId());
         transactionRepository.save(transaction);
 
-        Report report = reportService.getR
+        Optional<Report> report = reportRepository.findByUser_UserIdAndReportMonth(user.getUserId(), transaction.getTransactedAt().toLocalDate());
+        if (report.isEmpty()) {
+            Report newReport = Report.builder()
+                    .monthlyBudget(user.getBudget())
+                    .monthlyFixedExpense(0L)
+                    .monthlyTotalExpense(0L)
+                    .reportMonth(transaction.getTransactedAt().toLocalDate())
+                    .user(user)
+                    .build();
+            report = Optional.of(reportRepository.save(newReport));
+        }
+        if (dummy.isFixed()) {
+            report.get().setMonthlyFixedExpense(report.get().getMonthlyFixedExpense() + dummy.getAmount());
+        }
+        report.get().setMonthlyTotalExpense(report.get().getMonthlyTotalExpense() + dummy.getAmount());
     }
 }

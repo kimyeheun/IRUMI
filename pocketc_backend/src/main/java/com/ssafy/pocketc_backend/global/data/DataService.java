@@ -7,6 +7,9 @@ import com.ssafy.pocketc_backend.domain.transaction.dto.request.Dummy;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.DummyTransactionsDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionAiResDto;
 import com.ssafy.pocketc_backend.domain.transaction.service.TransactionService;
+import com.ssafy.pocketc_backend.domain.user.entity.User;
+import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
+import com.ssafy.pocketc_backend.global.exception.CustomException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
@@ -26,6 +29,9 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Optional;
+
+import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
 
 @Service
 @Transactional
@@ -43,6 +49,7 @@ public class DataService {
     private final ResourceLoader resourceLoader;
 
     private final WebClient webClient;
+    private final UserRepository userRepository;
 
     public void deleteAll() {
 
@@ -89,7 +96,9 @@ public class DataService {
         MapSqlParameterSource params = new MapSqlParameterSource().addValue("userId", userId);
 
         jdbcTemplate.update(sql, params);
+    }
 
+    public void getDummyTransactions(Integer userId) throws IOException {
         // AI로 호출
         DummyTransactionsDto dummyTransactionsDto = webClient.post()
                 .uri("/ai/categories/{userId}", userId)
@@ -102,10 +111,14 @@ public class DataService {
                                 .flatMap(msg -> Mono.error(new RuntimeException(msg)))
                 )
                 .bodyToMono(DummyTransactionsDto.class)
-                .timeout(Duration.ofSeconds(3)).block();
+                .timeout(Duration.ofSeconds(10)).block();
 
-        for (Dummy dummy : dummyTransactionsDto.transactions()) {
-            transactionService.putTransaction(dummy, userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        for (Dummy dummy : dummyTransactionsDto.getTransactions()) {
+            System.out.println(dummy.getMerchantName() + ": " + dummy.getMajorId() + " " + dummy.getSubId());
+            transactionService.putTransaction(dummy, user);
         }
     }
 }

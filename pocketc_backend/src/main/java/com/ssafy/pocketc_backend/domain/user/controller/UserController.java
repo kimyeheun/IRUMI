@@ -9,6 +9,7 @@ import com.ssafy.pocketc_backend.domain.user.dto.response.UserResponse;
 import com.ssafy.pocketc_backend.domain.user.service.UserService;
 import com.ssafy.pocketc_backend.global.auth.jwt.JwtProvider;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
+import com.ssafy.pocketc_backend.global.data.DataService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import static com.ssafy.pocketc_backend.domain.user.exception.UserSuccessType.*;
 public class UserController {
     private final UserService userService;
     private final JwtProvider jwtProvider;
+    private final DataService dataService;
 
     @Operation(summary = "회원가입", description = "이름, 패스워드, 이메일, 예산")
     @PostMapping
@@ -91,5 +93,13 @@ public class UserController {
         Integer userId = Integer.valueOf(principal.getName());
         userService.updateProfileImage(userId, profileImage, delete);
         return ResponseEntity.ok(ApiResponse.success(UPLOAD_SUCCESS));
+    }
+
+    @PostMapping("/ai/transaction")
+    public ResponseEntity<ApiResponse<?>> updateTransactions(Principal principal) throws IOException {
+        dataService.getDummyTransactions(Integer.parseInt(principal.getName()));
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_UPDATE_TRANSACTIONS
+        ));
     }
 }

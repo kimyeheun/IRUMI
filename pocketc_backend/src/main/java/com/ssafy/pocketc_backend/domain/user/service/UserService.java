@@ -97,7 +97,6 @@ public class UserService {
         missionService.getMonthlyMissions(user.getUserId());
 
         dataService.putDummyTransactions(user.getUserId());
-
         return jwtProvider.issueToken(user.getUserId(), user.getEmail());
     }
 
