@@ -6,9 +6,9 @@ data class MissionEntity(
     val type: Int,
     val mission: String,
     val status: String,
-    val progress: Int,
-    val value: Int,
-    val template: String
+    val progress: Int? = 0,
+    val value: Int? = 0,
+    val template: String? = ""
 )
 
 data class MissionsEntity(
