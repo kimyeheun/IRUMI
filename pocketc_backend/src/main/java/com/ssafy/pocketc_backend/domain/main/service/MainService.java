@@ -1,10 +1,12 @@
 package com.ssafy.pocketc_backend.domain.main.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ssafy.pocketc_backend.domain.event.dto.response.BadgeDto;
 import com.ssafy.pocketc_backend.domain.event.entity.Badge;
 import com.ssafy.pocketc_backend.domain.event.entity.Event;
 import com.ssafy.pocketc_backend.domain.event.repository.BadgeRepository;
 import com.ssafy.pocketc_backend.domain.event.repository.EventRepository;
+import com.ssafy.pocketc_backend.domain.main.dto.FollowerInfoDto;
 import com.ssafy.pocketc_backend.domain.main.dto.MainResponse;
 import com.ssafy.pocketc_backend.domain.main.dto.StreakDto;
 import com.ssafy.pocketc_backend.domain.main.dto.StreakResDto;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.ssafy.pocketc_backend.domain.main.exception.MainErrorType.ERROR_GET_BADGE;
+import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
 
 @Service
 @RequiredArgsConstructor
@@ -190,5 +193,41 @@ public class MainService {
                             .status(false)
                     .build());
         }
+    }
+
+    public FollowerInfoDto getFollowerInfo(Integer followerId, Integer userId) {
+
+        User Follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+
+        MainResponse userScore = getDailyScoreAndTotal(userId);
+        MainResponse followerScore = getDailyScoreAndTotal(followerId);
+
+        List<Streak> streaks = streakRepository.findAllByUser_UserId(followerId);
+        List<StreakDto> streakDtos = new ArrayList<>();
+        for (Streak streak : streaks) {
+            streakDtos.add(StreakDto.from(streak));
+        }
+
+        List<Badge> badges = badgeRepository.findAllByUser_UserId(followerId);
+        List<BadgeDto> badgeDtos = new ArrayList<>();
+        for (Badge badge : badges) {
+            badgeDtos.add(BadgeDto.of(
+                    badge.getBadgeId(),
+                    badge.getEvent().getBadgeName(),
+                    badge.getEvent().getBadgeDescription(),
+                    badge.getLevel(),
+                    badge.getEvent().getBadgeImageUrl(),
+                    badge.getCreatedAt()
+            ));
+        }
+        return FollowerInfoDto.of(
+                followerId,
+                Follower.getName(),
+                userScore.savingScore(),
+                followerScore.savingScore(),
+                badgeDtos,
+                streakDtos
+        );
     }
 }
