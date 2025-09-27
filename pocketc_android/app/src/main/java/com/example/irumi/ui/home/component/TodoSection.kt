@@ -90,7 +90,7 @@ fun TodoSection(
         missions.map {
             val success = it.status.equals("SUCCESS", true) ||
                     it.status.equals("DONE", true) ||
-                    it.progress >= 100
+                    (it.progress ?: 0) >= 100
             val failed = it.status.equals("FAILED", true)
 
             val uiStatus = when {

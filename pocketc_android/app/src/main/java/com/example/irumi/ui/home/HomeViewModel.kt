@@ -2,7 +2,14 @@ package com.example.irumi.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.irumi.domain.entity.main.*
+import com.example.irumi.domain.entity.main.BadgeEntity
+import com.example.irumi.domain.entity.main.DailySavingEntity
+import com.example.irumi.domain.entity.main.FollowInfoEntity
+import com.example.irumi.domain.entity.main.FriendDailyEntity
+import com.example.irumi.domain.entity.main.MissionEntity
+import com.example.irumi.domain.entity.main.SpendingEntity
+import com.example.irumi.domain.entity.main.StreakEntity
+import com.example.irumi.domain.entity.main.UserProfileEntity
 import com.example.irumi.domain.repository.MainRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -23,10 +30,10 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    init {
-        Timber.d("[HomeVM] init -> refresh()")
-        refresh()
-    }
+//    init {
+//        Timber.d("[HomeVM] init -> refresh()")
+//        refresh()
+//    }
 
     /** 전체 새로고침 (홈 최초 진입/풀투리프레시) */
     fun refresh() {
@@ -172,7 +179,10 @@ class HomeViewModel @Inject constructor(
         val missionsDef = async {
             runCatching { mainRepository.getMissions().getOrThrow() }
                 .also { r ->
-                    r.onSuccess { Timber.d("[HomeVM] /missions OK: received=%s, size=%d", it.missionReceived, it.missions.size) }
+                    r.onSuccess {
+                        Timber.d("[HomeVM] /missions OK: received=%s, size=%d",
+                            it.missionReceived, it.missions.size)
+                    }
                         .onFailure { Timber.e(it, "[HomeVM] /missions ERROR") }
                 }
         }
@@ -258,7 +268,7 @@ data class HomeUiState(
     val streaks: List<StreakEntity> = emptyList(),          // /users/streaks
 
     // 미션 (단일 엔드포인트)
-    val missionReceived: Boolean = false,
+    val missionReceived: Boolean? = null,
     val missions: List<MissionEntity> = emptyList(),
 
     // 친구 비교 캐시: friendId → (me, friend)
