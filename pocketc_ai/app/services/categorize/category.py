@@ -3,7 +3,8 @@ from datetime import datetime
 from requests.sessions import Session
 
 from app.repository.categoryRepository import SubCategoryRepository
-from app.schemas.transaction import CategoryRequest, CategoryResponse
+from app.repository.transactionRepository import TransactionRepository
+from app.schemas.transaction import CategoryRequest, CategoryResponse, CategoriesResponse
 from app.services.categorize.category_lib import REGEX_RULES
 from app.services.categorize.rules.chain import Categorizer
 from app.services.categorize.rules.heuristics import CafeRule, ConvenienceRule, DiningTimeRule
@@ -30,6 +31,7 @@ class CategoryService:
     def __init__(self, db: Session, fallback: str = "기타 지출"):
         self.db = db
         self.repo = SubCategoryRepository(db)
+        self.transaction = TransactionRepository(db)
         self.categorizer = Categorization(fallback=fallback)
 
     def create_category(self, req: CategoryRequest) -> CategoryResponse:
@@ -45,3 +47,23 @@ class CategoryService:
             subId=category.sub_id,
             isFixed=category.is_fixed,
         )
+
+    def create_categories(self, user_id:int) -> CategoriesResponse:
+        categories = []
+        users_transactions = self.transaction.get_user_all_transactions(user_id)
+
+        for trans in users_transactions:
+            pred = self.categorizer.classify(trans.merchant_name, trans.amount, trans.transacted_at)
+            category = self.repo.get_category(pred)
+
+            categories.append(
+                CategoryResponse(
+                    amount=trans.amount,
+                    merchantName=trans.merchant_name,
+                    transactedAt=trans.transacted_at,
+                    majorId=category.major_id,
+                    subId=category.sub_id,
+                    isFixed=category.is_fixed,
+                )
+            )
+        return CategoriesResponse(transactions=categories)

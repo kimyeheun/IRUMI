@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from types import NoneType
 from typing import Dict, Any
@@ -8,7 +7,6 @@ from fastapi import APIRouter, Depends
 from app.schemas.mission import MissionResponse
 from app.services.mission.mission import MissionService
 from app.services.mission.mission_service import get_mission_service
-from app.utils.buf_data import BUF_MONTHLY_MISSION, BUF_WEEKLY_MISSION
 
 router = APIRouter()
 
