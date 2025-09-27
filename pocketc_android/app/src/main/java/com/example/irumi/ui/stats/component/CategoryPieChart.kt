@@ -44,6 +44,7 @@ import com.example.irumi.data.dto.response.stats.MonthStatsResponse
 import com.example.irumi.ui.stats.CategoryList
 import com.example.irumi.ui.stats.ExpenseCategory
 import com.example.irumi.ui.stats.StatsCard
+import com.example.irumi.ui.theme.BrandGreen
 import ir.ehsannarmani.compose_charts.PieChart
 import ir.ehsannarmani.compose_charts.models.Pie
 import java.text.DecimalFormat
@@ -142,7 +143,7 @@ fun CategoryPieChart(
                         modifier = Modifier
                             .clickable { isColorModeEnabled = !isColorModeEnabled }
                             .background(
-                                color = if (isColorModeEnabled) Color(0xFFE0E7FF) else Color(0xFFF3F4F6),
+                                color = Color(0xFFF3F4F6),
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -154,14 +155,14 @@ fun CategoryPieChart(
                             Icon(
                                 imageVector = if (isColorModeEnabled) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = null,
-                                tint = if (isColorModeEnabled) Color(0xFF4F46E5) else Color(0xFF6B7280),
+                                tint = if (isColorModeEnabled) BrandGreen else Color(0xFF6B7280),
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
-                                text = if (isColorModeEnabled) "구분 모드" else "일반 모드",
+                                text = "고정/변동비",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = if (isColorModeEnabled) Color(0xFF4F46E5) else Color(0xFF6B7280)
+                                color = if (isColorModeEnabled) BrandGreen else Color(0xFF6B7280)
                             )
                         }
                     }
