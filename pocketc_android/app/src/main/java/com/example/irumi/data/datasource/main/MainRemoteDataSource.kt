@@ -1,6 +1,7 @@
 package com.example.irumi.data.datasource.main
 
 import com.example.irumi.core.network.BaseResponse
+import com.example.irumi.data.dto.request.main.FollowRequest
 import com.example.irumi.data.dto.request.main.MissionsSelectRequest
 import com.example.irumi.data.dto.response.main.BadgeListResponse
 import com.example.irumi.data.dto.response.main.FriendStreaksResponse
@@ -16,6 +17,8 @@ class MainRemoteDataSource @Inject constructor(
     override suspend fun getBadges() = service.getBadges()
     override suspend fun getStreaks() = service.getStreaks()
     override suspend fun postFollow(targetUserId: Int) = service.postFollow(targetUserId)
+    override suspend fun postFollow(userCode: String) =
+        service.postFollowByUserCode(FollowRequest(userCode))
     override suspend fun deleteFollow(targetUserId: Int) = service.deleteFollow(targetUserId)
     override suspend fun getDailyWithFriend(friendId: Int) = service.getDailyWithFriend(friendId)
 
