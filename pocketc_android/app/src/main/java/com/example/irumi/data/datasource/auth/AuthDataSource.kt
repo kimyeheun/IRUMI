@@ -14,4 +14,6 @@ interface AuthDataSource {
     suspend fun logout(): BaseResponse<Unit?>
     suspend fun reissue(): BaseResponse<TokenEnvelope>
     suspend fun updateMe(body: AuthEditRequest): BaseResponse<MemberProfileResponse>
+
+    suspend fun postAiTransaction(): BaseResponse<Unit>
 }
