@@ -71,15 +71,15 @@ object CategoryMapper {
 
     // majorId별 subId 리스트
     private val majorToSubs = mapOf(
-        1 to listOf(1, 2, 3, 4, 5),
-        2 to listOf(6, 7, 8),
-        3 to listOf(9, 10, 11, 12),
-        4 to listOf(13, 14, 15, 16, 17, 18, 19),
-        5 to listOf(20, 21, 22),
-        6 to listOf(23, 24, 25),
-        7 to listOf(26, 27, 28),
-        8 to listOf(29, 30, 31, 32),
-        9 to listOf(33, 34, 35, 36),
+        1 to listOf(11, 12, 13, 14, 15),
+        2 to listOf(16, 17, 18),
+        3 to listOf(33, 34, 35, 36),
+        4 to listOf(1, 2, 3, 4, 5, 6, 7),
+        5 to listOf(8, 9, 10),
+        6 to listOf(19, 20, 21),
+        7 to listOf(22, 23, 24),
+        8 to listOf(25, 26, 27, 28),
+        9 to listOf(29, 30, 31, 32),
         10 to listOf(37, 38, 39)
     )
 
