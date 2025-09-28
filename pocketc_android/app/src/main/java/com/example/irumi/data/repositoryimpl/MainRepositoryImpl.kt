@@ -64,6 +64,11 @@ class MainRepositoryImpl @Inject constructor(
         Unit
     }
 
+    override suspend fun follow(userCode: String): Result<Unit> = runCatching {
+        dataSource.postFollow(userCode)
+        Unit
+    }
+
     override suspend fun unfollow(targetUserId: Int): Result<Unit> = runCatching {
         dataSource.deleteFollow(targetUserId)
         Unit
@@ -93,4 +98,7 @@ class MainRepositoryImpl @Inject constructor(
         val res = dataSource.postMissions(selected)
         requireData(res.data, "postMissions").toEntity()
     }
+
+    override suspend fun getUserCode(): Result<String> =
+        runCatching { dataSource.getUserCode().data!!.userCode }
 }

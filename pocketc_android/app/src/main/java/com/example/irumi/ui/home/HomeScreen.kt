@@ -1,7 +1,6 @@
 package com.example.irumi.ui.home
 
 import android.app.Activity
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -124,7 +123,7 @@ fun HomeScreen(
             viewModel.reloadFriendDaily(selectedFriend.id)
             Timber.d("친구 id 바뀜 -=> ${selectedFriend.id}")
             viewModel.loadFriendInfoAll(selectedFriend.id)
-        }else {
+        } else {
             //viewModel.reloadAll()
         }
     }
@@ -148,7 +147,6 @@ fun HomeScreen(
     var showAddSheet by remember { mutableStateOf(false) }
     var followLoading by remember { mutableStateOf(false) }
     var followError by remember { mutableStateOf<String?>(null) }
-    var pendingFollowTargetId by remember { mutableStateOf<Int?>(null) }
 
     var pendingUnfollow by remember { mutableStateOf<Friend?>(null) }
     var unfollowLoading by remember { mutableStateOf(false) }
@@ -190,10 +188,9 @@ fun HomeScreen(
                     brand = brand,
                     onSelect = {
                         selectedFriend = it
-                               },
+                    },
                     onAddClick = {
                         followError = null
-                        pendingFollowTargetId = null
                         showAddSheet = true
                     },
                     onLongPress = { friend ->
@@ -265,45 +262,47 @@ fun HomeScreen(
 
     // ===== 친구 추가 바텀시트 =====
     if (showAddSheet) {
+        // 팔로우 전의 리스트 크기 기억
+        var prevFollowCount by remember { mutableStateOf(state.followInfos.size) }
+
         FriendAddSheet(
             onDismiss = {
                 if (!followLoading) {
                     showAddSheet = false
                     followError = null
-                    pendingFollowTargetId = null
                 }
             },
             isProcessing = followLoading,
             error = followError,
-            onFollow = { targetId ->
+            onFollow = { userCode ->   // targetId는 안 씀
                 followLoading = true
                 followError = null
-                pendingFollowTargetId = targetId
-                viewModel.follow(targetId)
+                prevFollowCount = state.followInfos.size   // 현재 크기 저장
+                viewModel.follow(userCode)
             }
         )
 
-        LaunchedEffect(state.followInfos, state.error, followLoading, showAddSheet, pendingFollowTargetId) {
+        LaunchedEffect(state.followInfos, state.error, followLoading, showAddSheet) {
             if (!showAddSheet || !followLoading) return@LaunchedEffect
+
             if (state.error != null) {
+                // 실패 처리
                 followLoading = false
                 followError = state.error
                 return@LaunchedEffect
             }
-            pendingFollowTargetId?.let { id ->
-                val exists = state.followInfos.any { it.followUserId == id }
-                if (exists) {
-                    followLoading = false
-                    followError = null
-                    showAddSheet = false
-                    pendingFollowTargetId = null
-                }
+
+            if (state.followInfos.size > prevFollowCount) {
+                followLoading = false
+                followError = null
+                showAddSheet = false
             }
         }
     }
 
 
-    if(showMissionSheet) {
+
+    if (showMissionSheet) {
         MissionPickSheet(
             missions = state.missions,
             onDismiss = {

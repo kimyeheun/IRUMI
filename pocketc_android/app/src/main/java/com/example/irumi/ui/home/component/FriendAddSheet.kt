@@ -1,23 +1,40 @@
 package com.example.irumi.ui.home.component
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FriendAddSheet(
     onDismiss: () -> Unit,
-    onFollow: (Int) -> Unit,        // ViewModel.follow(targetUserId)
+    onFollow: (String) -> Unit,
     isProcessing: Boolean = false,  // 팔로우 요청 중 로딩 표시
     error: String? = null           // 오류 메시지 표시
 ) {
     var query by remember { mutableStateOf("") } // targetUserId 입력값
-    val isValid = remember(query) { query.toIntOrNull() != null }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -30,13 +47,14 @@ fun FriendAddSheet(
 
             OutlinedTextField(
                 value = query,
-                onValueChange = { query = it.filter { ch -> ch.isDigit() } }, // 숫자만 허용
-                label = { Text("User ID로 추가") },
-                placeholder = { Text("예: 101") },
+                onValueChange = {
+                    if (it.length <= 8) {
+                        query = it
+                    }
+                },
+                label = { Text("유저 코드로 추가") },
+                placeholder = { Text("예: A134B0F2") },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                ),
                 trailingIcon = {
                     if (query.isNotEmpty() && !isProcessing) {
                         TextButton(onClick = { query = "" }) { Text("지우기") }
@@ -67,10 +85,12 @@ fun FriendAddSheet(
 
                 Button(
                     onClick = {
-                        query.toIntOrNull()?.let { onFollow(it) }
+                        if (query.isNotEmpty()) {
+                            onFollow(query)
+                        }
                     },
                     modifier = Modifier.weight(1f),
-                    enabled = !isProcessing && isValid
+                    enabled = !isProcessing
                 ) {
                     if (isProcessing) {
                         CircularProgressIndicator(
