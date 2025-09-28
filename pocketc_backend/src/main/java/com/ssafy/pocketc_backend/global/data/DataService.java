@@ -56,7 +56,7 @@ public class DataService {
         jdbc.execute("SET FOREIGN_KEY_CHECKS=0");
 
         for (String t : new String[]{
-                "streaks","transactions","follows","missions",
+                "streaks","transactions","follows","missions", "user_metrics",
                 "reports","badges","rooms","events","users","puzzles"
         }) {
             jdbc.execute("TRUNCATE TABLE " + t);
