@@ -232,6 +232,7 @@ fun TopBar(
     onLeaveClick: () -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
+    var showLeaveDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -287,7 +288,9 @@ fun TopBar(
             ) {
                 if (isSuccess == null) {
                     TextButton(
-                        onClick = onLeaveClick,
+                        onClick = {
+                            showLeaveDialog = true
+                                  },
                         colors = ButtonDefaults.textButtonColors(contentColor = SampleColors.Error)
                     ) {
                         Text(
@@ -306,6 +309,22 @@ fun TopBar(
             context = context,
             roomCode = roomCode,
             onDismiss = { showDialog = false } // 닫기
+        )
+    }
+
+    if (showLeaveDialog) {
+        TwoButtonDialog (
+            onDismissRequest = {
+                showLeaveDialog = false
+            },
+            title =  "방 나가기" ,
+            text =  "방을 나가면 지금까지 친구와 함께 맞춘 퍼즐은 사라져요. 그래도 나가시겠어요?",
+            confirmButtonText = "나가기",
+            dismissButtonText = "취소",
+            onConfirmFollow = {
+                onLeaveClick()
+                showLeaveDialog = false
+            }
         )
     }
 }

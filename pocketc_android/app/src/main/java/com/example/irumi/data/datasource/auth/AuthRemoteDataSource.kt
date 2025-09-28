@@ -27,4 +27,7 @@ class AuthRemoteDataSource @Inject constructor(
 
     override suspend fun updateMe(body: AuthEditRequest): BaseResponse<MemberProfileResponse> =
         service.updateMe(body)
+
+    override suspend fun postAiTransaction(): BaseResponse<Unit> =
+        service.postAiTransaction()
 }

@@ -1,8 +1,8 @@
 package com.example.irumi.data.service
 
 import com.example.irumi.core.network.BaseResponse
-import com.example.irumi.data.dto.request.auth.LoginRequest
 import com.example.irumi.data.dto.request.auth.AuthEditRequest
+import com.example.irumi.data.dto.request.auth.LoginRequest
 import com.example.irumi.data.dto.response.auth.LoginEnvelope
 import com.example.irumi.data.dto.response.auth.MemberProfileResponse
 import com.example.irumi.data.dto.response.auth.TokenEnvelope
@@ -37,4 +37,8 @@ interface AuthService {
     suspend fun updateMe(
         @Body body: AuthEditRequest
     ): BaseResponse<MemberProfileResponse>
+
+    /** ai 결제 요청 */
+    @POST("ai/transaction")
+    suspend fun postAiTransaction(): BaseResponse<Unit>
 }

@@ -52,6 +52,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import com.example.irumi.ui.payments.TossColors
 import com.example.irumi.ui.theme.BrandGreen
 
 data class Bank(
@@ -188,7 +190,9 @@ fun BankSelectionField(
                     .clickable { onExpandedChange(!isExpanded) },
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (selectedBank != null) BrandGreen.copy(alpha = 0.1f) else Color(0xFFF8FAF9)
+                    containerColor = if (selectedBank != null) BrandGreen.copy(alpha = 0.1f) else Color(
+                        0xFFF8FAF9
+                    )
                 ),
                 border = BorderStroke(
                     2.dp,
@@ -216,55 +220,65 @@ fun BankSelectionField(
                     )
                 }
             }
-
             if (isExpanded) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 72.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                Popup(
+                    alignment = Alignment.TopStart,
+                    onDismissRequest = { onExpandedChange(false) }
                 ) {
-                    LazyColumn(
-                        modifier = Modifier.heightIn(max = 240.dp)
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 72.dp, start = 24.dp, end = 24.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     ) {
-                        items(banks) { bank ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onBankSelected(bank) }
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
+                        LazyColumn(
+                            modifier = Modifier
+                                .heightIn(max = 240.dp)
+                                .background(TossColors.Background)
+                        ) {
+                            items(banks) { bank ->
+                                Row(
                                     modifier = Modifier
-                                        .size(32.dp)
-                                        .background(
-                                            color = bank.color,
-                                            shape = RoundedCornerShape(8.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            onBankSelected(bank)
+                                            onExpandedChange(false)
+                                        }
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .background(
+                                                color = bank.color,
+                                                shape = RoundedCornerShape(8.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = bank.code,
+                                            color = Color.White,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(12.dp))
+
                                     Text(
-                                        text = bank.code,
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold
+                                        text = bank.name,
+                                        fontSize = 16.sp,
+                                        color = Color.Black
                                     )
                                 }
-
-                                Spacer(modifier = Modifier.width(12.dp))
-
-                                Text(
-                                    text = bank.name,
-                                    fontSize = 16.sp,
-                                    color = Color.Black
-                                )
                             }
                         }
                     }
                 }
             }
+
         }
     }
 }
@@ -320,7 +334,9 @@ fun AccountNumberTextField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = if (isError) MaterialTheme.colorScheme.error else BrandGreen,
-            unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error else Color(0xFFE5EAE9),
+            unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error else Color(
+                0xFFE5EAE9
+            ),
             focusedContainerColor = BrandGreen.copy(alpha = 0.1f),
             unfocusedContainerColor = Color(0xFFF8FAF9)
         ),

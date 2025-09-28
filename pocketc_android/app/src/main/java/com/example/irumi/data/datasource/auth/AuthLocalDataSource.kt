@@ -72,4 +72,12 @@ class AuthLocalDataSource @Inject constructor() : AuthDataSource {
                 budget = body.budget
             )
         )
+
+    override suspend fun postAiTransaction(): BaseResponse<Unit> =
+        BaseResponse(
+            status = 200,
+            message = "성공",
+            data = null
+        )
+
 }
