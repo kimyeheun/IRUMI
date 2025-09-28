@@ -98,4 +98,7 @@ class MainRepositoryImpl @Inject constructor(
         val res = dataSource.postMissions(selected)
         requireData(res.data, "postMissions").toEntity()
     }
+
+    override suspend fun getUserCode(): Result<String> =
+        runCatching { dataSource.getUserCode().data!!.userCode }
 }

@@ -1,6 +1,7 @@
 package com.example.irumi.data.datasource.main
 
 import com.example.irumi.core.network.BaseResponse
+import com.example.irumi.data.dto.request.main.UserCodeDto
 import com.example.irumi.data.dto.response.main.BadgeListResponse
 import com.example.irumi.data.dto.response.main.DailySavingResponse
 import com.example.irumi.data.dto.response.main.FollowIdsResponse
@@ -33,4 +34,6 @@ interface MainDataSource {
     // 미션
     suspend fun getMissions(): BaseResponse<MissionsResponse>
     suspend fun postMissions(selected: List<Int>): BaseResponse<MissionsResponse>
+
+    suspend fun getUserCode(): BaseResponse<UserCodeDto>
 }
