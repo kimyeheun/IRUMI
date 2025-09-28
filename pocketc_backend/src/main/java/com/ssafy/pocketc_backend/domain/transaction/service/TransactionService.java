@@ -343,6 +343,7 @@ public class TransactionService {
         transaction.setTransactedAt(dummy.getTransactedAt());
         transaction.setMajorId(dummy.getMajorId());
         transaction.setSubId(dummy.getSubId());
+
         transactionRepository.save(transaction);
 
         Optional<Report> report = reportRepository.findByUser_UserIdAndReportMonth(user.getUserId(), transaction.getTransactedAt().toLocalDate());
