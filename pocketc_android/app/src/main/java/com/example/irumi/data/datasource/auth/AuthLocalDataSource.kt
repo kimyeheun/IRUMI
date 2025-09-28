@@ -80,4 +80,10 @@ class AuthLocalDataSource @Inject constructor() : AuthDataSource {
             data = null
         )
 
+    override suspend fun postMission(): BaseResponse<Unit> =
+        BaseResponse(
+            status = 200,
+            message = "성공",
+            data = null
+        )
 }

@@ -16,4 +16,6 @@ interface AuthDataSource {
     suspend fun updateMe(body: AuthEditRequest): BaseResponse<MemberProfileResponse>
 
     suspend fun postAiTransaction(): BaseResponse<Unit>
+
+    suspend fun postMission(): BaseResponse<Unit>
 }
