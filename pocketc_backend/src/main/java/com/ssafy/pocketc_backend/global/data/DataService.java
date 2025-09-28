@@ -80,7 +80,7 @@ public class DataService {
 
     public void putDummyTransactions(Integer userId) throws IOException {
 
-        Resource res = new ClassPathResource("db/init_v4_ye.sql");
+        Resource res = new ClassPathResource("db/init_v3.sql");
         if (!res.exists()) throw new IllegalStateException("db/init_v3.sql not found");
 
         String sql = new String(res.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
