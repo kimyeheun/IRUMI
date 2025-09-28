@@ -64,4 +64,18 @@ public class FollowService {
 
         return FollowListResDto.of(followResDtoList);
     }
+
+    public void doFollow(String userCode, Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ERROR_GET_NOT_FOUND_USER));
+
+        User follower = userRepository.findByUserCode(userCode)
+                .orElseThrow(() -> new CustomException(ERROR_GET_NOT_FOUND_USER));
+
+        Follow follow = Follow.builder()
+                .follower(user)
+                .followee(follower)
+                .build();
+        followRepository.save(follow);
+    }
 }

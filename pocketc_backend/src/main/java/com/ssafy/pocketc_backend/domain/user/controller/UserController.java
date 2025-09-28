@@ -4,6 +4,7 @@ import com.ssafy.pocketc_backend.domain.user.dto.request.TokenReissueRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserCodeDto;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserProfileResponse;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserResponse;
 import com.ssafy.pocketc_backend.domain.user.service.UserService;
@@ -100,6 +101,14 @@ public class UserController {
         dataService.getDummyTransactions(Integer.parseInt(principal.getName()));
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_UPDATE_TRANSACTIONS
+        ));
+    }
+
+    @GetMapping("/code")
+    public ResponseEntity<ApiResponse<UserCodeDto>> getCode(Principal principal) {
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_GET_CODE,
+                userService.getUserCode(Integer.parseInt(principal.getName()))
         ));
     }
 }
