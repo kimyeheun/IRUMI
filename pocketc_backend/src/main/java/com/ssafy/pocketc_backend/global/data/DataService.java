@@ -5,7 +5,6 @@ import com.ssafy.pocketc_backend.domain.event.repository.EventRepository;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.Dummy;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.DummyTransactionsDto;
-import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionAiResDto;
 import com.ssafy.pocketc_backend.domain.transaction.service.TransactionService;
 import com.ssafy.pocketc_backend.domain.user.entity.User;
 import com.ssafy.pocketc_backend.domain.user.repository.UserRepository;
@@ -29,7 +28,6 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Optional;
 
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
 
@@ -117,7 +115,7 @@ public class DataService {
                 .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
 
         for (Dummy dummy : dummyTransactionsDto.getTransactions()) {
-            System.out.println(dummy.getMerchantName() + ": " + dummy.getMajorId() + " " + dummy.getSubId());
+//            System.out.println(dummy.getMerchantName() + ": " + dummy.getMajorId() + " " + dummy.getSubId());
             transactionService.putTransaction(dummy, user);
         }
     }
