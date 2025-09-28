@@ -3,6 +3,7 @@ package com.ssafy.pocketc_backend.global.data;
 import com.ssafy.pocketc_backend.domain.event.entity.Event;
 import com.ssafy.pocketc_backend.domain.event.repository.EventRepository;
 import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
+import com.ssafy.pocketc_backend.domain.mission.service.MissionService;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.Dummy;
 import com.ssafy.pocketc_backend.domain.transaction.dto.request.DummyTransactionsDto;
 import com.ssafy.pocketc_backend.domain.transaction.service.TransactionService;
@@ -39,6 +40,7 @@ public class DataService {
     private final EventRepository eventRepository;
 
     private final MissionRedisService missionRedisService;
+    private final MissionService missionService;
 
     private final DataSource dataSource;
     private final JdbcTemplate jdbc;
@@ -80,8 +82,8 @@ public class DataService {
 
     public void putDummyTransactions(Integer userId) throws IOException {
 
-        Resource res = new ClassPathResource("db/init_v3.sql");
-        if (!res.exists()) throw new IllegalStateException("db/init_v3.sql not found");
+        Resource res = new ClassPathResource("db/init_v4_ye.sql");
+        if (!res.exists()) throw new IllegalStateException("db/init_v6.sql not found");
 
         String sql = new String(res.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 

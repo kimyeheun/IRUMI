@@ -346,8 +346,9 @@ public class TransactionService {
         transaction.setTransactedAt(dummy.getTransactedAt());
         transaction.setMajorId(dummy.getMajorId());
         transaction.setSubId(dummy.getSubId());
-        if (Objects.equals(transaction.getTransactedAt().toLocalDate(), LocalDate.now()))
+        if (Objects.equals(transaction.getTransactedAt().toLocalDate(), LocalDate.now())) {
             transaction.setApplied(false);
+        }
 
         transactionRepository.save(transaction);
 
