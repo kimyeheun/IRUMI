@@ -5,6 +5,7 @@ import com.example.irumi.data.dto.response.main.DailySavingResponse
 import com.example.irumi.data.dto.response.main.FollowIdsResponse
 import com.example.irumi.data.dto.response.main.FollowListResponse
 import com.example.irumi.data.dto.response.main.FriendDailyResponse
+import com.example.irumi.data.dto.response.main.FriendStreaksResponse
 import com.example.irumi.data.dto.response.main.MissionResponse
 import com.example.irumi.data.dto.response.main.MissionsResponse
 import com.example.irumi.data.dto.response.main.SpendingResponse
@@ -73,6 +74,20 @@ fun StreaksResponse.toEntity(): List<StreakEntity> =
             isActive = dto.isActive
         )
     }
+
+/** 친구 스트릭 매핑 */
+fun FriendStreaksResponse.toEntity(): Pair<String, List<StreakEntity>> =
+    Pair(
+        first = friendName,
+        second = friendStreak.streaks.map { dto ->
+            StreakEntity(
+                date = dto.date,
+                missionsCompleted = dto.missionsCompleted,
+                spending = dto.spending,
+                isActive = dto.isActive
+            )
+        }
+    )
 
 /** 팔로우 ID/시각 매핑 */
 fun FollowIdsResponse.toEntity(): List<FollowInfoEntity> =

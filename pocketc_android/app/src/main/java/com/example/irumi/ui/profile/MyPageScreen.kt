@@ -93,6 +93,10 @@ fun MyPageScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        homeViewModel.loadAll()
+    }
+
     // 로그아웃 성공 감지
     LaunchedEffect(isLoggedIn) {
         if (!isLoggedIn) onLoggedOut()

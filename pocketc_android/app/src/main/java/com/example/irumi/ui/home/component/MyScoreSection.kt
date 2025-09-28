@@ -2,6 +2,7 @@ package com.example.irumi.ui.home.component
 
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,8 +48,19 @@ fun MyScoreSection(
             .padding(vertical = 20.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row() {
-            Text("내 점수", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = titleColor)
+        Row(
+            modifier = Modifier.fillMaxWidth(), // Row가 전체 너비를 차지하도록
+            horizontalArrangement = Arrangement.Start, // 왼쪽 정렬
+            verticalAlignment = Alignment.CenterVertically // 수직 중앙 정렬
+        ) {
+            Text(
+                text = "내 절약 점수",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF191F28),
+                letterSpacing = (-0.5).sp,
+                lineHeight = 28.sp
+            )
             Spacer(Modifier.size(4.dp)) // 텍스트와 아이콘 버튼 사이 간격
 
             InfoTooltip(

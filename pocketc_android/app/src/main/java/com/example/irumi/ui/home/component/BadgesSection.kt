@@ -8,6 +8,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -24,14 +25,12 @@ import com.example.irumi.ui.theme.BrandGreen
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.Alignment
-import com.example.irumi.core.designsystem.component.tooltip.InfoTooltip
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BadgesSection(
     badges: List<BadgeEntity>,
-    title: String = "내 뱃지",
+    title: String = "나의 뱃지",
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
     error: String? = null,
@@ -44,11 +43,14 @@ fun BadgesSection(
             .background(Color.White)
             .padding(16.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.width(2.dp))
-            InfoTooltip(title = "뱃지", description = "스트릭과 이벤트 달성으로 얻을 수 있는 뱃지입니다")
-        }
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF191F28),
+            letterSpacing = (-0.5).sp,
+            lineHeight = 28.sp
+        )
         Spacer(Modifier.height(10.dp))
 
         // 1) 에러
