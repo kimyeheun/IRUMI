@@ -64,6 +64,11 @@ class MainRepositoryImpl @Inject constructor(
         Unit
     }
 
+    override suspend fun follow(userCode: String): Result<Unit> = runCatching {
+        dataSource.postFollow(userCode)
+        Unit
+    }
+
     override suspend fun unfollow(targetUserId: Int): Result<Unit> = runCatching {
         dataSource.deleteFollow(targetUserId)
         Unit

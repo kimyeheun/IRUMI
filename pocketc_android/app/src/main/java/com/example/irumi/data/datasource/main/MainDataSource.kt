@@ -18,6 +18,7 @@ interface MainDataSource {
 
     suspend fun getFollowIds(): BaseResponse<FollowIdsResponse>
     suspend fun postFollow(targetUserId: Int): BaseResponse<Unit?>
+    suspend fun postFollow(userCode: String): BaseResponse<Unit?>
     suspend fun deleteFollow(targetUserId: Int): BaseResponse<Unit?>
     suspend fun getDailyWithFriend(friendId: Int): BaseResponse<FriendDailyResponse>
 

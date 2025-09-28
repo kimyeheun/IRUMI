@@ -20,6 +20,7 @@ interface MainRepository {
 
     suspend fun getFollowIds(): Result<List<FollowInfoEntity>>
     suspend fun follow(targetUserId: Int): Result<Unit>
+    suspend fun follow(userCode: String): Result<Unit>
     suspend fun unfollow(targetUserId: Int): Result<Unit>
     suspend fun getDailyWithFriend(friendId: Int): Result<FriendDailyEntity>
 
