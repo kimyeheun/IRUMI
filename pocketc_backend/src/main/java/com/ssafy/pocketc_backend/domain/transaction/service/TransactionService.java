@@ -36,7 +36,6 @@ import reactor.core.publisher.Mono;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.*;
@@ -346,12 +345,11 @@ public class TransactionService {
         transaction.setTransactedAt(dummy.getTransactedAt());
         transaction.setMajorId(dummy.getMajorId());
         transaction.setSubId(dummy.getSubId());
-        if (Objects.equals(transaction.getTransactedAt().toLocalDate(), LocalDate.now())) {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        if (transaction.getTransactedAt().toLocalDate().isEqual(today)) {
             transaction.setApplied(false);
         }
-
         transactionRepository.save(transaction);
-
         Optional<Report> report = reportRepository.findByUser_UserIdAndReportMonth(user.getUserId(), transaction.getTransactedAt().toLocalDate().withDayOfMonth(1));
         if (report.isEmpty()) {
             Report newReport = Report.builder()
