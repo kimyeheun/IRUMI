@@ -5,7 +5,6 @@ import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,18 +16,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
@@ -38,14 +32,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -59,6 +51,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.irumi.core.designsystem.component.tooltip.InfoTooltip
 import com.example.irumi.core.state.UiState
 import com.example.irumi.data.dto.response.stats.MonthStatsResponse
 import com.example.irumi.ui.auth.AuthViewModel
@@ -113,7 +106,7 @@ fun StatsRoute(
         error?.let { Toast.makeText(ctx, it, Toast.LENGTH_SHORT).show() }
     }
 
-    when(stats) {
+    when (stats) {
         is UiState.Success -> {
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
@@ -124,6 +117,7 @@ fun StatsRoute(
                 )
             }
         }
+
         is UiState.Empty -> TODO()
         is UiState.Failure -> TODO()
         is UiState.Loading -> {
@@ -174,15 +168,21 @@ fun StatsCard(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = title,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF191F28),
-                    letterSpacing = (-0.5).sp,
-                    lineHeight = 28.sp
-                )
-
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF191F28),
+                        letterSpacing = (-0.5).sp,
+                        lineHeight = 28.sp
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    InfoTooltip(
+                        title = "월별 절약 점수",
+                        description = "한 달 예산과 소비 패턴을 재평가한 값입니다"
+                    )
+                }
                 subtitle?.let {
                     Text(
                         text = it,
@@ -208,6 +208,7 @@ fun Header(
     stats: UiState<MonthStatsResponse>
 ) {
     val monthStatistics = stats as? UiState.Success<MonthStatsResponse>
+
     /**
      * 사용 통계 데이터
      * currMonthExpense: 당월 지출액
@@ -323,7 +324,7 @@ fun Header(
                 ) {
                     // 예산 정보 카드
                     TossStyleInfoRow(
-                        label = "설정 예산",
+                        label = "이번달 예산",
                         value = money.format(budget),
                         iconBg = Color(0xFF3B82F6).copy(alpha = 0.1f),
                         iconText = "💰"
@@ -343,7 +344,9 @@ fun Header(
                     TossStyleInfoRow(
                         label = if (remaining >= 0) "잔여 예산" else "예산 초과",
                         value = if (remaining >= 0) money.format(remaining) else money.format(-remaining),
-                        iconBg = if (remaining >= 0) BrandGreen.copy(alpha = 0.1f) else Color(0xFFFF6B6B).copy(alpha = 0.1f),
+                        iconBg = if (remaining >= 0) BrandGreen.copy(alpha = 0.1f) else Color(
+                            0xFFFF6B6B
+                        ).copy(alpha = 0.1f),
                         iconText = if (remaining >= 0) "✨" else "⚠️",
                         valueColor = if (remaining >= 0) BrandGreen else Color(0xFFFF6B6B)
                     )
@@ -420,9 +423,7 @@ fun MonthChart(
     stats: UiState<MonthStatsResponse>
 ) {
     val monthlyStatistics = stats as? UiState.Success<MonthStatsResponse>
-    val BrandGreen = Color(0xFF4CAF93)
 
-    // TODO : months 항목을 좀 더 예쁘게 보여줘야 함
     /**
      * 통계 계산
      * savingScores: 월별 절약점수 리스트
@@ -446,7 +447,7 @@ fun MonthChart(
 
     StatsCard(
         title = "절약 점수 추이",
-        subtitle = "최근 6개월 절약 점수 성과를 확인해보세요",
+        subtitle = "월별 절약 점수의 6개월 간 변화를 확인하세요",
         content = {
             Column {
                 // 차트 영역
@@ -504,26 +505,18 @@ fun MonthChart(
 private fun AchievementMessage(savingPercent: Double) {
     // 절약률에 따른 메시지와 색상
     val (message, messageColor, bgColor) = when {
-        savingPercent > 20 -> Triple(
-            "훌륭해요! 지난 달보다 ${String.format("%.0f", savingPercent)}% 절약했어요 🎉",
-            BrandGreen,
-            BrandGreen.copy(alpha = 0.1f)
-        )
-        savingPercent > 10 -> Triple(
-            "좋아요! 지난 달보다 ${String.format("%.0f", savingPercent)}% 절약했어요 👏",
-            BrandGreen,
-            BrandGreen.copy(alpha = 0.1f)
-        )
         savingPercent > 0 -> Triple(
-            "지난 달보다 ${String.format("%.0f", savingPercent)}% 절약했어요",
+            "지난 달보다 ${String.format("%.0f", 100 - savingPercent)}% 절약했어요",
             BrandGreen,
             BrandGreen.copy(alpha = 0.1f)
         )
+
         savingPercent < -10 -> Triple(
-            "지난 달보다 ${String.format("%.0f", -savingPercent)}% 더 지출했어요",
+            "지난 달보다 ${String.format("%.0f", -(100 - savingPercent))}% 더 지출했어요",
             Color(0xFF8B95A1),
             Color(0xFFF8F9FA)
         )
+
         else -> Triple(
             "지난 달과 비슷하게 지출했어요",
             Color(0xFF8B95A1),

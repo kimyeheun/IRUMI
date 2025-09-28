@@ -233,8 +233,6 @@ fun HomeScreen(
                         days = state.streaks.toDays(),
                         totalDays = 365
                     )
-
-                    Log.d("HomeScreen", "사고지점2")
                 } else {
                     val pair = state.friendDaily[selectedFriend.id]
                     if (pair == null) {
