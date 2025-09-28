@@ -10,7 +10,10 @@ import com.ssafy.pocketc_backend.domain.mission.service.MissionRedisService;
 import com.ssafy.pocketc_backend.domain.report.entity.Report;
 import com.ssafy.pocketc_backend.domain.report.repository.ReportRepository;
 import com.ssafy.pocketc_backend.domain.report.service.ReportService;
-import com.ssafy.pocketc_backend.domain.transaction.dto.request.*;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.Dummy;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionAiReqDto;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionCreateReqDto;
+import com.ssafy.pocketc_backend.domain.transaction.dto.request.TransactionReqDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionAiResDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionCreatedResDto;
 import com.ssafy.pocketc_backend.domain.transaction.dto.response.TransactionListResDto;
@@ -34,7 +37,6 @@ import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.*;
 import static com.ssafy.pocketc_backend.domain.user.exception.UserErrorType.NOT_FOUND_MEMBER_ERROR;
@@ -204,16 +206,6 @@ public class TransactionService {
         return cached.size() - count;
     }
 
-    private TransactionListResDto buildTransactionListDto(List<Transaction> transactions) {
-        List<TransactionResDto> transactionResDtoList = new ArrayList<>();
-        Long totalSpending = 0L;
-        for (Transaction transaction : transactions) {
-            transactionResDtoList.add(TransactionResDto.from(transaction));
-            totalSpending += transaction.getAmount();
-        }
-        return TransactionListResDto.of(transactionResDtoList, totalSpending);
-    }
-
     public MissionInfoDto checkMissionByTransaction(Transaction transaction, MissionRedisDto mission) throws JsonProcessingException {
 
         String json = mission.getDsl().replace("'", "\"");
@@ -301,6 +293,16 @@ public class TransactionService {
         return MissionInfoDto.of(check, progress, value, template);
     }
 
+    private TransactionListResDto buildTransactionListDto(List<Transaction> transactions) {
+        List<TransactionResDto> transactionResDtoList = new ArrayList<>();
+        Long totalSpending = 0L;
+        for (Transaction transaction : transactions) {
+            transactionResDtoList.add(TransactionResDto.from(transaction));
+            totalSpending += transaction.getAmount();
+        }
+        return TransactionListResDto.of(transactionResDtoList, totalSpending);
+    }
+
 //    public void createTransactions(Integer userId, DummyTransactionsDto dto) {
 //        Random random = new Random();
 //        List<Dummy> dtos = dto.transactions();
@@ -346,13 +348,13 @@ public class TransactionService {
 
         transactionRepository.save(transaction);
 
-        Optional<Report> report = reportRepository.findByUser_UserIdAndReportMonth(user.getUserId(), transaction.getTransactedAt().toLocalDate());
+        Optional<Report> report = reportRepository.findByUser_UserIdAndReportMonth(user.getUserId(), transaction.getTransactedAt().toLocalDate().withDayOfMonth(1));
         if (report.isEmpty()) {
             Report newReport = Report.builder()
                     .monthlyBudget(user.getBudget())
                     .monthlyFixedExpense(0L)
                     .monthlyTotalExpense(0L)
-                    .reportMonth(transaction.getTransactedAt().toLocalDate())
+                    .reportMonth(transaction.getTransactedAt().toLocalDate().withDayOfMonth(1))
                     .user(user)
                     .build();
             report = Optional.of(reportRepository.save(newReport));
