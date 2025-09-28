@@ -47,6 +47,7 @@ class AuthViewModel @Inject constructor(
                     tokenStore.email = email
                     isLoggedIn = true
                     postAiTransaction()
+                    postMission()
                 }
                 .onFailure {
                     Timber.d("!!! 회원가입 실패 ${it}")
@@ -118,6 +119,21 @@ class AuthViewModel @Inject constructor(
                 .onFailure {
                     error = it.message
                     Timber.d("!!! postAiTransaction 실패 ${it}")
+                    //_toastEvent.emit("AI 결제  실패")
+                }
+        }
+    }
+
+    fun postMission() {
+        viewModelScope.launch {
+            repo.postMission()
+                .onSuccess {
+                    Timber.d("!!! postMission 성공")
+                    //_toastEvent.emit("AI 결제 실패")
+                }
+                .onFailure {
+                    error = it.message
+                    Timber.d("!!! postMission 실패 ${it}")
                     //_toastEvent.emit("AI 결제  실패")
                 }
         }
