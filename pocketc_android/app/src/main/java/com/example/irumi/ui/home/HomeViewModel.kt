@@ -32,6 +32,9 @@ class HomeViewModel @Inject constructor(
 
     private val _uiFriendState = MutableStateFlow(FriendHomeUiState())
     val uiFriendState: StateFlow<FriendHomeUiState> = _uiFriendState.asStateFlow()
+    private val _userCode: MutableStateFlow<String> =
+        MutableStateFlow("")
+    val userCode = _userCode.asStateFlow()
 
 //    init {
 //        Timber.d("[HomeVM] init -> refresh()")
@@ -387,6 +390,20 @@ class HomeViewModel @Inject constructor(
                 Timber.e(e, "[HomeVM] unfollow(%d) failure", targetUserId)
                 _uiState.value = _uiState.value.copy(error = e.message ?: "언팔로우 실패")
             }
+    }
+
+    fun getUserCode() {
+        viewModelScope.launch {
+            mainRepository.getUserCode()
+                .onSuccess {
+                    Timber.d("!!! getUserCode 성공")
+                    _userCode.value = it
+                }
+                .onFailure {
+                    Timber.d("!!! getUserCode 실패 ${it}")
+                    _userCode.value = _uiState.value.profile?.userId.toString()
+                }
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 package com.example.irumi.data.service
 
 import com.example.irumi.core.network.BaseResponse
-import com.example.irumi.data.dto.request.main.FollowRequest
+import com.example.irumi.data.dto.request.main.UserCodeDto
 import com.example.irumi.data.dto.request.main.MissionsSelectRequest
 import com.example.irumi.data.dto.response.main.BadgeListResponse
 import com.example.irumi.data.dto.response.main.DailySavingResponse
@@ -27,7 +27,7 @@ interface MainService {
 
     @POST("follows/{targetUserId}") suspend fun postFollow(@Path("targetUserId") id: Int): BaseResponse<Unit?>
     @POST("follows")
-    suspend fun postFollowByUserCode(@Body body: FollowRequest): BaseResponse<Unit?>
+    suspend fun postFollowByUserCode(@Body body: UserCodeDto): BaseResponse<Unit?>
 
     @DELETE("follows/{targetUserId}") suspend fun deleteFollow(@Path("targetUserId") id: Int): BaseResponse<Unit?>
 
@@ -52,4 +52,8 @@ interface MainService {
     // ✅ 단일 엔드포인트
     @GET("missions") suspend fun getMissions(): BaseResponse<MissionsResponse>
     @POST("missions") suspend fun postMissions(@Body body: MissionsSelectRequest): BaseResponse<MissionsResponse>
+
+    /** UserCode 조회 */
+    @GET("code")
+    suspend fun getUserCode(): BaseResponse<UserCodeDto>
 }

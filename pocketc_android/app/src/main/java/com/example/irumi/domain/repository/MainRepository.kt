@@ -31,4 +31,6 @@ interface MainRepository {
     // ✅ 단일 미션
     suspend fun getMissions(): Result<MissionsEntity>
     suspend fun submitMissions(selected: List<Int>): Result<MissionsEntity>
+
+    suspend fun getUserCode(): Result<String>
 }
