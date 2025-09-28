@@ -42,4 +42,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun postAiTransaction(): Result<Unit> =
         runCatching { ds.postAiTransaction() }
+
+    override suspend fun postMission(): Result<Unit> =
+        runCatching { ds.postMission() }
 }

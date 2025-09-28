@@ -15,4 +15,6 @@ interface AuthRepository {
     suspend fun reissue(): Result<TokenEnvelope>
     suspend fun updateMe(req: AuthEditRequest): Result<MemberProfileEntity>
     suspend fun postAiTransaction(): Result<Unit>
+
+    suspend fun postMission(): Result<Unit>
 }

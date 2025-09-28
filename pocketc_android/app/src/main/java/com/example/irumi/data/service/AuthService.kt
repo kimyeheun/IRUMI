@@ -41,4 +41,7 @@ interface AuthService {
     /** ai 결제 요청 */
     @POST("ai/transaction")
     suspend fun postAiTransaction(): BaseResponse<Unit>
+
+    @POST("mission")
+    suspend fun postMission(): BaseResponse<Unit>
 }

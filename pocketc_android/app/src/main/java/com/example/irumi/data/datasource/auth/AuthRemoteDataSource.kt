@@ -30,4 +30,7 @@ class AuthRemoteDataSource @Inject constructor(
 
     override suspend fun postAiTransaction(): BaseResponse<Unit> =
         service.postAiTransaction()
+
+    override suspend fun postMission(): BaseResponse<Unit> =
+        service.postMission()
 }
