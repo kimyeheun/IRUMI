@@ -1,6 +1,14 @@
 package com.example.irumi.domain.repository
 
-import com.example.irumi.domain.entity.main.*
+import com.example.irumi.domain.entity.main.BadgeEntity
+import com.example.irumi.domain.entity.main.DailySavingEntity
+import com.example.irumi.domain.entity.main.FollowEntity
+import com.example.irumi.domain.entity.main.FollowInfoEntity
+import com.example.irumi.domain.entity.main.FriendDailyEntity
+import com.example.irumi.domain.entity.main.MissionsEntity
+import com.example.irumi.domain.entity.main.SpendingEntity
+import com.example.irumi.domain.entity.main.StreakEntity
+import com.example.irumi.domain.entity.main.UserProfileEntity
 
 interface MainRepository {
     suspend fun getUserProfile(): Result<UserProfileEntity>
@@ -14,6 +22,10 @@ interface MainRepository {
     suspend fun follow(targetUserId: Int): Result<Unit>
     suspend fun unfollow(targetUserId: Int): Result<Unit>
     suspend fun getDailyWithFriend(friendId: Int): Result<FriendDailyEntity>
+
+    suspend fun getStreaksWithFriend(friendId: Int): Result<Pair<String, List<StreakEntity>>>
+
+    suspend fun getBadgesWithFriend(friendId: Int): Result<List<BadgeEntity>>
 
     // ✅ 단일 미션
     suspend fun getMissions(): Result<MissionsEntity>

@@ -30,6 +30,9 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private val _uiFriendState = MutableStateFlow(FriendHomeUiState())
+    val uiFriendState: StateFlow<FriendHomeUiState> = _uiFriendState.asStateFlow()
+
 //    init {
 //        Timber.d("[HomeVM] init -> refresh()")
 //        refresh()
@@ -73,6 +76,16 @@ class HomeViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(streaks = streaks)
     }
 
+    /** 개별 섹션 갱신: 친구 스트릭 */
+    fun reloadFriendStreaks(friendId: Int) = launchAndSet("[reloadStreaks]") {
+        val res = mainRepository.getStreaksWithFriend(friendId = friendId).getOrThrow()
+        Timber.d("[HomeVM] reloadStreaks(): size=%d, first=%s", res.second.size, res.second.firstOrNull()?.date ?: "null")
+        _uiFriendState.value = _uiFriendState.value.copy(
+            name = res.first,
+            streaks = res.second
+        )
+    }
+
     /** 개별 섹션 갱신: 팔로우(IDs) */
     fun reloadFollowIds() = launchAndSet("[reloadFollowIds]") {
         mainRepository.getFollowIds()
@@ -88,6 +101,13 @@ class HomeViewModel @Inject constructor(
         val badges = mainRepository.getBadges().getOrThrow()
         Timber.d("[HomeVM] reloadBadges(): size=%d", badges.size)
         _uiState.value = _uiState.value.copy(badges = badges)
+    }
+
+    /** 개별 섹션 갱신: 친구 뱃지 */
+    fun reloadFriendBadges(friendId: Int) = launchAndSet("[reloadFriendBadges]") {
+        val badges = mainRepository.getBadgesWithFriend(friendId = friendId).getOrThrow()
+        Timber.d("[HomeVM] reloadFriendBadges(): size=%d", badges.size)
+        _uiFriendState.value = _uiFriendState.value.copy(badges = badges)
     }
 
     /** 개별 섹션 갱신: 미션 (단일 엔드포인트) */
@@ -123,6 +143,9 @@ class HomeViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(
                 friendDaily = _uiState.value.friendDaily + (friendId to pair)
             )
+            _uiFriendState.value = _uiFriendState.value.copy(
+                friendScore = pair.friend
+            )
             Timber.d(
                 "[HomeVM] reloadFriendDaily(%d): me=%d/%d, friend=%d/%d",
                 friendId, pair.me.savingScore, pair.me.totalSpending,
@@ -133,7 +156,7 @@ class HomeViewModel @Inject constructor(
     // ---------- 내부 ----------
 
     /** 병렬 로딩 */
-    private suspend fun loadAll() = coroutineScope {
+    suspend fun loadAll() = coroutineScope {
         Timber.d("[HomeVM] loadAll() start")
 
         val profileDef = async {
@@ -213,6 +236,55 @@ class HomeViewModel @Inject constructor(
         Timber.d("[HomeVM] loadAll() done -> uiState=%s", _uiState.value.summary())
     }
 
+    suspend fun loadFriendInfoAll(friendId: Int) = coroutineScope {
+        Timber.d("!!! [HomeVM] loadFriendInfoAll() start")
+        _uiFriendState.value = _uiFriendState.value.copy(isLoading = true, error = null)
+
+        val badgesDef = async {
+            runCatching { mainRepository.getBadgesWithFriend(friendId).getOrThrow() }
+                .also { r ->
+                    r.onSuccess {
+                        Timber.d("!!! [HomeVM] /badges OK: size=%d", it.size)
+                        _uiFriendState.value = _uiFriendState.value.copy(
+                            badges = it
+                        )
+                    }
+                        .onFailure { Timber.e(it, "!!! [HomeVM] /badges ERROR") }
+                }
+        }
+
+        val streaksDef = async {
+            runCatching { mainRepository.getStreaksWithFriend(friendId).getOrThrow().second }
+                .also { r ->
+                    r.onSuccess {
+                        Timber.d("!!! [HomeVM] /streaks OK: size=%d", it.size)
+                        //TODO; 점수 추가해달라고 하기
+                        _uiFriendState.value = _uiFriendState.value.copy(
+                            streaks = it
+                        )
+                    }
+                        .onFailure { Timber.e(it, "!!! [HomeVM] /streaks ERROR") }
+                }
+        }
+
+        awaitAll(badgesDef, streaksDef)
+
+        val current = _uiFriendState.value
+        val badges = badgesDef.await().getOrNull() ?: current.badges
+        val streaks = streaksDef.await().getOrNull() ?: current.streaks
+
+        _uiFriendState.value = current.copy(
+            isLoading = false,
+            error = null,
+            name = current.name,
+            friendScore = current.friendScore,
+            badges = badges,
+            streaks = streaks
+        )
+
+        Timber.d("[HomeVM] loadAll() done -> uiState=%s", _uiFriendState.value)
+    }
+
     private fun launchAndSet(tag: String, block: suspend () -> Unit) = viewModelScope.launch {
         Timber.d("[HomeVM] %s start", tag)
         runCatching { block() }
@@ -273,6 +345,15 @@ data class HomeUiState(
 
     // 친구 비교 캐시: friendId → (me, friend)
     val friendDaily: Map<Int, FriendDailyEntity> = emptyMap()
+)
+
+data class FriendHomeUiState(
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val name: String? = null,
+    val friendScore: DailySavingEntity? = null,
+    val badges: List<BadgeEntity> = emptyList(),
+    val streaks: List<StreakEntity> = emptyList()
 )
 
 /** 디버깅용 요약 문자열 */

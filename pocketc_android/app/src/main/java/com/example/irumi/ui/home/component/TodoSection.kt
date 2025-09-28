@@ -1,7 +1,16 @@
 package com.example.irumi.ui.home.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
@@ -9,30 +18,42 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.irumi.core.designsystem.component.tooltip.InfoTooltip
 import com.example.irumi.domain.entity.main.MissionEntity
+import com.example.irumi.ui.events.SampleColors
+import com.example.irumi.ui.home.model.TodoItemUi
 import com.example.irumi.ui.theme.BrandGreen
+import java.text.NumberFormat
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 /** 내부 표시용 상태 */
 enum class UiStatus { ACTIVE, SUCCESS, FAILED }
 
 // ★ 상태 칩
 @Composable
-private fun StatusChip(status: UiStatus) {
+private fun StatusChip(
+    status: UiStatus,
+    modifier: Modifier? = Modifier
+) {
     val (bg, fg, label) = when (status) {
         UiStatus.SUCCESS -> Triple(
             BrandGreen.copy(alpha = 0.18f),
@@ -65,14 +86,6 @@ private fun StatusChip(status: UiStatus) {
     }
 }
 
-/** UI용 간단한 미션 아이템 모델. */
-data class TodoItemUi(
-    val id: Int,
-    val title: String,
-    val status: UiStatus, // ★ 진행중/성공/실패
-    val dimAlpha: Float   // 성공/실패는 살짝 연하게
-)
-
 @Composable
 fun TodoSection(
     missionReceived: Boolean,
@@ -91,7 +104,7 @@ fun TodoSection(
         missions.map {
             val success = it.status.equals("SUCCESS", true) ||
                     it.status.equals("DONE", true) ||
-                    (it.progress ?: 0) >= 100
+                    (it.progress ?: 0) >= (it.value ?: 100)
             val failed = it.status.equals("FAILED", true)
 
             val uiStatus = when {
@@ -105,25 +118,21 @@ fun TodoSection(
                 id = it.missionId,
                 title = it.mission,
                 status = uiStatus,
-                dimAlpha = dim
+                dimAlpha = dim,
+                type = it.type,
+                template = it.template ?: "",
+                progress = it.progress ?: 0,
+                value = it.value ?: 100
             )
         }
     }
 
-    // 제목 접두어로 기간 분류
+    // type으로 기간 분류 (0: Daily, 1: Weekly, 2: Monthly)
     val (daily, weekly, monthly) = remember(uiItems) {
-        val week = mutableListOf<TodoItemUi>()
-        val month = mutableListOf<TodoItemUi>()
-        val day = mutableListOf<TodoItemUi>()
-        uiItems.forEach { item ->
-            val t = item.title.trim()
-            when {
-                t.startsWith("주간") -> week += item
-                t.startsWith("한 달") || t.startsWith("한달") -> month += item
-                else -> day += item
-            }
-        }
-        Triple(day.toList(), week.toList(), month.toList())
+        val day = uiItems.filter { it.type == 0 }
+        val week = uiItems.filter { it.type == 1 }
+        val month = uiItems.filter { it.type == 2 }
+        Triple(day, week, month)
     }
 
     val currentItems = when (selectedTab) {
@@ -140,7 +149,7 @@ fun TodoSection(
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("오늘의 미션", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text("AI 추천 미션", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.width(2.dp))
             InfoTooltip(title="미션", description = "소비 내역 맞춤형 AI미션입니다", iconSize=14)
             Spacer(Modifier.weight(1f))
@@ -243,28 +252,151 @@ fun TodoSection(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFF7F8FA))
-                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(SampleColors.Gray50)
+                            .padding(16.dp)
                             .alpha(item.dimAlpha),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top
                     ) {
-                        // 상태 칩 (명확하게)
-                        StatusChip(item.status)
-                        Spacer(Modifier.width(10.dp))
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top // CenterVertically -> Top으로 변경
+                            ) {
+                                Text(
+                                    text = item.title,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    lineHeight = 20.sp, // 줄 높이 명시
+                                    modifier = Modifier.weight(0.7f) // 70% 비율 보장
+                                )
 
-                        Column(Modifier.weight(1f)) {
-                            Text(
-                                item.title,
-                                fontSize = 15.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                                Spacer(Modifier.width(8.dp)) // 여백 늘림
+
+                                StatusChip(
+                                    item.status,
+                                    modifier = Modifier.weight(0.3f, fill = false) // 30% 최대, 내용만큼만 차지
+                                )
+                            }
+
+                            Spacer(Modifier.height(4.dp)) // 여백 늘림
+
+                            // 진행도는 아래쪽에
+                            if (!item.template.contains("BAN")) {
+                                AmountProgressIndicator(
+                                    isCount = item.template.startsWith("COUNT"),
+                                    current = item.progress,
+                                    total = item.value,
+                                    status = item.status
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
+}
+
+// ★ 금액 달성도
+@Composable
+private fun AmountProgressIndicator(
+    isCount: Boolean,
+    current: Int,
+    total: Int,
+    status: UiStatus,
+    modifier: Modifier = Modifier
+) {
+    val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${formatter.format(current)}" + if (isCount) "회" else "원",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = when (status) {
+                    UiStatus.SUCCESS -> BrandGreen
+                    UiStatus.FAILED -> MaterialTheme.colorScheme.error
+                    else -> Color(0xFF6B7684)
+                }
+            )
+            Text(
+                text = " / ${formatter.format(total)}" + if (isCount) "회" else "원",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = when (status) {
+                    UiStatus.SUCCESS -> BrandGreen
+                    UiStatus.FAILED -> MaterialTheme.colorScheme.error
+                    else -> Color(0xFF6B7684)
+                }
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreTodoSection2() {
+    TodoSection(
+        missionReceived = true,
+        missions = listOf(
+            MissionEntity(
+                missionId = 1,
+                subId = 2,
+                type = 0, // Daily
+                mission = "오늘 간식 ㅁ널이힝라힝랗 10000원 이하로 쓰기",
+                status = "ACTIVE",
+                progress = 7500,
+                value = 10000,
+                template = "SPEND_CAP_DAILY"
+            ),
+            MissionEntity(
+                missionId = 2,
+                subId = 2,
+                type = 1, // Weekly
+                mission = "이번주 커피 5번 이하로 마시기",
+                status = "SUCCESS",
+                progress = 3,
+                value = 5,
+                template = "COUNT_CAP_WEEKLY"
+            ),
+            MissionEntity(
+                missionId = 3,
+                subId = 3,
+                type = 2, // Monthly
+                mission = "한 달 배달음식 20만원 이하로 쓰기",
+                status = "ACTIVE",
+                progress = 150000,
+                value = 200000,
+                template = "SPEND_CAP_MONTHLY"
+            ),
+            MissionEntity(
+                missionId = 4,
+                subId = 4,
+                type = 0, // Daily
+                mission = "오늘 운동 지출하지 않기",
+                status = "FAILED",
+                progress = 0,
+                value = 1,
+                template = "CATEGORY_BAN_DAILY"
+            )
+        ),
+        isUpdatingId = null,
+        error = null,
+        onToggle = { _, _ -> },
+        modifier = Modifier.padding(10.dp)
+    )
 }
 
 /** ===== 기존 유틸 (그대로 유지) ===== */
