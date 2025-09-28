@@ -14,9 +14,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import javax.inject.Inject
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
@@ -46,6 +46,7 @@ class AuthViewModel @Inject constructor(
                     tokenStore.autoLogin = remember
                     tokenStore.email = email
                     isLoggedIn = true
+                    postAiTransaction()
                 }
                 .onFailure {
                     Timber.d("!!! 회원가입 실패 ${it}")
@@ -100,6 +101,25 @@ class AuthViewModel @Inject constructor(
 
     private fun launch(block: suspend () -> Unit) = viewModelScope.launch {
         loading = true; error = null
-        try { block() } finally { loading = false }
+        try {
+            block()
+        } finally {
+            loading = false
+        }
+    }
+
+    fun postAiTransaction() {
+        viewModelScope.launch {
+            repo.postAiTransaction()
+                .onSuccess {
+                    Timber.d("!!! postAiTransaction 성공")
+                    //_toastEvent.emit("AI 결제 실패")
+                }
+                .onFailure {
+                    error = it.message
+                    Timber.d("!!! postAiTransaction 실패 ${it}")
+                    //_toastEvent.emit("AI 결제  실패")
+                }
+        }
     }
 }

@@ -204,7 +204,7 @@ fun RegisterRoute(
 
                 RegisterStep.Account -> {
                     AccountScreen(
-                        name = "김싸피", // TODO
+                        name = name,
                         onConfirmClick = {
                             viewModel.signUp(
                                 name = name,
