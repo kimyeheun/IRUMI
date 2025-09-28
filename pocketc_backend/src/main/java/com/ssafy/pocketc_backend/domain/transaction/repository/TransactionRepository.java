@@ -30,4 +30,5 @@ public interface TransactionRepository extends JpaRepository<Transaction,Integer
             "AND t.isApplied = true")
     int getFixedSpending(Integer userId, LocalDateTime from, LocalDateTime to);
 
+    void deleteAllByUser_UserId(Integer userUserId);
 }
