@@ -24,61 +24,42 @@ object CategoryMapper {
 
     // Sub 카테고리
     private val subCategories = listOf(
-        // 주거/생활
-        SubCategory(1, "월세/관리비", true),
-        SubCategory(2, "전기세", true),
-        SubCategory(3, "수도세", true),
-        SubCategory(4, "가스비", true),
-        SubCategory(5, "생활용품", false),
-
-        // 통신/인터넷
-        SubCategory(6, "휴대폰 요금", true),
-        SubCategory(7, "인터넷", true),
-        SubCategory(8, "OTT/구독서비스", false),
-
-        // 금융/저축
-        SubCategory(9, "저축", true),
-        SubCategory(10, "투자", true),
-        SubCategory(11, "대출/이자", true),
-        SubCategory(12, "세금/보험", true),
-
-        // 식비
-        SubCategory(13, "커피", false),
-        SubCategory(14, "음료", false),
-        SubCategory(15, "술", false),
-        SubCategory(16, "간식", false),
-        SubCategory(17, "배달음식", false),
-        SubCategory(18, "외식", false),
-        SubCategory(19, "식재료", false),
-
-        // 교통/차량
-        SubCategory(20, "대중교통", false),
-        SubCategory(21, "택시/대리", false),
-        SubCategory(22, "유류비", false),
-
-        // 건강/의료
-        SubCategory(23, "병원", true),
-        SubCategory(24, "약국", true),
-        SubCategory(25, "헬스/PT", false),
-
-        // 교육/자기계발
-        SubCategory(26, "학원/수강료", true),
-        SubCategory(27, "도서/교재", false),
-        SubCategory(28, "자격증", true),
-
-        // 쇼핑
-        SubCategory(29, "의류/패션", false),
-        SubCategory(30, "뷰티/미용", false),
-        SubCategory(31, "온라인 쇼핑몰", false),
-        SubCategory(32, "충동구매", false),
-
-        // 문화/여가
-        SubCategory(33, "영화/공연", false),
-        SubCategory(34, "게임/콘텐츠", false),
-        SubCategory(35, "여행", false),
-        SubCategory(36, "취미/오락", false),
-
-        // 기타
+        SubCategory(1, "커피", false),
+        SubCategory(2, "음료", false),
+        SubCategory(3, "술", false),
+        SubCategory(4, "간식", false),
+        SubCategory(5, "배달음식", false),
+        SubCategory(6, "외식", false),
+        SubCategory(7, "식재료", false),
+        SubCategory(8, "대중교통", false),
+        SubCategory(9, "택시/대리", false),
+        SubCategory(10, "유류비", false),
+        SubCategory(11, "월세/관리비", true),
+        SubCategory(12, "전기세", true),
+        SubCategory(13, "수도세", true),
+        SubCategory(14, "가스비", true),
+        SubCategory(15, "생활용품", false),
+        SubCategory(16, "휴대폰요금", true),
+        SubCategory(17, "인터넷", true),
+        SubCategory(18, "OTT·구독서비스", false),
+        SubCategory(19, "병원", true),
+        SubCategory(20, "약국", true),
+        SubCategory(21, "헬스·PT", false),
+        SubCategory(22, "학원·수강료", true),
+        SubCategory(23, "도서·교재", false),
+        SubCategory(24, "자격증", true),
+        SubCategory(25, "의류·패션", false),
+        SubCategory(26, "뷰티·미용", false),
+        SubCategory(27, "온라인 쇼핑몰", false),
+        SubCategory(28, "충동 구매", false),
+        SubCategory(29, "영화·공연", false),
+        SubCategory(30, "게임·콘텐츠", false),
+        SubCategory(31, "여행", false),
+        SubCategory(32, "취미·오락", false),
+        SubCategory(33, "저축", true),
+        SubCategory(34, "투자", true),
+        SubCategory(35, "대출·이자", true),
+        SubCategory(36, "세금·보험", true),
         SubCategory(37, "송금", true),
         SubCategory(38, "경조사비", true),
         SubCategory(39, "기타", false)

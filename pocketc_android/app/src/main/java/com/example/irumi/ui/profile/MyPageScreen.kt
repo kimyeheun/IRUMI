@@ -118,10 +118,7 @@ fun MyPageScreen(
             item {
                 ProfileHeaderCard(
                     profile = uiState.profile,
-                    money = money,
-                    onLoggedOut = {
-                        imagePickerLauncher.launch("image/*")
-                    }
+                    money = money
                 )
             }
 
@@ -148,7 +145,6 @@ fun MyPageScreen(
 private fun ProfileHeaderCard(
     profile: UserProfileEntity?,
     money: DecimalFormat,
-    onLoggedOut: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -427,20 +423,6 @@ private fun SettingsSection(onLoggedOut: () -> Unit) {
                 color = Color(0xFF191F28),
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-
-//            SettingItem(
-//                icon = Icons.Default.Edit,
-//                title = "프로필 편집",
-//                subtitle = "이름, 이메일, 프로필 사진 변경",
-//                onClick = { /* TODO */ }
-//            )
-//
-//            SettingItem(
-//                icon = Icons.Default.AccountBalanceWallet,
-//                title = "예산 설정",
-//                subtitle = "월 예산 금액 변경",
-//                onClick = { /* TODO */ }
-//            )
 
             SettingItem(
                 icon = Icons.Default.ExitToApp,
