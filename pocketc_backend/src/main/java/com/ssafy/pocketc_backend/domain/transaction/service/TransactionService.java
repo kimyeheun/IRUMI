@@ -176,7 +176,7 @@ public class TransactionService {
 
         if (transaction.isApplied()) throw new CustomException(ERROR_ALREADY_APPLIED);
         transaction.setApplied(true);
-
+        transactionRepository.save(transaction);
         LocalDate date = LocalDate.from(transaction.getTransactedAt());
         if (transaction.getTransactedAt().toLocalTime().isBefore(LocalTime.of(6, 0))) {
             date = date.minusDays(1);
@@ -345,10 +345,6 @@ public class TransactionService {
         transaction.setTransactedAt(dummy.getTransactedAt());
         transaction.setMajorId(dummy.getMajorId());
         transaction.setSubId(dummy.getSubId());
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        if (transaction.getTransactedAt().toLocalDate().isEqual(today)) {
-            transaction.setApplied(false);
-        }
         transactionRepository.save(transaction);
         Optional<Report> report = reportRepository.findByUser_UserIdAndReportMonth(user.getUserId(), transaction.getTransactedAt().toLocalDate().withDayOfMonth(1));
         if (report.isEmpty()) {
