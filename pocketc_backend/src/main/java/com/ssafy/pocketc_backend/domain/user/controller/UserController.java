@@ -1,5 +1,7 @@
 package com.ssafy.pocketc_backend.domain.user.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ssafy.pocketc_backend.domain.mission.service.MissionService;
 import com.ssafy.pocketc_backend.domain.user.dto.request.TokenReissueRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
@@ -30,6 +32,7 @@ public class UserController {
     private final UserService userService;
     private final JwtProvider jwtProvider;
     private final DataService dataService;
+    private final MissionService missionService;
 
     @Operation(summary = "회원가입", description = "이름, 패스워드, 이메일, 예산")
     @PostMapping
@@ -110,6 +113,15 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(
                 SUCCESS_GET_CODE,
                 userService.getUserCode(Integer.parseInt(principal.getName()))
+        ));
+    }
+
+    @PostMapping("/mission")
+    public ResponseEntity<ApiResponse<?>> getMissions(Principal principal) throws JsonProcessingException {
+        missionService.getWeeklyMissions(Integer.parseInt(principal.getName()));
+        missionService.getMonthlyMissions(Integer.parseInt(principal.getName()));
+        return ResponseEntity.ok(ApiResponse.success(
+                SUCCESS_GET_MISSION
         ));
     }
 }
