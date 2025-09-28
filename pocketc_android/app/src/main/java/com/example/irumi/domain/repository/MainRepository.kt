@@ -20,6 +20,7 @@ interface MainRepository {
 
     suspend fun getFollowIds(): Result<List<FollowInfoEntity>>
     suspend fun follow(targetUserId: Int): Result<Unit>
+    suspend fun follow(userCode: String): Result<Unit>
     suspend fun unfollow(targetUserId: Int): Result<Unit>
     suspend fun getDailyWithFriend(friendId: Int): Result<FriendDailyEntity>
 
@@ -30,4 +31,6 @@ interface MainRepository {
     // ✅ 단일 미션
     suspend fun getMissions(): Result<MissionsEntity>
     suspend fun submitMissions(selected: List<Int>): Result<MissionsEntity>
+
+    suspend fun getUserCode(): Result<String>
 }

@@ -75,6 +75,8 @@ fun MyPageScreen(
     onLoggedOut: () -> Unit, // 인트로 화면으로 이동
 ) {
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val userCode by homeViewModel.userCode.collectAsStateWithLifecycle()
+
     val money = remember { DecimalFormat("#,##0원") }
 
     val error = authViewModel.error
@@ -95,6 +97,7 @@ fun MyPageScreen(
 
     LaunchedEffect(Unit) {
         homeViewModel.loadAll()
+        homeViewModel.getUserCode()
     }
 
     // 로그아웃 성공 감지
@@ -117,6 +120,7 @@ fun MyPageScreen(
         ) {
             item {
                 ProfileHeaderCard(
+                    userCode = userCode,
                     profile = uiState.profile,
                     money = money
                 )
@@ -143,6 +147,7 @@ fun MyPageScreen(
 
 @Composable
 private fun ProfileHeaderCard(
+    userCode: String,
     profile: UserProfileEntity?,
     money: DecimalFormat,
 ) {
@@ -200,7 +205,7 @@ private fun ProfileHeaderCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            MyCodeRow(profile?.userId ?: 0)
+            MyCodeRow(userCode)
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -222,7 +227,7 @@ private fun ProfileHeaderCard(
 
 @Composable
 fun MyCodeRow(
-    userId: Int,
+    userId: String,
     context: Context = LocalContext.current
 ) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
