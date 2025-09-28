@@ -1,5 +1,6 @@
 package com.ssafy.pocketc_backend.domain.follow.controller;
 
+import com.ssafy.pocketc_backend.domain.follow.dto.request.FollowReqDto;
 import com.ssafy.pocketc_backend.domain.follow.dto.response.FollowListResDto;
 import com.ssafy.pocketc_backend.domain.follow.service.FollowService;
 import com.ssafy.pocketc_backend.global.common.ApiResponse;
@@ -38,5 +39,11 @@ public class FollowController {
                 SUCCESS_GET_FOLLOWS,
                 followService.getFollowList(userId(principal))
         ));
+    }
+
+    @PostMapping("/follows")
+    public ResponseEntity<ApiResponse<?>> getFollow(@RequestBody FollowReqDto dto, Principal principal) {
+        followService.doFollow(dto.userCode(), userId(principal));
+        return ResponseEntity.ok(ApiResponse.success(SUCCESS_POST_FOLLOW));
     }
 }

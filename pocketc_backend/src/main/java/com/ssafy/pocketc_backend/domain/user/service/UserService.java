@@ -6,6 +6,7 @@ import com.ssafy.pocketc_backend.domain.report.service.ReportService;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserLoginRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserSignupRequest;
 import com.ssafy.pocketc_backend.domain.user.dto.request.UserUpdateRequest;
+import com.ssafy.pocketc_backend.domain.user.dto.response.UserCodeDto;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserProfileResponse;
 import com.ssafy.pocketc_backend.domain.user.dto.response.UserResponse;
 import com.ssafy.pocketc_backend.domain.user.entity.Streak;
@@ -159,5 +160,11 @@ public class UserService {
 
             user.updateProfileImage(profileUrl);
         }
+    }
+
+    public UserCodeDto getUserCode(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(NOT_FOUND_MEMBER_ERROR));
+        return new UserCodeDto(user.getUserCode());
     }
 }

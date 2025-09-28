@@ -36,6 +36,7 @@ import reactor.core.publisher.Mono;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.ssafy.pocketc_backend.domain.transaction.exception.TransactionErrorType.*;
@@ -345,6 +346,8 @@ public class TransactionService {
         transaction.setTransactedAt(dummy.getTransactedAt());
         transaction.setMajorId(dummy.getMajorId());
         transaction.setSubId(dummy.getSubId());
+        if (Objects.equals(transaction.getTransactedAt().toLocalDate(), LocalDate.now()))
+            transaction.setApplied(false);
 
         transactionRepository.save(transaction);
 

@@ -20,6 +20,7 @@ public enum UserSuccessType implements SuccessType {
 
     GET_ME_SUCCESS(HttpStatus.OK, "회원 조회에 성공했습니다."),
     UPLOAD_SUCCESS(HttpStatus.OK, "이미지 업로드에 성공했습니다."),
+    SUCCESS_GET_CODE(HttpStatus.OK, "회원 코드 조회 성공"),
 
     SUCCESS_UPDATE_TRANSACTIONS(HttpStatus.OK, "거래내역 AI 성공");
 
