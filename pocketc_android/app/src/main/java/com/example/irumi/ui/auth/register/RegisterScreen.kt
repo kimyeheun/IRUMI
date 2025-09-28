@@ -95,7 +95,7 @@ fun RegisterRoute(
     }
     // 에러 토스트
     LaunchedEffect(error) {
-        error?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+        error?.let { Toast.makeText(context, "회원가입에 실패했습니다.", Toast.LENGTH_SHORT).show() }
     }
 
     Scaffold(
