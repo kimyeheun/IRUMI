@@ -215,7 +215,7 @@ public class TransactionService {
         String template = root.get("template").toString().replace("\"", "");
         int subId = root.get("sub_id").asInt();
         long value = root.get("value").asLong();
-        long progress = mission.getProgress();
+        long progress = mission.getProgress() == null ? 0L : mission.getProgress();
 
         if (subId != transaction.getSubId()) return MissionInfoDto.of(true, progress, value, template);
 
