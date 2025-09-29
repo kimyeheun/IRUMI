@@ -102,16 +102,22 @@ fun TodoSection(
     // 서버 모델 → UI 모델 매핑 (★ 상태 판정: status 우선, 다음 progress)
     val uiItems = remember(missions) {
         missions.map {
-            val success = it.status.equals("SUCCESS", true) ||
-                    it.status.equals("DONE", true) ||
-                    (it.progress ?: 0) >= (it.value ?: 100)
-            val failed = it.status.equals("FAILED", true)
+//            val success = it.status.equals("SUCCESS", true) ||
+//                    it.status.equals("DONE", true) ||
+//                    (it.progress ?: 0) >= (it.value ?: 100)
+//            val failed = it.status.equals("FAILED", true)
 
-            val uiStatus = when {
-                success -> UiStatus.SUCCESS
-                failed -> UiStatus.FAILED
-                else -> UiStatus.ACTIVE
+            val uiStatus = when(it.status) {
+                "SUCCESS" -> UiStatus.SUCCESS
+                "IN_PROGRESS" -> UiStatus.ACTIVE
+                else -> UiStatus.FAILED
             }
+
+//            val uiStatus = when {
+//                success -> UiStatus.SUCCESS
+//                failed -> UiStatus.FAILED
+//                else -> UiStatus.ACTIVE
+//            }
             val dim = if (uiStatus != UiStatus.ACTIVE) 0.75f else 1f
 
             TodoItemUi(
@@ -356,7 +362,7 @@ fun PreTodoSection2() {
                 subId = 2,
                 type = 0, // Daily
                 mission = "오늘 간식 ㅁ널이힝라힝랗 10000원 이하로 쓰기",
-                status = "ACTIVE",
+                status = "IN_PROGRESS",
                 progress = 7500,
                 value = 10000,
                 template = "SPEND_CAP_DAILY"

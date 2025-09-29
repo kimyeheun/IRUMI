@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.irumi.ui.auth.AuthViewModel
 import com.example.irumi.ui.component.button.PrimaryButton
+import com.example.irumi.ui.payments.TossColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,7 +106,14 @@ fun LoginScreen(
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .defaultMinSize(minHeight = 56.dp)
+                .defaultMinSize(minHeight = 56.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = TossColors.Primary,   // 포커스 됐을 때 테두리
+                unfocusedBorderColor = Color.Gray,         // 평소 테두리
+                cursorColor = TossColors.Primary,          // 커서 색
+                focusedLabelColor = TossColors.Primary,    // 포커스 시 라벨 색
+                unfocusedLabelColor = Color.Gray           // 평소 라벨 색
+            )
         )
         OutlinedTextField(
             value = pw,
@@ -115,7 +123,14 @@ fun LoginScreen(
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth()
-                .defaultMinSize(minHeight = 56.dp)
+                .defaultMinSize(minHeight = 56.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = TossColors.Primary,   // 포커스 됐을 때 테두리
+                unfocusedBorderColor = Color.Gray,         // 평소 테두리
+                cursorColor = TossColors.Primary,          // 커서 색
+                focusedLabelColor = TossColors.Primary,    // 포커스 시 라벨 색
+                unfocusedLabelColor = Color.Gray           // 평소 라벨 색
+            )
         )
 
         PrimaryButton(
