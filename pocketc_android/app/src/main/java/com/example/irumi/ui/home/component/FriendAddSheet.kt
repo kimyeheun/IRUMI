@@ -76,9 +76,6 @@ fun FriendAddSheet(
                 label = { Text("유저 코드 입력") },
                 placeholder = { Text("예: A134B0F2") },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                ),
                 trailingIcon = {
                     if (query.isNotEmpty() && !isProcessing) {
                         TextButton(onClick = { query = "" }) { Text("지우기") }
