@@ -2,30 +2,30 @@
 FROM gradle:8.7.0-jdk21 AS builder
 WORKDIR /app
 
-COPY gradlew ./gradlew
-COPY gradle/wrapper/ gradle/wrapper/
-COPY settings.gradle* build.gradle* gradle.properties* ./
-RUN chmod +x gradlew 2>/dev/null || true && sed -i 's/\r$//' gradlew 2>/dev/null || true
-RUN test -f gradle/wrapper/gradle-wrapper.jar || gradle -q wrapper --gradle-version 8.7
+# 전체 먼저 복사
+COPY . .
 
-COPY src ./src
+# gradlew 실행권한 & (윈도우 라인엔딩 방지) 정규화
+RUN chmod +x gradlew && sed -i 's/\r$//' gradlew
+
+# 캐시 워밍업(선택)
+RUN ./gradlew --no-daemon help || true
+
+# 실제 빌드
 RUN ./gradlew --no-daemon clean bootJar -x test
 
+# ===== run stage =====
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-
-ARG BUILD_REVISION
-ARG BUILD_TIME
-LABEL org.opencontainers.image.revision=$BUILD_REVISION \
-      org.opencontainers.image.created=$BUILD_TIME
 
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
 ENV TZ=Asia/Seoul
 ENV SERVER_PORT=8080
+ENV SPRING_PROFILES_ACTIVE=prod
 
-COPY --from=builder /app/build/libs/*.jar /app/app.jar
+COPY --from=builder /app/build/libs/app.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java","-XX:MaxRAMPercentage=75.0","-jar","/app/app.jar"]

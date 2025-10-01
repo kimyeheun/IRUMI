@@ -1,12 +1,29 @@
+s13-fintech-finance-sub1
+IRUMI
+Repository
+S13P21A407
+pocketc_backend
+src
+main
+resources
+application.yml
+application.yml
+user avatar
+feature:거래내역 더미데이터 추가 api 생성
+김태현 authored 5 days ago
+e793d6c9
+application.yml
+1.85 KiB
 server:
   port: 8080
-
 spring:
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: update
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         dialect: org.hibernate.dialect.MySQLDialect
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,9 +33,14 @@ spring:
   data:
     redis:
       host: ${REDIS_HOST:localhost}
+      username: ${REDIS_USERNAME:default}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: true
   cloud:
+    s3:
+      enabled: true
     aws:
       s3:
         bucket-name: ${AWS_BUCKET_NAME}
@@ -27,7 +49,20 @@ spring:
       credentials:
         access-key: ${AWS_ACCESS_KEY_ID}
         secret-key: ${AWS_SECRET_ACCESS_KEY}
-
+jwt:
+  secret: ${JWT_SECRET}
+ai:
+  base-url: ${AI_BASE_URL}
+springdoc:
+  swagger-ui:
+    # 'urls' 설정을 통해 여러 개의 API 문서를 그룹으로 묶는거
+    urls:
+      # 원래 Spring Boot API
+      - name: 'Backend API (Spring Boot)'
+        url: '/v3/api-docs'  # springdoc이 기본으로 생성하는 API 문서 경로
+      # FastAPI
+      - name: 'AI API (FastAPI)'
+        url: '/ai/openapi.json' # Nginx에 설정된 FastAPI의 openapi.json 경로
 ---
 spring:
   config:
@@ -36,6 +71,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+    defer-datasource-initialization: true
   h2:
     console:
       enabled: true
@@ -45,5 +81,16 @@ spring:
     url: jdbc:h2:mem:pocketcdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE
     username: sa
     password:
-jwt:
-  secret: ${JWT_SECRET}
+  sql:
+    init:
+      mode: always
+      platform: h2
+      data-locations:
+        - classpath:db/init_v2.sql
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ""
+ai:
+ base-url: ${AI_BASE_URL}
