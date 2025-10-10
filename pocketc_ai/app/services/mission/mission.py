@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+
 from datetime import datetime
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from app.repository.missionRepository import MissionRepository
 from app.repository.transactionRepository import TransactionRepository
 from app.repository.userMetricsRepository import UserMetricsRepository
 from app.schemas.mission import Mission
+
 from app.services.mission.clustering import cluster_for_user
 from app.services.mission.template.template import pick_template
 from app.services.mission.templates_to_mission import build_mission_details
@@ -59,6 +61,7 @@ class MissionService:
                             subId=sub_id,
                             dsl=str(dsl),
                             type=0,
+
                             validFrom=valid_from,
                             validTo=valid_to
                         )
@@ -66,7 +69,6 @@ class MissionService:
                 except ValueError:
                     break
         return missions
-
 
     def create_weekly_mission(self, user_id: int, now: datetime) -> list[Mission]:
         top_cats = self.repo.get_top_frequent_categories(user_id, now, days=30, top_n=1)
